@@ -1,0 +1,74 @@
+import { describe, expect, test } from "vitest";
+
+import {
+  getRegistryIndexJson,
+  getRegistryIndexJsonResponse,
+  getRegistryItemJsonResponse,
+} from "@/lib/registry/json.server";
+
+describe("registry JSON route responses", () => {
+  test("serves the same registry index payload for canonical and alias routes", async () => {
+    const canonical = await readJson(getRegistryIndexJsonResponse());
+    const alias = await readJson(getRegistryIndexJsonResponse());
+
+    expect(canonical).toEqual(alias);
+    expect(canonical).toEqual(getRegistryIndexJson());
+  });
+
+  test("serves the same item payload for canonical and alias routes", async () => {
+    const canonical = await readJson(getRegistryItemJsonResponse("example-card"));
+    const alias = await readJson(getRegistryItemJsonResponse("example-card"));
+
+    expect(canonical).toEqual(alias);
+    expect(canonical).toMatchObject({
+      name: "example-card",
+      $schema: "https://ui.shadcn.com/schema/registry-item.json",
+    });
+  });
+
+  test("publishes install-time aliases for relative registry source imports", async () => {
+    const item = await readJson(getRegistryItemJsonResponse("stats-panel"));
+
+    expect(getFileContent(item, "registry/items/blocks/stats-panel/stats-panel.tsx")).toContain(
+      `from "@/components/ui/example-card"`,
+    );
+    expect(getFileContent(item, "registry/items/blocks/stats-panel/stats-panel.tsx")).toContain(
+      `from "@/lib/stats-data"`,
+    );
+  });
+
+  test("returns JSON 404 responses for unknown items", async () => {
+    const canonical = getRegistryItemJsonResponse("missing-item");
+    const alias = getRegistryItemJsonResponse("missing-item");
+
+    expect(canonical.status).toBe(404);
+    expect(alias.status).toBe(404);
+    expect(await readJson(canonical)).toEqual({ error: "Registry item not found." });
+    expect(await readJson(alias)).toEqual({ error: "Registry item not found." });
+  });
+});
+
+async function readJson(response: Response): Promise<unknown> {
+  return response.json();
+}
+
+function getFileContent(item: unknown, path: string): string {
+  if (!isRecord(item) || !Array.isArray(item.files)) {
+    throw new Error("Expected registry item JSON.");
+  }
+
+  const file = item.files.find(
+    (candidate): candidate is { path: string; content: string } =>
+      isRecord(candidate) && candidate.path === path && typeof candidate.content === "string",
+  );
+
+  if (!file) {
+    throw new Error(`Expected registry item file: ${path}`);
+  }
+
+  return file.content;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}

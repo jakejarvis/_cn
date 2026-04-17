@@ -26,6 +26,7 @@ const registryItemModules = import.meta.glob<RegistryItemModule>(
   "../../../registry/items/**/_registry.tsx",
   {
     eager: true,
+    query: "?registry-metadata",
   },
 );
 

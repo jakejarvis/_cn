@@ -114,6 +114,16 @@ describe("registry catalog", () => {
     expect(getMissingRegistryPreviewPaths()).toEqual([]);
   });
 
+  test("loads metadata without evaluating client-only preview imports", () => {
+    const hook = getRegistryItemByName("use-copy-to-clipboard");
+    const block = getRegistryItemByName("stats-panel");
+
+    expect(hook.previewSourceFile.path).toBe(
+      "registry/items/hooks/use-copy-to-clipboard/_registry.tsx",
+    );
+    expect(block.previewSourceFile.path).toBe("registry/items/blocks/stats-panel/_registry.tsx");
+  });
+
   test("trims blank trailing lines from imported source", () => {
     expect(trimBlankTrailingLines("const value = 1;\n\n \n\t")).toBe("const value = 1;");
     expect(trimBlankTrailingLines("const value = 1;  \n")).toBe("const value = 1;  ");

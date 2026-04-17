@@ -43,7 +43,7 @@ Use **Vite+**: `vp install`, `vp dev`, `vp build`, `vp test`
 - One-file `registry:ui` items can omit `files`; the catalog infers `<item-name>.tsx`.
 - Hooks, libs, blocks, pages, target paths, and multi-file items must list `files` explicitly.
 - Do not publish `_registry.tsx`, `_preview-client.tsx`, or any file whose basename starts with `_`.
-- Never put `"use client"` in `_registry.tsx`; move interactive preview code to `_preview-client.tsx`.
+- `_registry.tsx` may use `"use client"` for interactive previews; metadata catalog imports are stripped through `?registry-metadata`.
 - Use `localRegistryDependency("item-name")` for dependencies on other local registry items.
 - Use shadcn item names like `"button"`, `"card"`, `"badge"` in `registryDependencies` for shadcn primitives.
 

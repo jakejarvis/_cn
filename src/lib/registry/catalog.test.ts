@@ -73,6 +73,7 @@ describe("registry catalog", () => {
       expect(registryItemJson?.name).toBe(item.name);
       expect(registryItemJson?.files.map(toRegistryFileDefinition)).toEqual(item.files);
       expect(registryItemJson?.files.every((file) => file.content.length > 0)).toBe(true);
+      expect(registryItemJson).not.toHaveProperty("hasUsage");
     }
   });
 
@@ -114,14 +115,31 @@ describe("registry catalog", () => {
     expect(getMissingRegistryPreviewPaths()).toEqual([]);
   });
 
+  test("loads local-only usage state from MDX bodies", () => {
+    for (const item of registryItems) {
+      expect(item.hasUsage).toBe(true);
+    }
+  });
+
+  test("normalizes local registry dependencies from frontmatter", () => {
+    const block = getRegistryItemByName("stats-panel");
+
+    expect(block.registryDependencies).toContain("badge");
+    expect(block.registryDependencies).toContain("card");
+    expect(block.registryDependencies).toContain(
+      "https://underscore-cn.vercel.app/example-card.json",
+    );
+    expect(block).not.toHaveProperty("localRegistryDependencies");
+  });
+
   test("loads metadata without evaluating client-only preview imports", () => {
     const hook = getRegistryItemByName("use-copy-to-clipboard");
     const block = getRegistryItemByName("stats-panel");
 
     expect(hook.previewSourceFile.path).toBe(
-      "registry/items/hooks/use-copy-to-clipboard/_registry.tsx",
+      "registry/items/hooks/use-copy-to-clipboard/_registry.mdx",
     );
-    expect(block.previewSourceFile.path).toBe("registry/items/blocks/stats-panel/_registry.tsx");
+    expect(block.previewSourceFile.path).toBe("registry/items/blocks/stats-panel/_registry.mdx");
   });
 
   test("trims blank trailing lines from imported source", () => {
@@ -163,7 +181,7 @@ describe("registry catalog", () => {
       ],
     } as const;
     const displaySource = getRegistryDisplaySource(item, {
-      path: "registry/items/components/example/_registry.tsx",
+      path: "registry/items/components/example/_registry.mdx",
       source: [`import { useExample } from "./use-example";`, `import "./example.css";`].join("\n"),
     });
 
@@ -183,10 +201,10 @@ describe("registry catalog", () => {
     for (const item of registryItems) {
       const itemWithSources = getRegistryItemWithSources(item);
 
-      expect(itemWithSources.previewSourceFile.path.endsWith("_registry.tsx")).toBe(true);
+      expect(itemWithSources.previewSourceFile.path.endsWith("_registry.mdx")).toBe(true);
       expect(itemWithSources.previewSourceFile.source).toContain("export function Preview");
-      expect(itemWithSources.previewSourceFile.source).not.toContain("defineRegistryItem");
       expect(itemWithSources.previewSourceFile.source).not.toContain("registryItem");
+      expect(itemWithSources.previewSourceFile.source).not.toContain("---");
     }
   });
 });

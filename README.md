@@ -74,33 +74,46 @@ Create a folder under `registry/items/<section>/<item-name>/`.
 
 ```text
 registry/items/components/example-card/
-  _registry.tsx
+  _registry.mdx
   example-card.tsx
 ```
 
 Keep item source under `registry/items`. The Vite `import.meta.glob` paths are intentionally static.
 
-Write metadata and the preview together in `_registry.tsx`.
+Write metadata, usage docs, and the preview together in `_registry.mdx`.
 
-```tsx
-import { defineRegistryItem, localRegistryDependency } from "@/lib/registry/metadata";
+~~~mdx
+---
+name: example-card
+type: registry:ui
+title: Example Card
+description: A compact card component.
+registryDependencies:
+  - card
+localRegistryDependencies:
+  - other-local-item
+---
 
 import { ExampleCard } from "./example-card";
 
-export const registryItem = defineRegistryItem({
-  name: "example-card",
-  type: "registry:ui",
-  title: "Example Card",
-  description: "A compact card component.",
-  registryDependencies: ["card", localRegistryDependency("other-local-item")],
-});
+Use the component anywhere you need a compact content summary.
 
-export function Preview() {
+```tsx
+import { ExampleCard } from "@/components/ui/example-card";
+
+export function Example() {
   return <ExampleCard />;
 }
 ```
 
-For a one-file component, `defineRegistryItem` infers the published file path from the item root and `name`. List `files` explicitly for hooks, libs, blocks, pages, target paths, or any item with multiple published files. Do not publish `_registry.tsx` or other authoring-only files.
+export function Preview() {
+  return <ExampleCard />;
+}
+~~~
+
+For a one-file component, the catalog infers the published file path from the item root and `name`. List `files` explicitly in frontmatter for hooks, libs, blocks, pages, target paths, or any item with multiple published files. Do not publish `_registry.mdx` or other authoring-only files.
+
+The MDX body renders as the optional Usage section on the docs page. Fenced code blocks are syntax highlighted and keep the docs site's copy button. The `Preview` export is compiled as a client-only virtual module, so hooks and event handlers are fine there, but server-only logic should stay out of previews. Use `localRegistryDependencies` for dependencies on other local registry items; they are converted into canonical registry URLs in the public JSON.
 
 ## Starter Content
 
@@ -128,7 +141,7 @@ discoverable before installation.
 
 ## Compatibility Notes
 
-The registry JSON uses shadcn schemas directly from [`shadcn/schema`](https://github.com/shadcn-ui/ui/blob/main/packages/shadcn/src/registry/schema.ts). Public item files include file contents in each item JSON response, and local registry dependencies should use `localRegistryDependency("item-name")` so generated URLs follow `siteConfig.homepage`.
+The registry JSON uses shadcn schemas directly from [`shadcn/schema`](https://github.com/shadcn-ui/ui/blob/main/packages/shadcn/src/registry/schema.ts). Public item files include file contents in each item JSON response, and local registry dependencies should use `localRegistryDependencies` in `_registry.mdx` frontmatter so generated URLs follow `siteConfig.homepage`.
 
 The docs site uses the local shadcn UI configuration in `components.json`; that styling is for this app shell and does **not** define the identity of published registry items.
 

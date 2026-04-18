@@ -5,9 +5,11 @@ import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import viteReact, { reactCompilerPreset } from "@vitejs/plugin-react";
 import rsc from "@vitejs/plugin-rsc";
 import { nitro } from "nitro/vite";
+import remarkFrontmatter from "remark-frontmatter";
+import remarkGfm from "remark-gfm";
 import { defineConfig } from "vite-plus";
 
-import { registryMetadata } from "./src/lib/registry/metadata-plugin.ts";
+import { mdxWithQueryBypass } from "./src/lib/registry/mdx-vite-plugin.ts";
 
 const config = defineConfig({
   staged: {
@@ -45,6 +47,7 @@ const config = defineConfig({
       "**/.tanstack/**",
       "**/dist/**",
       "**/node_modules/**",
+      "registry/items/**/_registry.mdx",
       "src/routeTree.gen.ts",
       "AGENTS.md",
       "README.md",
@@ -108,7 +111,9 @@ const config = defineConfig({
   },
   plugins: [
     devtools(),
-    registryMetadata(),
+    mdxWithQueryBypass({
+      remarkPlugins: [remarkFrontmatter, remarkGfm],
+    }),
     tailwindcss(),
     tanstackStart({
       rsc: {

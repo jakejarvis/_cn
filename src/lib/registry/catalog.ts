@@ -1,3 +1,4 @@
+import { parseRegistryMdx } from "./mdx";
 import type {
   RegistryFileDefinition,
   RegistryItemAuthoringDefinition,
@@ -9,12 +10,11 @@ import { getFileName, getParentPath, normalizePath } from "./paths";
 type RegistryItem = RegistryItemDefinition;
 export type RegistryFile = RegistryFileDefinition;
 type RegistryType = RegistryItem["type"];
-type RegistryItemModule = {
-  registryItem?: RegistryItemAuthoringDefinition;
-};
 type RegistryItemModuleEntry = {
   path: string;
   registryItem: RegistryItemAuthoringDefinition;
+  previewSource: string;
+  hasUsage: boolean;
 };
 
 export const componentRegistryTypes = [
@@ -22,24 +22,20 @@ export const componentRegistryTypes = [
   "registry:component",
 ] as const satisfies RegistryType[];
 
-const registryItemModules = import.meta.glob<RegistryItemModule>(
-  "../../../registry/items/**/_registry.tsx",
-  {
-    eager: true,
-    query: "?registry-metadata",
-  },
-);
+const registryItemSources = import.meta.glob<string>("../../../registry/items/**/_registry.mdx", {
+  eager: true,
+  import: "default",
+  query: "?raw",
+});
 
-const registryItemModulesByPath = normalizeGlobFiles(registryItemModules);
+const registryItemSourcesByPath = normalizeGlobFiles(registryItemSources);
 const registryItemCollator = new Intl.Collator("en", {
   numeric: true,
   sensitivity: "base",
 });
 
-const registryItemModuleEntries = Object.entries(registryItemModulesByPath)
-  .flatMap(([path, module]) =>
-    module.registryItem ? [{ path, registryItem: module.registryItem }] : [],
-  )
+const registryItemModuleEntries = Object.entries(registryItemSourcesByPath)
+  .map(([path, source]) => Object.assign({ path }, parseRegistryMdx(path, source)))
   .toSorted((a, b) => compareRegistryItemNames(a.registryItem, b.registryItem));
 
 export const registryMetadataItems = registryItemModuleEntries.map(({ path, registryItem }) =>
@@ -57,11 +53,13 @@ export type RegistrySourceFile = RegistryFile & {
 export type RegistryPreviewSourceFile = {
   path: string;
   fileName: string;
+  source: string;
 };
 
 export type RegistryCatalogItem = RegistryItem & {
   sourceFiles: RegistrySourceFile[];
   previewSourceFile: RegistryPreviewSourceFile;
+  hasUsage: boolean;
 };
 
 export const registryItems = registryItemModuleEntries.map(toRegistryCatalogItem);
@@ -79,7 +77,8 @@ function toRegistryCatalogItem(entry: RegistryItemModuleEntry): RegistryCatalogI
     sourceFiles: item.files.map((file) =>
       toRegistrySourceFile(itemRoot, file, sourceFileDefinitionsByPath.get(file.path) ?? file),
     ),
-    previewSourceFile: getPreviewSourceFile(entry.path),
+    previewSourceFile: getPreviewSourceFile(entry.path, entry.previewSource),
+    hasUsage: entry.hasUsage,
   };
 }
 
@@ -134,7 +133,7 @@ export function getRegistryItemsByTypes(types: readonly RegistryType[]): Registr
   return registryItems.filter((item) => typeSet.has(item.type));
 }
 
-function normalizeGlobFiles<T>(files: Record<string, T>): Record<string, T> {
+function normalizeGlobFiles(files: Record<string, string>): Record<string, string> {
   return Object.fromEntries(
     Object.entries(files).map(([path, source]) => [normalizeGlobPath(path), source]),
   );
@@ -153,10 +152,11 @@ function compareRegistryItemNames(
   );
 }
 
-function getPreviewSourceFile(path: string): RegistryPreviewSourceFile {
+function getPreviewSourceFile(path: string, source: string): RegistryPreviewSourceFile {
   return {
     path,
     fileName: getFileName(path),
+    source,
   };
 }
 

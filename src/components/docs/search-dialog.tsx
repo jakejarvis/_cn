@@ -135,7 +135,12 @@ export function SearchDialog() {
           <IconSearch data-icon="inline-start" />
           <span className="truncate">Search registry</span>
         </span>
-        <span className="rounded border px-1.5 text-xs text-muted-foreground">{shortcutLabel}</span>
+        <span
+          className="rounded border px-1.5 text-xs text-muted-foreground"
+          suppressHydrationWarning
+        >
+          {shortcutLabel}
+        </span>
       </Button>
       <Button
         variant="ghost"

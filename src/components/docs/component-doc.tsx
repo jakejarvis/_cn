@@ -56,13 +56,13 @@ export function RegistryItemDoc({ item, section, sectionPath }: RegistryItemDocP
           </TabsTrigger>
         </TabsList>
         <TabsContent value="preview">
-          <ComponentPreview name={item.name} />
+          <ComponentPreview preview={item.preview} />
         </TabsContent>
         <TabsContent value="code">
           {item.previewSourceFile.source ? (
             <CodeBlock
               code={item.previewSourceFile.source}
-              highlightedCode={item.previewSourceFile.highlightedCode}
+              highlightedHtml={item.previewSourceFile.highlightedHtml}
             />
           ) : (
             <p className="text-sm text-muted-foreground">No preview source is available.</p>
@@ -92,13 +92,20 @@ export function RegistryItemDoc({ item, section, sectionPath }: RegistryItemDocP
                 <CodeBlock
                   key={file.path}
                   code={file.source}
-                  highlightedCode={file.highlightedCode}
+                  highlightedHtml={file.highlightedHtml}
                 />
               ))}
             </div>
           </TabsContent>
         </Tabs>
       </section>
+
+      {item.usage ? (
+        <section className="flex flex-col gap-4">
+          <h2 className="font-heading text-xl font-semibold tracking-tight">Usage</h2>
+          {item.usage}
+        </section>
+      ) : null}
     </article>
   );
 }

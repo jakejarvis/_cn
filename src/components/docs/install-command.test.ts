@@ -12,7 +12,7 @@ import { getInstallCommand } from "./install-command";
 describe("install commands", () => {
   test("uses canonical flat registry item URLs", () => {
     expect(getInstallCommand("example-card", "npm")).toBe(
-      "npx shadcn@latest add https://example.com/example-card.json",
+      "npx shadcn@latest add https://underscore-cn.vercel.app/example-card.json",
     );
   });
 
@@ -25,13 +25,13 @@ describe("install commands", () => {
 
   test("switches command syntax by package manager", () => {
     expect(getInstallCommand("example-card", "pnpm")).toBe(
-      "pnpm dlx shadcn@latest add https://example.com/example-card.json",
+      "pnpm dlx shadcn@latest add https://underscore-cn.vercel.app/example-card.json",
     );
     expect(getInstallCommand("example-card", "yarn")).toBe(
-      "yarn dlx shadcn@latest add https://example.com/example-card.json",
+      "yarn dlx shadcn@latest add https://underscore-cn.vercel.app/example-card.json",
     );
     expect(getInstallCommand("example-card", "bun")).toBe(
-      "bunx --bun shadcn@latest add https://example.com/example-card.json",
+      "bunx --bun shadcn@latest add https://underscore-cn.vercel.app/example-card.json",
     );
   });
 });

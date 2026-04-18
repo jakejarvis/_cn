@@ -17,15 +17,15 @@ const LINE_NUMBER_WIDTH_TRANSFORMER: ShikiTransformer = {
   },
 };
 
-type SupportedLanguage = "ts" | "tsx";
+type SupportedLanguage = "bash" | "css" | "html" | "json" | "ts" | "tsx";
 
 let highlighterPromise: Promise<HighlighterCore> | undefined;
 
 export function getCodeLanguage(path: string): SupportedLanguage | "text" {
-  const extension = path.split(".").at(-1);
+  const language = normalizeCodeLanguage(path.split(".").at(-1) ?? path);
 
-  if (extension === "ts" || extension === "tsx") {
-    return extension;
+  if (language) {
+    return language;
   }
 
   return "text";
@@ -61,10 +61,38 @@ function getHighlighter(): Promise<HighlighterCore> {
     langs: [
       import("@shikijs/langs/ts").then((module) => module.default),
       import("@shikijs/langs/tsx").then((module) => module.default),
+      import("@shikijs/langs/bash").then((module) => module.default),
+      import("@shikijs/langs/json").then((module) => module.default),
+      import("@shikijs/langs/css").then((module) => module.default),
+      import("@shikijs/langs/html").then((module) => module.default),
     ],
   });
 
   return highlighterPromise;
+}
+
+function normalizeCodeLanguage(value: string): SupportedLanguage | null {
+  switch (value.toLowerCase().replace(/^language-/u, "")) {
+    case "bash":
+    case "shell":
+    case "sh":
+    case "zsh":
+      return "bash";
+    case "css":
+      return "css";
+    case "html":
+    case "markup":
+      return "html";
+    case "json":
+      return "json";
+    case "ts":
+    case "typescript":
+      return "ts";
+    case "tsx":
+      return "tsx";
+    default:
+      return null;
+  }
 }
 
 export function highlightPlainTextToHtml(code: string): string {

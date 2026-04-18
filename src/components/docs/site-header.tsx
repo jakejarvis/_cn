@@ -12,6 +12,7 @@ import { siteConfig } from "@/lib/site-config";
 import { cn } from "@/lib/utils";
 
 import { DocsSidebar } from "./docs-sidebar";
+import { SearchDialog } from "./search-dialog";
 import { ThemeToggle } from "./theme-toggle";
 
 export function SiteHeader() {
@@ -62,6 +63,7 @@ export function SiteHeader() {
         </nav>
 
         <div className="ml-auto flex items-center gap-1">
+          <SearchDialog />
           <Button
             variant="ghost"
             size="icon"

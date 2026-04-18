@@ -140,4 +140,22 @@ export function Preview() {
       ),
     ).toThrow(/must start with YAML frontmatter/u);
   });
+
+  test("wraps invalid YAML errors with the registry item path", () => {
+    expect(() =>
+      parseRegistryMdx(
+        "registry/items/components/toast/_registry.mdx",
+        `---
+name: [toast
+---
+
+export function Preview() {
+  return null;
+}
+`,
+      ),
+    ).toThrow(
+      /Registry item registry\/items\/components\/toast\/_registry\.mdx contains invalid YAML frontmatter:/u,
+    );
+  });
 });

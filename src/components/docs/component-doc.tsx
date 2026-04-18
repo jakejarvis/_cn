@@ -56,7 +56,7 @@ export function RegistryItemDoc({ item, section, sectionPath }: RegistryItemDocP
           </TabsTrigger>
         </TabsList>
         <TabsContent value="preview">
-          <ComponentPreview path={item.previewSourceFile.path} />
+          <ComponentPreview preview={item.preview} />
         </TabsContent>
         <TabsContent value="code">
           {item.previewSourceFile.source ? (

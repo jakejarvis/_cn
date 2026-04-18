@@ -1,22 +1,18 @@
-import remarkFrontmatter from "remark-frontmatter";
-import remarkGfm from "remark-gfm";
-import remarkMdx from "remark-mdx";
-import remarkParse from "remark-parse";
-import { unified } from "unified";
 import { parse as parseYaml } from "yaml";
 
 import { getCanonicalRegistryItemUrl } from "@/lib/site-config";
 
+import {
+  getErrorMessage,
+  getMdxEsmSource,
+  hasMdxUsageContent,
+  parseRegistryMdxAst,
+  type MdxAstNode,
+} from "./mdx-ast";
 import type { RegistryItemAuthoringDefinition, RegistrySourceFileDefinition } from "./metadata";
 
 type RegistryMdxFrontmatter = RegistryItemAuthoringDefinition & {
   localRegistryDependencies?: string[];
-};
-
-type MdxAstNode = {
-  type: string;
-  value?: string;
-  children?: MdxAstNode[];
 };
 
 export type ParsedRegistryMdx = {
@@ -24,12 +20,6 @@ export type ParsedRegistryMdx = {
   previewSource: string;
   hasUsage: boolean;
 };
-
-const registryMdxProcessor = unified()
-  .use(remarkParse)
-  .use(remarkMdx)
-  .use(remarkFrontmatter, ["yaml"])
-  .use(remarkGfm);
 
 const registryItemTypes = new Set([
   "registry:lib",
@@ -86,19 +76,9 @@ export function parseRegistryMdx(path: string, source: string): ParsedRegistryMd
 
   return {
     registryItem: toRegistryItemAuthoringDefinition(metadata),
-    previewSource: getPreviewSource(root),
-    hasUsage: hasUsageContent(root),
+    previewSource: getMdxEsmSource(root),
+    hasUsage: hasMdxUsageContent(root),
   };
-}
-
-function parseRegistryMdxAst(path: string, source: string): MdxAstNode {
-  try {
-    return registryMdxProcessor.parse(source) as MdxAstNode;
-  } catch (error) {
-    throw new Error(`Registry item ${path} contains invalid MDX: ${getErrorMessage(error)}`, {
-      cause: error,
-    });
-  }
 }
 
 function getFrontmatterNode(path: string, root: MdxAstNode): MdxAstNode {
@@ -112,7 +92,7 @@ function getFrontmatterNode(path: string, root: MdxAstNode): MdxAstNode {
 }
 
 function parseRegistryMdxFrontmatter(path: string, frontmatter: string): RegistryMdxFrontmatter {
-  const value = parseYaml(frontmatter);
+  const value = parseYamlFrontmatter(path, frontmatter);
 
   if (!isRecord(value)) {
     throw new Error(`Registry item ${path} frontmatter must be an object.`);
@@ -121,6 +101,17 @@ function parseRegistryMdxFrontmatter(path: string, frontmatter: string): Registr
   assertRegistryMdxFrontmatter(path, value);
 
   return value;
+}
+
+function parseYamlFrontmatter(path: string, frontmatter: string): unknown {
+  try {
+    return parseYaml(frontmatter);
+  } catch (error) {
+    throw new Error(
+      `Registry item ${path} contains invalid YAML frontmatter: ${getErrorMessage(error)}`,
+      { cause: error },
+    );
+  }
 }
 
 function assertRegistryMdxFrontmatter(
@@ -172,20 +163,6 @@ function toRegistryItemAuthoringDefinition(
     ...item,
     registryDependencies: [...new Set(registryDependencies)],
   };
-}
-
-function getPreviewSource(root: MdxAstNode): string {
-  return (
-    root.children
-      ?.filter((node) => node.type === "mdxjsEsm")
-      .map((node) => node.value?.trim() ?? "")
-      .filter(Boolean)
-      .join("\n\n") ?? ""
-  );
-}
-
-function hasUsageContent(root: MdxAstNode): boolean {
-  return root.children?.some((node) => node.type !== "yaml" && node.type !== "mdxjsEsm") ?? false;
 }
 
 function getStringField(path: string, value: Record<string, unknown>, field: string): string {
@@ -269,8 +246,4 @@ function isRegistrySourceFileDefinition(value: unknown): value is RegistrySource
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-
-function getErrorMessage(error: unknown): string {
-  return error instanceof Error ? error.message : String(error);
 }

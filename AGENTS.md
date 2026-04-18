@@ -42,8 +42,9 @@ Use **Vite+**: `vp install`, `vp dev`, `vp build`, `vp test`
 - Each item folder has `_registry.mdx` with YAML frontmatter metadata, an optional MDX Usage body, and a named `Preview` export.
 - One-file `registry:ui` items can omit `files`; the catalog infers `<item-name>.tsx`.
 - Hooks, libs, blocks, pages, target paths, and multi-file items must list `files` explicitly.
-- Do not publish `_registry.mdx`, `_preview-client.tsx`, or any file whose basename starts with `_`.
+- Do not publish `_registry.mdx` or any file whose basename starts with `_`.
 - The MDX body renders as the optional Usage section; fenced code blocks keep highlighting and copy buttons.
+- The `Preview` export is compiled as a client-only virtual module; keep server-only logic out of previews.
 - Use `localRegistryDependencies` in frontmatter for dependencies on other local registry items.
 - Use shadcn item names like `"button"`, `"card"`, `"badge"` in `registryDependencies` for shadcn primitives.
 

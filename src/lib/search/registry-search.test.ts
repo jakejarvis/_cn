@@ -1,11 +1,7 @@
 import { describe, expect, test } from "vitest";
 
 import { getRegistrySectionsWithItems } from "@/lib/registry/sections";
-import {
-  getRegistrySearchJsonResponse,
-  getRegistrySearchRecords,
-  searchRegistryItems,
-} from "@/lib/search/registry-search";
+import { getRegistrySearchRecords, searchRegistryItems } from "@/lib/search/registry-search";
 
 describe("registry search", () => {
   test("builds one search record for every visible registry item", () => {
@@ -58,13 +54,10 @@ describe("registry search", () => {
     expect(response.results[0]?.name).toBe("example-card");
   });
 
-  test("serves search results as JSON and clamps the result limit", async () => {
-    const response = await getRegistrySearchJsonResponse(
-      new Request("https://example.com/api/search?q=card&limit=1"),
-    );
-    const body = await response.json();
+  test("clamps the result limit", async () => {
+    const response = await searchRegistryItems({ query: "card", limit: 1 });
 
-    expect(body).toMatchObject({
+    expect(response).toMatchObject({
       query: "card",
       count: 2,
       results: [

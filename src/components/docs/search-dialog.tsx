@@ -1,23 +1,31 @@
 "use client";
 
-import { IconSearch } from "@tabler/icons-react";
+import { IconCornerDownLeft, IconSearch } from "@tabler/icons-react";
 import { formatForDisplay, useHotkey, type Hotkey } from "@tanstack/react-hotkeys";
 import { useNavigate } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 import * as React from "react";
 
 import { Button } from "@/components/ui/button";
 import {
   Command,
-  CommandDialog,
   CommandEmpty,
   CommandGroup,
   CommandInput,
   CommandItem,
   CommandList,
-  CommandSeparator,
 } from "@/components/ui/command";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Spinner } from "@/components/ui/spinner";
-import type { RegistrySearchResponse, RegistrySearchResult } from "@/lib/search/registry-search";
+import type { RegistrySearchResult } from "@/lib/search/registry-search";
+import { searchRegistryItemsFn } from "@/lib/search/registry-search.functions";
+import { cn } from "@/lib/utils";
 
 type SearchState = "idle" | "loading" | "ready" | "error";
 
@@ -28,6 +36,7 @@ const sectionOrder = ["components", "blocks", "utilities"] as const;
 
 export function SearchDialog() {
   const navigate = useNavigate();
+  const searchRegistryItems = useServerFn(searchRegistryItemsFn);
   const [open, setOpen] = React.useState(false);
   const [query, setQuery] = React.useState("");
   const [state, setState] = React.useState<SearchState>("idle");
@@ -57,13 +66,23 @@ export function SearchDialog() {
       () => {
         setState("loading");
 
-        void fetchSearchResults(trimmedQuery, abortController.signal)
+        void searchRegistryItems({
+          data: {
+            query: trimmedQuery,
+            limit: searchResultLimit,
+          },
+          signal: abortController.signal,
+        })
           .then((response) => {
+            if (abortController.signal.aborted) {
+              return;
+            }
+
             setResults(response.results);
             setState("ready");
           })
-          .catch((error: unknown) => {
-            if (isAbortError(error)) {
+          .catch(() => {
+            if (abortController.signal.aborted) {
               return;
             }
 
@@ -78,7 +97,7 @@ export function SearchDialog() {
       window.clearTimeout(timeoutId);
       abortController.abort();
     };
-  }, [open, trimmedQuery]);
+  }, [open, searchRegistryItems, trimmedQuery]);
 
   function handleOpenChange(nextOpen: boolean) {
     setOpen(nextOpen);
@@ -90,7 +109,7 @@ export function SearchDialog() {
   }
 
   function handleSelect(result: RegistrySearchResult) {
-    setOpen(false);
+    handleOpenChange(false);
 
     switch (result.section) {
       case "components":
@@ -128,44 +147,75 @@ export function SearchDialog() {
         <IconSearch data-icon />
       </Button>
 
-      <CommandDialog
-        open={open}
-        onOpenChange={handleOpenChange}
-        title="Search Registry"
-        description="Search components, blocks, hooks, and utilities."
-      >
-        <Command shouldFilter={false}>
-          <CommandInput value={query} onValueChange={setQuery} placeholder="Search registry..." />
-          <CommandList>
-            {state === "loading" ? (
-              <div className="flex items-center gap-2 px-3 py-6 text-sm text-muted-foreground">
-                <Spinner />
-                Searching registry...
-              </div>
-            ) : null}
-            {state === "error" ? (
-              <div className="px-3 py-6 text-sm text-muted-foreground">
-                Search is unavailable right now.
-              </div>
-            ) : null}
-            {state !== "loading" && state !== "error" && results.length === 0 ? (
-              <CommandEmpty>No results found.</CommandEmpty>
-            ) : null}
-            {state !== "loading" && state !== "error" && results.length > 0 ? (
-              trimmedQuery ? (
-                <SearchResultGroup heading="Results" results={results} onSelect={handleSelect} />
-              ) : (
-                <DefaultSearchGroups results={results} onSelect={handleSelect} />
-              )
-            ) : null}
-          </CommandList>
-        </Command>
-      </CommandDialog>
+      <Dialog open={open} onOpenChange={handleOpenChange}>
+        <SearchDialogContent>
+          <DialogHeader className="sr-only">
+            <DialogTitle>Search Registry</DialogTitle>
+            <DialogDescription>Search components, blocks, hooks, and utilities.</DialogDescription>
+          </DialogHeader>
+          <Command
+            shouldFilter={false}
+            className="rounded-none! bg-transparent p-0! **:data-[slot=command-input]:h-9! **:data-[slot=command-input]:py-0 **:data-[slot=command-input-wrapper]:p-0! **:data-[slot=input-group]:h-9! **:data-[slot=input-group]:rounded-md! **:data-[slot=input-group]:border-input **:data-[slot=input-group]:bg-input/50"
+          >
+            <div className="relative">
+              <CommandInput
+                value={query}
+                onValueChange={setQuery}
+                placeholder="Search registry..."
+              />
+              {state === "loading" ? (
+                <div className="pointer-events-none absolute top-1/2 right-3 flex -translate-y-1/2 items-center justify-center">
+                  <Spinner className="size-4 text-muted-foreground" />
+                </div>
+              ) : null}
+            </div>
+            <CommandList className="no-scrollbar min-h-80 scroll-pt-2 scroll-pb-1.5">
+              {state === "loading" ? (
+                <CommandEmpty className="py-12 text-center text-sm text-muted-foreground">
+                  Searching registry...
+                </CommandEmpty>
+              ) : null}
+              {state === "error" ? (
+                <CommandEmpty className="py-12 text-center text-sm text-muted-foreground">
+                  Search is unavailable right now.
+                </CommandEmpty>
+              ) : null}
+              {state === "ready" && results.length === 0 ? (
+                <CommandEmpty className="py-12 text-center text-sm text-muted-foreground">
+                  No results found.
+                </CommandEmpty>
+              ) : null}
+              {state === "ready" && results.length > 0 ? (
+                <SectionedSearchGroups results={results} onSelect={handleSelect} />
+              ) : null}
+            </CommandList>
+          </Command>
+          <div className="absolute inset-x-0 bottom-0 flex h-10 items-center gap-2 rounded-b-xl border-t bg-muted/50 px-4 text-xs font-medium text-muted-foreground">
+            <SearchDialogKbd>
+              <IconCornerDownLeft />
+            </SearchDialogKbd>
+            Go to Page
+          </div>
+        </SearchDialogContent>
+      </Dialog>
     </>
   );
 }
 
-function DefaultSearchGroups({
+function SearchDialogContent({ className, ...props }: React.ComponentProps<typeof DialogContent>) {
+  return (
+    <DialogContent
+      className={cn(
+        "top-[15%] translate-y-0 overflow-hidden rounded-xl border-none bg-clip-padding p-2 pb-11 shadow-2xl ring-4 ring-border/80 sm:max-w-lg",
+        className,
+      )}
+      showCloseButton={false}
+      {...props}
+    />
+  );
+}
+
+function SectionedSearchGroups({
   results,
   onSelect,
 }: {
@@ -178,9 +228,8 @@ function DefaultSearchGroups({
 
   return (
     <>
-      {groups.map((group, index) => (
+      {groups.map((group) => (
         <React.Fragment key={group[0].section}>
-          {index > 0 ? <CommandSeparator /> : null}
           <SearchResultGroup heading={group[0].sectionTitle} results={group} onSelect={onSelect} />
         </React.Fragment>
       ))}
@@ -198,90 +247,33 @@ function SearchResultGroup({
   onSelect: (result: RegistrySearchResult) => void;
 }) {
   return (
-    <CommandGroup heading={heading}>
+    <CommandGroup
+      heading={heading}
+      className="p-0! **:[[cmdk-group-heading]]:scroll-mt-16 **:[[cmdk-group-heading]]:p-3! **:[[cmdk-group-heading]]:pb-1!"
+    >
       {results.map((result) => (
         <CommandItem
           key={`${result.section}:${result.name}`}
           value={`${result.title} ${result.name}`}
+          keywords={[result.name, result.sectionTitle, result.type, ...result.categories]}
+          className="h-9 rounded-md border border-transparent px-3! font-medium data-[selected=true]:border-input data-[selected=true]:bg-input/50 data-selected:border-input data-selected:bg-input/50"
           onSelect={() => onSelect(result)}
         >
-          <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-            <span className="truncate font-medium">{result.title}</span>
-            <span className="truncate text-xs text-muted-foreground">{result.description}</span>
-          </span>
-          <span className="shrink-0 rounded border px-1.5 py-0.5 text-xs text-muted-foreground">
-            {getResultTypeLabel(result.type)}
-          </span>
+          <span className="min-w-0 truncate">{result.title}</span>
         </CommandItem>
       ))}
     </CommandGroup>
   );
 }
 
-async function fetchSearchResults(
-  query: string,
-  signal: AbortSignal,
-): Promise<RegistrySearchResponse> {
-  const searchParams = new URLSearchParams({
-    q: query,
-    limit: String(searchResultLimit),
-  });
-  const response = await fetch(`/api/search?${searchParams.toString()}`, { signal });
-
-  if (!response.ok) {
-    throw new Error("Search request failed.");
-  }
-
-  const body: unknown = await response.json();
-
-  if (!isRegistrySearchResponse(body)) {
-    throw new Error("Search response was invalid.");
-  }
-
-  return body;
-}
-
-function getResultTypeLabel(type: RegistrySearchResult["type"]): string {
-  return type.replace("registry:", "");
-}
-
-function isAbortError(error: unknown): boolean {
-  return error instanceof DOMException && error.name === "AbortError";
-}
-
-function isRegistrySearchResponse(value: unknown): value is RegistrySearchResponse {
+function SearchDialogKbd({ className, ...props }: React.ComponentProps<"kbd">) {
   return (
-    isRecord(value) &&
-    typeof value.query === "string" &&
-    typeof value.count === "number" &&
-    Array.isArray(value.results) &&
-    value.results.every(isRegistrySearchResult)
+    <kbd
+      className={cn(
+        "pointer-events-none flex h-5 items-center justify-center gap-1 rounded border bg-background px-1 font-sans text-[0.7rem] font-medium text-muted-foreground select-none [&_svg:not([class*='size-'])]:size-3",
+        className,
+      )}
+      {...props}
+    />
   );
-}
-
-function isRegistrySearchResult(value: unknown): value is RegistrySearchResult {
-  return (
-    isRecord(value) &&
-    typeof value.name === "string" &&
-    typeof value.title === "string" &&
-    typeof value.description === "string" &&
-    isRegistrySearchSection(value.section) &&
-    typeof value.sectionTitle === "string" &&
-    typeof value.type === "string" &&
-    typeof value.score === "number" &&
-    Array.isArray(value.categories) &&
-    value.categories.every((category) => typeof category === "string") &&
-    Array.isArray(value.registryDependencies) &&
-    value.registryDependencies.every((dependency) => typeof dependency === "string") &&
-    Array.isArray(value.fileNames) &&
-    value.fileNames.every((fileName) => typeof fileName === "string")
-  );
-}
-
-function isRegistrySearchSection(value: unknown): value is RegistrySearchResult["section"] {
-  return sectionOrder.some((section) => section === value);
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
 }

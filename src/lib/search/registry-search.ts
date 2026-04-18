@@ -75,6 +75,11 @@ export type RegistrySearchResponse = {
   results: RegistrySearchResult[];
 };
 
+export type RegistrySearchInput = {
+  query: string;
+  limit?: number;
+};
+
 let registrySearchDatabasePromise: Promise<RegistrySearchDatabase> | undefined;
 let registrySearchRecordsCache: RegistrySearchRecord[] | undefined;
 let registrySearchRecordMapCache: Map<string, RegistrySearchRecord> | undefined;
@@ -90,10 +95,7 @@ export function getRegistrySearchRecords(): RegistrySearchRecord[] {
 export async function searchRegistryItems({
   query,
   limit = DEFAULT_SEARCH_LIMIT,
-}: {
-  query: string;
-  limit?: number;
-}): Promise<RegistrySearchResponse> {
+}: RegistrySearchInput): Promise<RegistrySearchResponse> {
   const normalizedQuery = query.trim();
   const normalizedLimit = clampSearchLimit(limit);
 
@@ -126,18 +128,6 @@ export async function searchRegistryItems({
       return record ? [toRegistrySearchResult(record, hit.score)] : [];
     }),
   };
-}
-
-export async function getRegistrySearchJsonResponse(request: Request): Promise<Response> {
-  const url = new URL(request.url);
-  const query = url.searchParams.get("q") ?? "";
-  const limit = Number(url.searchParams.get("limit") ?? DEFAULT_SEARCH_LIMIT);
-
-  return Response.json(await searchRegistryItems({ query, limit }), {
-    headers: {
-      "Cache-Control": "public, max-age=0, s-maxage=300, stale-while-revalidate=3600",
-    },
-  });
 }
 
 function getRegistrySearchDatabase(): Promise<RegistrySearchDatabase> {

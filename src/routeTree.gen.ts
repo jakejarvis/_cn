@@ -20,7 +20,6 @@ import { Route as RChar123nameChar125DotjsonRouteImport } from './routes/r/{$nam
 import { Route as RRegistryDotjsonRouteImport } from './routes/r/registry[.]json'
 import { Route as ComponentsNameRouteImport } from './routes/components.$name'
 import { Route as BlocksNameRouteImport } from './routes/blocks.$name'
-import { Route as ApiSearchRouteImport } from './routes/api/search'
 
 const Char123nameChar125DotjsonRoute =
   Char123nameChar125DotjsonRouteImport.update({
@@ -79,17 +78,11 @@ const BlocksNameRoute = BlocksNameRouteImport.update({
   path: '/blocks/$name',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiSearchRoute = ApiSearchRouteImport.update({
-  id: '/api/search',
-  path: '/api/search',
-  getParentRoute: () => rootRouteImport,
-} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/registry.json': typeof RegistryDotjsonRoute
   '/{$name}.json': typeof Char123nameChar125DotjsonRoute
-  '/api/search': typeof ApiSearchRoute
   '/blocks/$name': typeof BlocksNameRoute
   '/components/$name': typeof ComponentsNameRoute
   '/r/registry.json': typeof RRegistryDotjsonRoute
@@ -103,7 +96,6 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/registry.json': typeof RegistryDotjsonRoute
   '/{$name}.json': typeof Char123nameChar125DotjsonRoute
-  '/api/search': typeof ApiSearchRoute
   '/blocks/$name': typeof BlocksNameRoute
   '/components/$name': typeof ComponentsNameRoute
   '/r/registry.json': typeof RRegistryDotjsonRoute
@@ -118,7 +110,6 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/registry.json': typeof RegistryDotjsonRoute
   '/{$name}.json': typeof Char123nameChar125DotjsonRoute
-  '/api/search': typeof ApiSearchRoute
   '/blocks/$name': typeof BlocksNameRoute
   '/components/$name': typeof ComponentsNameRoute
   '/r/registry.json': typeof RRegistryDotjsonRoute
@@ -134,7 +125,6 @@ export interface FileRouteTypes {
     | '/'
     | '/registry.json'
     | '/{$name}.json'
-    | '/api/search'
     | '/blocks/$name'
     | '/components/$name'
     | '/r/registry.json'
@@ -148,7 +138,6 @@ export interface FileRouteTypes {
     | '/'
     | '/registry.json'
     | '/{$name}.json'
-    | '/api/search'
     | '/blocks/$name'
     | '/components/$name'
     | '/r/registry.json'
@@ -162,7 +151,6 @@ export interface FileRouteTypes {
     | '/'
     | '/registry.json'
     | '/{$name}.json'
-    | '/api/search'
     | '/blocks/$name'
     | '/components/$name'
     | '/r/registry.json'
@@ -177,7 +165,6 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   RegistryDotjsonRoute: typeof RegistryDotjsonRoute
   Char123nameChar125DotjsonRoute: typeof Char123nameChar125DotjsonRoute
-  ApiSearchRoute: typeof ApiSearchRoute
   BlocksNameRoute: typeof BlocksNameRoute
   ComponentsNameRoute: typeof ComponentsNameRoute
   RRegistryDotjsonRoute: typeof RRegistryDotjsonRoute
@@ -267,13 +254,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BlocksNameRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/search': {
-      id: '/api/search'
-      path: '/api/search'
-      fullPath: '/api/search'
-      preLoaderRoute: typeof ApiSearchRouteImport
-      parentRoute: typeof rootRouteImport
-    }
   }
 }
 
@@ -281,7 +261,6 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   RegistryDotjsonRoute: RegistryDotjsonRoute,
   Char123nameChar125DotjsonRoute: Char123nameChar125DotjsonRoute,
-  ApiSearchRoute: ApiSearchRoute,
   BlocksNameRoute: BlocksNameRoute,
   ComponentsNameRoute: ComponentsNameRoute,
   RRegistryDotjsonRoute: RRegistryDotjsonRoute,

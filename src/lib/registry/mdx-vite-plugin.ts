@@ -6,7 +6,7 @@ import { transformWithOxc, type Plugin } from "vite";
 import { getMdxEsmSource, parseRegistryMdxAst } from "./mdx-ast.ts";
 
 const REGISTRY_PREVIEW_QUERY = "registry-preview";
-const VITE_FILE_SYSTEM_PREFIX = "/@fs";
+const VITE_FILE_SYSTEM_PREFIX = "/@fs/";
 
 type MdxTransformResult = ReturnType<ReturnType<typeof createMdx>["transform"]> | undefined;
 type MdxLoadResult = Awaited<ReturnType<typeof transformWithOxc>> | undefined;
@@ -74,7 +74,7 @@ function getFilePathFromModuleId(id: string): string {
   const queryStart = id.indexOf("?");
   const path = queryStart === -1 ? id : id.slice(0, queryStart);
 
-  return path.startsWith(`${VITE_FILE_SYSTEM_PREFIX}/`)
+  return path.startsWith(VITE_FILE_SYSTEM_PREFIX)
     ? path.slice(VITE_FILE_SYSTEM_PREFIX.length)
     : path;
 }

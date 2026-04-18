@@ -1,32 +1,31 @@
-import type * as React from "react";
+"use client";
 
-import type { RegistryItemDefinition } from "@/lib/registry/metadata";
+import type * as React from "react";
 
 type PreviewModule = {
   Preview?: React.ComponentType;
-  registryItem?: Pick<RegistryItemDefinition, "name">;
 };
 
-const previewModules = import.meta.glob<PreviewModule>("../../../registry/items/**/_registry.tsx", {
+const previewModules = import.meta.glob<PreviewModule>("../../../registry/items/**/_registry.mdx", {
   eager: true,
 });
 
-const previewByName: Record<string, React.ComponentType | undefined> = {};
+const previewByPath: Record<string, React.ComponentType | undefined> = {};
 
 for (const [path, module] of Object.entries(previewModules)) {
-  const name = module.registryItem?.name ?? getRegistryItemName(path);
-
-  if (name && module.Preview) {
-    previewByName[name] = module.Preview;
+  if (!module.Preview) {
+    continue;
   }
+
+  previewByPath[normalizeGlobPath(path)] = module.Preview;
 }
 
 type ComponentPreviewProps = {
-  name: string;
+  path: string;
 };
 
-export function ComponentPreview({ name }: ComponentPreviewProps) {
-  const Preview = previewByName[name];
+export function ComponentPreview({ path }: ComponentPreviewProps) {
+  const Preview = previewByPath[path];
 
   return (
     <div
@@ -47,13 +46,6 @@ export function ComponentPreview({ name }: ComponentPreviewProps) {
   );
 }
 
-function getRegistryItemName(path: string) {
-  const segments = path.split("/");
-  const previewIndex = segments.indexOf("_registry.tsx");
-
-  if (previewIndex <= 0) {
-    return null;
-  }
-
-  return segments[previewIndex - 1];
+function normalizeGlobPath(path: string): string {
+  return path.replace(/^(?:\.\.\/){3}/u, "");
 }

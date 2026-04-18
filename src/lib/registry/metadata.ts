@@ -4,7 +4,7 @@ import type {
   RegistryItem as ShadcnRegistryItem,
 } from "shadcn/schema";
 
-import { getCanonicalRegistryItemUrl, siteConfig } from "@/lib/site-config";
+import { siteConfig } from "@/lib/site-config";
 
 export const registryConfig = {
   $schema: "https://ui.shadcn.com/schema/registry.json",
@@ -42,11 +42,3 @@ export type RegistryItemDefinition = Omit<ShadcnRegistryItem, "$schema" | "files
 export type RegistryItemAuthoringDefinition = Omit<RegistryItemDefinition, "files"> & {
   files?: RegistrySourceFileDefinition[];
 };
-
-export function defineRegistryItem<T extends RegistryItemAuthoringDefinition>(item: T): T {
-  return item;
-}
-
-export function localRegistryDependency(itemName: string): string {
-  return getCanonicalRegistryItemUrl(itemName);
-}

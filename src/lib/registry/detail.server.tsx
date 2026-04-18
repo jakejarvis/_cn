@@ -1,4 +1,8 @@
 import { renderServerComponent } from "@tanstack/react-start/rsc";
+import * as React from "react";
+
+import { CodeBlock } from "@/components/docs/code-block";
+import { cn } from "@/lib/utils";
 
 import { getRegistryItem } from "./catalog";
 import { isRegistryDetailType, type RegistryItemDetailInput } from "./detail.types";
@@ -11,22 +15,42 @@ import {
   type RegistrySourceFileWithSource,
 } from "./source.server";
 
-type HighlightedCodeRenderable = Awaited<ReturnType<typeof renderCode>>;
+type RenderedUsage = Awaited<ReturnType<typeof renderUsage>>;
+type RegistryMdxModule = {
+  default?: React.ComponentType<{
+    components?: Record<string, unknown>;
+  }>;
+};
+
+const registryMdxModules = import.meta.glob<RegistryMdxModule>(
+  "../../../registry/items/**/_registry.mdx",
+  {
+    eager: true,
+  },
+);
+
+const registryMdxModulesByPath = normalizeGlobFiles(registryMdxModules);
+const usageMdxComponents = {
+  a: MarkdownLink,
+  code: MarkdownInlineCode,
+  pre: MarkdownPre,
+};
 
 export type HighlightedRegistrySourceFile = RegistrySourceFileWithSource & {
-  highlightedCode: HighlightedCodeRenderable;
+  highlightedHtml: string;
 };
 
 export type HighlightedRegistryPreviewSourceFile = RegistryPreviewSourceFileWithSource & {
-  highlightedCode: HighlightedCodeRenderable;
+  highlightedHtml: string;
 };
 
 export type RegistryItemDetail = Omit<
   RegistryCatalogItemWithSources,
-  "previewSourceFile" | "sourceFiles"
+  "hasUsage" | "previewSourceFile" | "sourceFiles"
 > & {
   previewSourceFile: HighlightedRegistryPreviewSourceFile;
   sourceFiles: HighlightedRegistrySourceFile[];
+  usage?: RenderedUsage;
 };
 
 export async function getRegistryItemDetailData(data: RegistryItemDetailInput) {
@@ -48,15 +72,18 @@ export async function getRegistryItemDetailData(data: RegistryItemDetailInput) {
 async function highlightRegistryItem(
   item: RegistryCatalogItemWithSources,
 ): Promise<RegistryItemDetail> {
-  const [previewSourceFile, sourceFiles] = await Promise.all([
+  const { hasUsage, ...itemWithoutUsageFlag } = item;
+  const [previewSourceFile, sourceFiles, usage] = await Promise.all([
     highlightPreviewSourceFile(item, item.previewSourceFile),
     Promise.all(item.sourceFiles.map((file) => highlightSourceFile(item, file))),
+    renderUsage(item.previewSourceFile.path, hasUsage),
   ]);
 
   return {
-    ...item,
+    ...itemWithoutUsageFlag,
     previewSourceFile,
     sourceFiles,
+    ...(usage ? { usage } : {}),
   };
 }
 
@@ -69,7 +96,7 @@ async function highlightPreviewSourceFile(
   return {
     ...file,
     source,
-    highlightedCode: await renderCode({ ...file, source }),
+    highlightedHtml: await highlightCodeToHtml(source, "preview.tsx"),
   };
 }
 
@@ -82,16 +109,87 @@ async function highlightSourceFile(
   return {
     ...file,
     source,
-    highlightedCode: await renderCode({ ...file, source }),
+    highlightedHtml: await highlightCodeToHtml(source, file.path),
   };
 }
 
-async function renderCode(file: { path: string; source: string }) {
-  const html = await highlightCodeToHtml(file.source, file.path);
+async function renderUsage(path: string, hasUsage: boolean) {
+  if (!hasUsage) {
+    return null;
+  }
 
-  return renderServerComponent(<HighlightedCode html={html} />);
+  const Content = registryMdxModulesByPath[path]?.default;
+
+  return Content ? renderServerComponent(<UsageMdx Content={Content} />) : null;
 }
 
-function HighlightedCode({ html }: { html: string }) {
-  return <div className="contents" dangerouslySetInnerHTML={{ __html: html }} />;
+function UsageMdx({ Content }: { Content: NonNullable<RegistryMdxModule["default"]> }) {
+  return (
+    <div className="prose prose-sm max-w-none prose-neutral dark:prose-invert prose-pre:my-0">
+      <Content components={usageMdxComponents} />
+    </div>
+  );
+}
+
+function MarkdownLink({ href, ...props }: React.ComponentProps<"a">) {
+  const external = href?.startsWith("http://") || href?.startsWith("https://");
+
+  return (
+    <a {...props} href={href} {...(external ? { rel: "noreferrer", target: "_blank" } : {})} />
+  );
+}
+
+function MarkdownInlineCode({ className, ...props }: React.ComponentProps<"code">) {
+  return (
+    <code
+      className={cn("rounded bg-muted px-1 py-0.5 font-mono text-[0.875em] font-normal", className)}
+      {...props}
+    />
+  );
+}
+
+async function MarkdownPre({ children }: React.ComponentProps<"pre">) {
+  const child = React.Children.toArray(children).find(React.isValidElement);
+
+  if (!React.isValidElement<CodeElementProps>(child)) {
+    return <pre>{children}</pre>;
+  }
+
+  const code = getCodeText(child.props.children).replace(/\n$/u, "");
+  const language = getMarkdownCodeLanguage(child.props.className);
+
+  return (
+    <CodeBlock
+      code={code}
+      highlightedHtml={await highlightCodeToHtml(code, language ?? "text")}
+      className="not-prose my-4"
+    />
+  );
+}
+
+type CodeElementProps = {
+  className?: string;
+  children?: React.ReactNode;
+};
+
+function getMarkdownCodeLanguage(className: string | undefined): string | null {
+  return className?.match(/(?:^|\s)language-([^\s]+)/u)?.[1] ?? null;
+}
+
+function getCodeText(children: React.ReactNode): string {
+  return React.Children.toArray(children).map(getCodeChildText).join("");
+}
+
+function getCodeChildText(child: React.ReactNode): string {
+  return typeof child === "string" || typeof child === "number" ? String(child) : "";
+}
+
+function normalizeGlobFiles<T>(files: Record<string, T>): Record<string, T> {
+  return Object.fromEntries(
+    Object.entries(files).map(([path, source]) => [normalizeGlobPath(path), source]),
+  );
+}
+
+function normalizeGlobPath(path: string): string {
+  return path.replace(/^(?:\.\.\/){3}/u, "");
 }

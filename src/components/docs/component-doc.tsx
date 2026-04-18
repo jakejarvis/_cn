@@ -44,7 +44,7 @@ export function RegistryItemDoc({ item, section, sectionPath }: RegistryItemDocP
         <p className="text-lg text-muted-foreground">{item.description}</p>
       </header>
 
-      <Tabs defaultValue="preview" className="gap-4">
+      <Tabs key={`${sectionPath}:${item.name}:preview`} defaultValue="preview" className="gap-4">
         <TabsList variant="line">
           <TabsTrigger value="preview">
             <IconAppWindow data-icon="inline-start" />
@@ -72,7 +72,7 @@ export function RegistryItemDoc({ item, section, sectionPath }: RegistryItemDocP
 
       <section className="flex flex-col gap-4">
         <h2 className="font-heading text-xl font-semibold tracking-tight">Installation</h2>
-        <Tabs defaultValue="cli">
+        <Tabs key={`${sectionPath}:${item.name}:installation`} defaultValue="cli">
           <TabsList>
             <TabsTrigger value="cli">
               <IconTerminal data-icon="inline-start" />

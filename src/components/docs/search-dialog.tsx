@@ -109,7 +109,7 @@ export function SearchDialog() {
     <>
       <Button
         variant="outline"
-        className="hidden w-56 justify-between text-muted-foreground sm:flex"
+        className="mr-4 hidden w-56 justify-between text-muted-foreground sm:flex"
         onClick={() => setOpen(true)}
       >
         <span className="flex min-w-0 items-center gap-2">

@@ -1,30 +1,67 @@
 import { Link } from "@tanstack/react-router";
 
-import type { RegistryCatalogItem } from "@/lib/registry/catalog";
-import type { RegistrySectionConfig } from "@/lib/registry/sections";
+import type { RegistrySectionWithItems } from "@/lib/registry/sections";
 import { cn } from "@/lib/utils";
 
 type DocsSidebarProps = {
-  title: string;
-  items: RegistryCatalogItem[];
-  basePath: RegistrySectionConfig["basePath"];
+  sections: readonly RegistrySectionWithItems[];
   pathname: string;
+  className?: string;
   onNavigate?: () => void;
 };
 
-export function DocsSidebar({ title, items, basePath, pathname, onNavigate }: DocsSidebarProps) {
+export function DocsSidebar({ sections, pathname, className, onNavigate }: DocsSidebarProps) {
   return (
-    <nav className="flex flex-col gap-1">
-      <h4 className="px-3 py-1 text-sm font-semibold">{title}</h4>
+    <nav className={cn("flex flex-col gap-4", className)}>
+      <div data-sidebar-home className="flex flex-col gap-1">
+        <Link
+          to="/"
+          onClick={onNavigate}
+          className="rounded-md px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
+        >
+          Home
+        </Link>
+      </div>
+
+      {sections.map((section) => (
+        <DocsSidebarSection
+          key={section.id}
+          section={section}
+          pathname={pathname}
+          onNavigate={onNavigate}
+        />
+      ))}
+    </nav>
+  );
+}
+
+function DocsSidebarSection({
+  section,
+  pathname,
+  onNavigate,
+}: {
+  section: RegistrySectionWithItems;
+  pathname: string;
+  onNavigate?: () => void;
+}) {
+  return (
+    <div className="flex flex-col gap-1">
+      <Link
+        to={section.basePath}
+        onClick={onNavigate}
+        className="rounded-md px-3 py-1 text-sm font-semibold text-foreground transition-colors hover:text-foreground"
+      >
+        {section.title}
+      </Link>
       <ul className="flex flex-col gap-0.5">
-        {items.map((item) => {
-          const href = `${basePath}/${item.name}`;
+        {section.items.map((item) => {
+          const href = `${section.basePath}/${item.name}`;
           const isActive = pathname === href;
 
           return (
             <li key={item.name}>
               <Link
-                to={`${basePath}/$name`}
+                to={section.detailRoute}
                 params={{ name: item.name }}
                 onClick={onNavigate}
                 className={cn(
@@ -40,6 +77,6 @@ export function DocsSidebar({ title, items, basePath, pathname, onNavigate }: Do
           );
         })}
       </ul>
-    </nav>
+    </div>
   );
 }

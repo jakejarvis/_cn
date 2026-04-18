@@ -4,10 +4,7 @@ import * as React from "react";
 
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import {
-  getRegistrySectionsWithItems,
-  type RegistrySectionWithItems,
-} from "@/lib/registry/sections";
+import { getRegistrySectionsWithItems } from "@/lib/registry/sections";
 import { siteConfig } from "@/lib/site-config";
 import { cn } from "@/lib/utils";
 
@@ -24,17 +21,18 @@ export function SiteHeader() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
-      <div className="mx-auto flex h-14 max-w-screen-2xl items-center gap-4 px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto flex h-14 max-w-screen-2xl items-center gap-4 px-4">
         <Sheet open={open} onOpenChange={setOpen}>
           <SheetTrigger render={<Button variant="ghost" size="icon" className="lg:hidden" />}>
             <IconMenu2 data-icon />
             <span className="sr-only">Toggle menu</span>
           </SheetTrigger>
-          <SheetContent side="left" className="w-72 p-0">
+          <SheetContent side="left" className="!w-72 p-0">
             <SheetTitle className="sr-only">Navigation</SheetTitle>
-            <MobileNav
+            <DocsSidebar
               sections={visibleSections}
               pathname={pathname}
+              className="overflow-y-auto p-4 pt-12"
               onNavigate={() => setOpen(false)}
             />
           </SheetContent>
@@ -77,59 +75,6 @@ export function SiteHeader() {
         </div>
       </div>
     </header>
-  );
-}
-
-function MobileNav({
-  sections,
-  pathname,
-  onNavigate,
-}: {
-  sections: RegistrySectionWithItems[];
-  pathname: string;
-  onNavigate: () => void;
-}) {
-  return (
-    <div className="flex flex-col gap-4 overflow-y-auto p-4 pt-12">
-      <div className="flex flex-col gap-1">
-        <Link
-          to="/"
-          onClick={onNavigate}
-          className={cn(
-            "rounded-md px-3 py-1.5 text-sm transition-colors hover:text-foreground",
-            pathname === "/" ? "font-medium text-foreground" : "text-muted-foreground",
-          )}
-        >
-          Home
-        </Link>
-        {sections.map((section) => (
-          <Link
-            key={section.id}
-            to={section.basePath}
-            onClick={onNavigate}
-            className={cn(
-              "rounded-md px-3 py-1.5 text-sm transition-colors hover:text-foreground",
-              pathname.startsWith(section.basePath)
-                ? "font-medium text-foreground"
-                : "text-muted-foreground",
-            )}
-          >
-            {section.title}
-          </Link>
-        ))}
-      </div>
-
-      {sections.map((section) => (
-        <DocsSidebar
-          key={section.id}
-          title={section.title}
-          items={section.items}
-          basePath={section.basePath}
-          pathname={pathname}
-          onNavigate={onNavigate}
-        />
-      ))}
-    </div>
   );
 }
 

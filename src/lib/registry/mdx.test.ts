@@ -54,6 +54,9 @@ export function Preview() {
       ],
     });
     expect(parsed.hasUsage).toBe(true);
+    expect(parsed.usageSource).toContain("Use the toast component from any client component.");
+    expect(parsed.usageSource).toContain(`from "@/components/ui/toast"`);
+    expect(parsed.usageSource).not.toContain("export function Preview");
     expect(parsed.previewSource).toContain(`from "./toast"`);
     expect(parsed.previewSource).not.toContain(`from "@/components/ui/toast"`);
     expect(parsed.previewSource).toContain("export function Preview");
@@ -130,6 +133,7 @@ export function Preview() {
     );
 
     expect(parsed.hasUsage).toBe(false);
+    expect(parsed.usageSource).toBe("");
   });
 
   test("rejects missing frontmatter", () => {

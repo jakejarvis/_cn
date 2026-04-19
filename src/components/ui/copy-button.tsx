@@ -11,7 +11,7 @@ type CopyButtonClickEvent = Parameters<
 >[0];
 
 type CopyButtonProps = Omit<React.ComponentProps<typeof Button>, "children" | "value"> & {
-  value: string | (() => string);
+  value: string | (() => string | Promise<string>);
   showLabel?: boolean;
   copyLabel?: string;
   copiedLabel?: string;
@@ -53,7 +53,7 @@ function CopyButton({
       }
 
       try {
-        const textToCopy = typeof value === "function" ? value() : value;
+        const textToCopy = typeof value === "function" ? await value() : value;
 
         await copyTextToClipboard(textToCopy);
         window.clearTimeout(resetTimeoutRef.current);

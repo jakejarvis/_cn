@@ -8,6 +8,14 @@ export type MdxAstNode = {
   type: string;
   value?: string;
   children?: MdxAstNode[];
+  position?: {
+    start?: {
+      offset?: number;
+    };
+    end?: {
+      offset?: number;
+    };
+  };
 };
 
 const registryMdxProcessor = unified()
@@ -37,7 +45,23 @@ export function getMdxEsmSource(root: MdxAstNode): string {
 }
 
 export function hasMdxUsageContent(root: MdxAstNode): boolean {
-  return root.children?.some((node) => node.type !== "yaml" && node.type !== "mdxjsEsm") ?? false;
+  return getMdxUsageNodes(root).length > 0;
+}
+
+export function getMdxUsageSource(root: MdxAstNode, source: string): string {
+  const usageNodes = getMdxUsageNodes(root);
+  const startOffset = usageNodes[0]?.position?.start?.offset;
+  const endOffset = usageNodes.at(-1)?.position?.end?.offset;
+
+  if (typeof startOffset !== "number" || typeof endOffset !== "number") {
+    return "";
+  }
+
+  return source.slice(startOffset, endOffset).trim();
+}
+
+function getMdxUsageNodes(root: MdxAstNode): MdxAstNode[] {
+  return root.children?.filter((node) => node.type !== "yaml" && node.type !== "mdxjsEsm") ?? [];
 }
 
 export function getErrorMessage(error: unknown): string {

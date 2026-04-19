@@ -49,7 +49,7 @@ function DocsSidebarSection({
       <Link
         to={section.basePath}
         onClick={onNavigate}
-        className="rounded-md px-3 py-1 text-sm font-semibold text-foreground transition-colors hover:text-foreground"
+        className="rounded-md px-3 py-1 text-sm font-semibold"
       >
         {section.title}
       </Link>
@@ -65,7 +65,7 @@ function DocsSidebarSection({
                 params={{ name: item.name }}
                 onClick={onNavigate}
                 className={cn(
-                  "block rounded-md px-3 py-1.5 text-sm transition-colors",
+                  "block truncate rounded-md px-3 py-1.5 text-sm transition-colors",
                   isActive
                     ? "bg-accent font-medium text-accent-foreground"
                     : "text-muted-foreground hover:text-foreground",

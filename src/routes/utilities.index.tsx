@@ -14,6 +14,7 @@ function UtilitiesIndex() {
       <RegistryItemList
         title={section.title}
         description={section.description}
+        pagePath={section.basePath}
         items={getRegistrySectionItems(section.id)}
         detailRoute={section.detailRoute}
       />

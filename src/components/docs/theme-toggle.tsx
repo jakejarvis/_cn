@@ -52,7 +52,11 @@ export function ThemeToggle({ className }: ThemeToggleProps) {
               const Icon = option.icon;
 
               return (
-                <DropdownMenuRadioItem key={option.value} value={option.value}>
+                <DropdownMenuRadioItem
+                  key={option.value}
+                  value={option.value}
+                  className="cursor-pointer gap-2 px-2 py-1.5 [&_svg:not([class*='text-'])]:text-muted-foreground"
+                >
                   <Icon data-icon="inline-start" />
                   {option.label}
                 </DropdownMenuRadioItem>

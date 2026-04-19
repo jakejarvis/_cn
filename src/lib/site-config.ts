@@ -21,6 +21,14 @@ export function getCanonicalRegistryItemUrl(itemName: string): string {
   return `${getSiteOrigin()}${getCanonicalRegistryItemPath(itemName)}`;
 }
 
+export function getCanonicalDocsUrl(path: string): string {
+  return `${getSiteOrigin()}${normalizeSitePath(path)}`;
+}
+
+export function getDocsMarkdownPath(path: string): string {
+  return `${normalizeSitePath(path)}.md`;
+}
+
 export function getCanonicalRegistryIndexPath(): string {
   return joinRegistryPath(siteConfig.registry.canonicalBasePath, siteConfig.registry.indexPath);
 }
@@ -51,6 +59,12 @@ export function getAliasRegistryItemPaths(itemName: string): string[] {
 
 function getSiteOrigin(): string {
   return siteConfig.homepage.replace(/\/+$/u, "");
+}
+
+function normalizeSitePath(path: string): string {
+  const trimmedPath = path.replace(/^\/+|\/+$/gu, "");
+
+  return trimmedPath ? `/${trimmedPath}` : "/";
 }
 
 function joinRegistryPath(basePath: string, path: string): string {

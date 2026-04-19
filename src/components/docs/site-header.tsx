@@ -27,7 +27,7 @@ export function SiteHeader() {
             <IconMenu2 data-icon />
             <span className="sr-only">Toggle menu</span>
           </SheetTrigger>
-          <SheetContent side="left" className="!w-72 p-0">
+          <SheetContent side="left" className="w-66! bg-background/96 p-0 backdrop-blur-lg">
             <SheetTitle className="sr-only">Navigation</SheetTitle>
             <DocsSidebar
               sections={visibleSections}

@@ -5,6 +5,7 @@ import { getCanonicalRegistryItemUrl } from "@/lib/site-config";
 import {
   getErrorMessage,
   getMdxEsmSource,
+  getMdxUsageSource,
   hasMdxUsageContent,
   parseRegistryMdxAst,
   type MdxAstNode,
@@ -19,6 +20,7 @@ export type ParsedRegistryMdx = {
   registryItem: RegistryItemAuthoringDefinition;
   previewSource: string;
   hasUsage: boolean;
+  usageSource: string;
 };
 
 const registryItemTypes = new Set([
@@ -78,6 +80,7 @@ export function parseRegistryMdx(path: string, source: string): ParsedRegistryMd
     registryItem: toRegistryItemAuthoringDefinition(metadata),
     previewSource: getMdxEsmSource(root),
     hasUsage: hasMdxUsageContent(root),
+    usageSource: getMdxUsageSource(root, source),
   };
 }
 

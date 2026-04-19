@@ -16,6 +16,7 @@ import type { RegistrySectionConfig } from "@/lib/registry/sections";
 
 import { CodeBlock } from "./code-block";
 import { ComponentPreview } from "./component-preview";
+import { DocsPageHeader } from "./docs-page-header";
 import { InstallCommand } from "./install-command";
 
 type RegistryItemDocProps = {
@@ -39,10 +40,11 @@ export function RegistryItemDoc({ item, section, sectionPath }: RegistryItemDocP
         </BreadcrumbList>
       </Breadcrumb>
 
-      <header className="flex max-w-3xl flex-col gap-2">
-        <h1 className="font-heading text-3xl font-bold tracking-tight">{item.title}</h1>
-        <p className="text-lg text-muted-foreground">{item.description}</p>
-      </header>
+      <DocsPageHeader
+        title={item.title}
+        description={item.description}
+        pagePath={`${sectionPath}/${item.name}`}
+      />
 
       <Tabs key={`${sectionPath}:${item.name}:preview`} defaultValue="preview" className="gap-4">
         <TabsList variant="line">
@@ -72,8 +74,8 @@ export function RegistryItemDoc({ item, section, sectionPath }: RegistryItemDocP
 
       <section className="flex flex-col gap-4">
         <h2 className="font-heading text-xl font-semibold tracking-tight">Installation</h2>
-        <Tabs key={`${sectionPath}:${item.name}:installation`} defaultValue="cli">
-          <TabsList>
+        <Tabs key={`${sectionPath}:${item.name}:installation`} defaultValue="cli" className="gap-4">
+          <TabsList variant="line">
             <TabsTrigger value="cli">
               <IconTerminal data-icon="inline-start" />
               CLI

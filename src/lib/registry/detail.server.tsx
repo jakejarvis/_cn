@@ -60,7 +60,7 @@ export type HighlightedRegistryPreviewSourceFile = RegistryPreviewSourceFileWith
 
 export type RegistryItemDetail = Omit<
   RegistryCatalogItemWithSources,
-  "hasUsage" | "previewSourceFile" | "sourceFiles"
+  "hasUsage" | "usageSource" | "previewSourceFile" | "sourceFiles"
 > & {
   preview: RenderedPreview;
   previewSourceFile: HighlightedRegistryPreviewSourceFile;
@@ -87,7 +87,7 @@ export async function getRegistryItemDetailData(data: RegistryItemDetailInput) {
 async function highlightRegistryItem(
   item: RegistryCatalogItemWithSources,
 ): Promise<RegistryItemDetail> {
-  const { hasUsage, ...itemWithoutUsageFlag } = item;
+  const { hasUsage, usageSource: _usageSource, ...itemWithoutUsageFlag } = item;
   const [preview, previewSourceFile, sourceFiles, usage] = await Promise.all([
     renderPreview(item.previewSourceFile.path),
     highlightPreviewSourceFile(item, item.previewSourceFile),
@@ -163,7 +163,7 @@ async function renderPreview(path: string): Promise<AnyCompositeComponent | null
 
 function UsageMdx({ Content }: { Content: NonNullable<RegistryMdxModule["default"]> }) {
   return (
-    <div className="prose prose-sm max-w-none prose-neutral dark:prose-invert prose-pre:my-0">
+    <div className="prose max-w-none prose-neutral dark:prose-invert prose-pre:my-0">
       <Content components={usageMdxComponents} />
     </div>
   );

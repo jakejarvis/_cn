@@ -15,6 +15,7 @@ type RegistryItemModuleEntry = {
   registryItem: RegistryItemAuthoringDefinition;
   previewSource: string;
   hasUsage: boolean;
+  usageSource: string;
 };
 
 export const componentRegistryTypes = [
@@ -60,6 +61,7 @@ export type RegistryCatalogItem = RegistryItem & {
   sourceFiles: RegistrySourceFile[];
   previewSourceFile: RegistryPreviewSourceFile;
   hasUsage: boolean;
+  usageSource: string;
 };
 
 export const registryItems = registryItemModuleEntries.map(toRegistryCatalogItem);
@@ -79,6 +81,7 @@ function toRegistryCatalogItem(entry: RegistryItemModuleEntry): RegistryCatalogI
     ),
     previewSourceFile: getPreviewSourceFile(entry.path, entry.previewSource),
     hasUsage: entry.hasUsage,
+    usageSource: entry.usageSource,
   };
 }
 

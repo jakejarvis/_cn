@@ -28,10 +28,10 @@ type RegistryMdxModule = {
 };
 type RegistryPreviewModule = React.ComponentType;
 
-const registryMdxModules = import.meta.glob<RegistryMdxModule>(
+const registryUsageModules = import.meta.glob<RegistryMdxModule>(
   "../../../registry/items/**/_registry.mdx",
   {
-    eager: true,
+    query: "?registry-usage",
   },
 );
 const registryPreviewModules = import.meta.glob<RegistryPreviewModule>(
@@ -42,7 +42,7 @@ const registryPreviewModules = import.meta.glob<RegistryPreviewModule>(
   },
 );
 
-const registryMdxModulesByPath = normalizeGlobFiles(registryMdxModules);
+const registryUsageModulesByPath = normalizeGlobFiles(registryUsageModules);
 const registryPreviewModulesByPath = normalizeGlobFiles(registryPreviewModules);
 const usageMdxComponents = {
   a: MarkdownLink,
@@ -135,7 +135,13 @@ async function renderUsage(path: string, hasUsage: boolean) {
     return null;
   }
 
-  const Content = registryMdxModulesByPath[path]?.default;
+  const loadUsage = registryUsageModulesByPath[path];
+
+  if (!loadUsage) {
+    return null;
+  }
+
+  const Content = (await loadUsage()).default;
 
   return Content ? renderServerComponent(<UsageMdx Content={Content} />) : null;
 }
@@ -187,6 +193,10 @@ function MarkdownInlineCode({ className, ...props }: React.ComponentProps<"code"
 }
 
 async function MarkdownPre({ children }: React.ComponentProps<"pre">) {
+  return renderMarkdownCodeBlock(children);
+}
+
+export async function renderMarkdownCodeBlock(children: React.ReactNode) {
   const child = React.Children.toArray(children).find(React.isValidElement);
 
   if (!React.isValidElement<CodeElementProps>(child)) {

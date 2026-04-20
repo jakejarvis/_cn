@@ -57,6 +57,15 @@ export function Preview() {
     expect(parsed.usageSource).toContain("Use the toast component from any client component.");
     expect(parsed.usageSource).toContain(`from "@/components/ui/toast"`);
     expect(parsed.usageSource).not.toContain("export function Preview");
+    expect(parsed.usageSource).toBe(`Use the toast component from any client component.
+
+\`\`\`tsx
+import { Toast } from "@/components/ui/toast";
+
+export function Example() {
+  return <Toast />;
+}
+\`\`\``);
     expect(parsed.previewSource).toContain(`from "./toast"`);
     expect(parsed.previewSource).not.toContain(`from "@/components/ui/toast"`);
     expect(parsed.previewSource).toContain("export function Preview");
@@ -134,6 +143,75 @@ export function Preview() {
 
     expect(parsed.hasUsage).toBe(false);
     expect(parsed.usageSource).toBe("");
+  });
+
+  test("rejects registry MDX without a preview export", () => {
+    expect(() =>
+      parseRegistryMdx(
+        "registry/items/components/toast/_registry.mdx",
+        `---
+name: toast
+type: registry:ui
+title: Toast
+description: A toast manager.
+---
+
+import { Toast } from "./toast";
+
+Use the toast component.
+`,
+      ),
+    ).toThrow(/must export a Preview function/u);
+  });
+
+  test("rejects content after the preview export", () => {
+    expect(() =>
+      parseRegistryMdx(
+        "registry/items/components/toast/_registry.mdx",
+        `---
+name: toast
+type: registry:ui
+title: Toast
+description: A toast manager.
+---
+
+import { Toast } from "./toast";
+
+Use the toast component.
+
+export function Preview() {
+  return <Toast />;
+}
+
+This should stay before the preview.
+`,
+      ),
+    ).toThrow(/must not contain content after the Preview export/u);
+  });
+
+  test("rejects MDX imports or exports inside usage content", () => {
+    expect(() =>
+      parseRegistryMdx(
+        "registry/items/components/toast/_registry.mdx",
+        `---
+name: toast
+type: registry:ui
+title: Toast
+description: A toast manager.
+---
+
+import { Toast } from "./toast";
+
+Use the toast component.
+
+export const usageOnly = true;
+
+export function Preview() {
+  return <Toast />;
+}
+`,
+      ),
+    ).toThrow(/must not contain MDX imports or exports inside the Usage section/u);
   });
 
   test("rejects missing frontmatter", () => {

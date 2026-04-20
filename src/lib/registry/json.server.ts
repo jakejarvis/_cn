@@ -12,7 +12,11 @@ import {
   type RegistryItemDefinition,
 } from "./metadata";
 import { getFileName } from "./paths";
-import { getRegistryItemWithSources, type RegistryCatalogItemWithSources } from "./source.server";
+import {
+  getRegistryItemWithSources,
+  isSupportedRegistrySourcePath,
+  type RegistryCatalogItemWithSources,
+} from "./source.server";
 
 export const registryJsonResponseHeaders = {
   "Cache-Control": "public, max-age=0, s-maxage=3600, stale-while-revalidate=86400",
@@ -65,6 +69,14 @@ const registryItemOptionalFieldNames = [
   "extends",
   "config",
 ] as const satisfies readonly (keyof RegistryItemOptionalFields)[];
+
+type RegistrySourceValidationItem = {
+  name: string;
+  sourceFiles: Array<{
+    source: string;
+    sourcePath: string;
+  }>;
+};
 
 export function getRegistryIndexJsonResponse(): Response {
   return Response.json(getRegistryIndexJson(), { headers: registryJsonResponseHeaders });
@@ -191,7 +203,7 @@ function getRegistryDependencyErrors(
 function getRegistryFileValidationErrors(item: RegistryCatalogItem): string[] {
   const errors: string[] = [];
 
-  for (const file of item.files) {
+  for (const file of item.sourceFiles) {
     if (!file.path.startsWith("registry/")) {
       errors.push(
         `Registry item "${item.name}" contains a file path outside registry/: ${file.path}`,
@@ -208,6 +220,12 @@ function getRegistryFileValidationErrors(item: RegistryCatalogItem): string[] {
       errors.push(`Registry item "${item.name}" must not publish registry authoring files.`);
     }
 
+    if (getFileName(file.sourcePath).startsWith("_")) {
+      errors.push(
+        `Registry item "${item.name}" must not publish from registry authoring source files: ${file.sourcePath}`,
+      );
+    }
+
     if ((file.type === "registry:file" || file.type === "registry:page") && !file.target) {
       errors.push(`Registry item "${item.name}" file ${file.path} must include target.`);
     }
@@ -216,10 +234,17 @@ function getRegistryFileValidationErrors(item: RegistryCatalogItem): string[] {
   return errors;
 }
 
-function getRegistrySourceValidationErrors(item: RegistryCatalogItemWithSources): string[] {
+export function getRegistrySourceValidationErrors(item: RegistrySourceValidationItem): string[] {
   const errors: string[] = [];
 
   for (const file of item.sourceFiles) {
+    if (!isSupportedRegistrySourcePath(file.sourcePath)) {
+      errors.push(
+        `Registry item "${item.name}" references an unsupported source file type: ${file.sourcePath}`,
+      );
+      continue;
+    }
+
     if (file.source.length === 0) {
       errors.push(`Registry item "${item.name}" references a missing file: ${file.sourcePath}`);
     }
@@ -255,9 +280,16 @@ function toRegistryItemJson(
   item: RegistryCatalogItem,
   itemWithSources = getRegistryItemWithSources(item),
 ): RegistryItemJson {
-  const missingFiles = itemWithSources.sourceFiles
-    .filter((file) => file.source.length === 0)
+  const unsupportedFiles = itemWithSources.sourceFiles
+    .filter((file) => !isSupportedRegistrySourcePath(file.sourcePath))
     .map((file) => file.sourcePath);
+  const missingFiles = itemWithSources.sourceFiles
+    .filter((file) => isSupportedRegistrySourcePath(file.sourcePath) && file.source.length === 0)
+    .map((file) => file.sourcePath);
+
+  if (unsupportedFiles.length > 0) {
+    throw new Error(`Unsupported registry source file type(s): ${unsupportedFiles.join(", ")}`);
+  }
 
   if (missingFiles.length > 0) {
     throw new Error(`Missing registry source file(s): ${missingFiles.join(", ")}`);

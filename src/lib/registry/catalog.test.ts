@@ -18,6 +18,8 @@ import {
   getMissingRegistryPreviewPaths,
   getMissingRegistrySourcePaths,
   getRegistryItemWithSources,
+  getUnsupportedRegistrySourcePaths,
+  isSupportedRegistrySourcePath,
   trimBlankTrailingLines,
 } from "@/lib/registry/source.server";
 
@@ -74,6 +76,8 @@ describe("registry catalog", () => {
       expect(registryItemJson?.files.map(toRegistryFileDefinition)).toEqual(item.files);
       expect(registryItemJson?.files.every((file) => file.content.length > 0)).toBe(true);
       expect(registryItemJson).not.toHaveProperty("hasUsage");
+      expect(registryItemJson).not.toHaveProperty("usageSource");
+      expect(registryItemJson).not.toHaveProperty("previewSourceFile");
     }
   });
 
@@ -109,6 +113,13 @@ describe("registry catalog", () => {
 
   test("loads source for every published file", () => {
     expect(getMissingRegistrySourcePaths()).toEqual([]);
+  });
+
+  test("supports the raw source file types used by registry items", () => {
+    expect(getUnsupportedRegistrySourcePaths()).toEqual([]);
+    expect(isSupportedRegistrySourcePath("registry/items/example/example.tsx")).toBe(true);
+    expect(isSupportedRegistrySourcePath("registry/items/example/example.css")).toBe(true);
+    expect(isSupportedRegistrySourcePath("registry/items/example/example.md")).toBe(false);
   });
 
   test("loads preview source for every item", () => {

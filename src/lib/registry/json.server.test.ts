@@ -4,6 +4,7 @@ import {
   getRegistryIndexJson,
   getRegistryIndexJsonResponse,
   getRegistryItemJsonResponse,
+  getRegistrySourceValidationErrors,
 } from "@/lib/registry/json.server";
 
 describe("registry JSON route responses", () => {
@@ -45,6 +46,27 @@ describe("registry JSON route responses", () => {
     expect(alias.status).toBe(404);
     expect(await readJson(canonical)).toEqual({ error: "Registry item not found." });
     expect(await readJson(alias)).toEqual({ error: "Registry item not found." });
+  });
+
+  test("reports missing and unsupported registry source files before JSON is served", () => {
+    expect(
+      getRegistrySourceValidationErrors({
+        name: "broken-item",
+        sourceFiles: [
+          {
+            sourcePath: "registry/items/broken/missing.tsx",
+            source: "",
+          },
+          {
+            sourcePath: "registry/items/broken/usage.md",
+            source: "",
+          },
+        ],
+      }),
+    ).toEqual([
+      `Registry item "broken-item" references a missing file: registry/items/broken/missing.tsx`,
+      `Registry item "broken-item" references an unsupported source file type: registry/items/broken/usage.md`,
+    ]);
   });
 });
 

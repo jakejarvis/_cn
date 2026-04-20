@@ -1,10 +1,15 @@
 import { registryItems, type RegistryCatalogItem, type RegistryPreviewSourceFile } from "./catalog";
 
-const registrySources = import.meta.glob<string>("../../../registry/items/**/*.{ts,tsx}", {
-  eager: true,
-  import: "default",
-  query: "?raw",
-});
+const supportedRegistrySourceExtensions = new Set(["css", "js", "jsx", "json", "ts", "tsx"]);
+
+const registrySources = import.meta.glob<string>(
+  "../../../registry/items/**/*.{css,js,jsx,json,ts,tsx}",
+  {
+    eager: true,
+    import: "default",
+    query: "?raw",
+  },
+);
 
 const registrySourceByPath = normalizeGlobFiles(registrySources);
 
@@ -58,16 +63,18 @@ export function getMissingRegistryPreviewPaths(): string[] {
   });
 }
 
-function normalizeGlobFiles<T>(files: Record<string, T>): Record<string, T> {
-  return Object.fromEntries(
-    Object.entries(files).map(([path, source]) => [normalizeGlobPath(path), source]),
+export function getUnsupportedRegistrySourcePaths(): string[] {
+  return registryItems.flatMap((item) =>
+    item.sourceFiles
+      .filter((file) => !isSupportedRegistrySourcePath(file.sourcePath))
+      .map((file) => file.sourcePath),
   );
 }
 
-function getRegistrySource(path: string): string {
-  const source = registrySourceByPath[path];
+export function isSupportedRegistrySourcePath(path: string): boolean {
+  const extension = path.split(".").at(-1);
 
-  return source ? trimBlankTrailingLines(source) : "";
+  return extension ? supportedRegistrySourceExtensions.has(extension) : false;
 }
 
 export function trimBlankTrailingLines(source: string): string {
@@ -78,6 +85,22 @@ export function trimBlankTrailingLines(source: string): string {
   }
 
   return lines.join("\n");
+}
+
+function getRegistrySource(path: string): string {
+  if (!isSupportedRegistrySourcePath(path)) {
+    return "";
+  }
+
+  const source = registrySourceByPath[path];
+
+  return source ? trimBlankTrailingLines(source) : "";
+}
+
+function normalizeGlobFiles<T>(files: Record<string, T>): Record<string, T> {
+  return Object.fromEntries(
+    Object.entries(files).map(([path, source]) => [normalizeGlobPath(path), source]),
+  );
 }
 
 function normalizeGlobPath(path: string): string {

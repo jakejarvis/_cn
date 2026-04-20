@@ -4,9 +4,7 @@ import { getCanonicalRegistryItemUrl } from "@/lib/site-config";
 
 import {
   getErrorMessage,
-  getMdxEsmSource,
-  getMdxUsageSource,
-  hasMdxUsageContent,
+  getRegistryMdxSections,
   parseRegistryMdxAst,
   type MdxAstNode,
 } from "./mdx-ast";
@@ -75,12 +73,13 @@ export function parseRegistryMdx(path: string, source: string): ParsedRegistryMd
   const root = parseRegistryMdxAst(path, source);
   const frontmatter = getFrontmatterNode(path, root);
   const metadata = parseRegistryMdxFrontmatter(path, frontmatter.value ?? "");
+  const sections = getRegistryMdxSections(path, root, source);
 
   return {
     registryItem: toRegistryItemAuthoringDefinition(metadata),
-    previewSource: getMdxEsmSource(root),
-    hasUsage: hasMdxUsageContent(root),
-    usageSource: getMdxUsageSource(root, source),
+    previewSource: sections.previewSource,
+    hasUsage: sections.hasUsage,
+    usageSource: sections.usageSource,
   };
 }
 

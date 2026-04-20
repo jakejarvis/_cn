@@ -17,6 +17,7 @@ describe("MDX Vite plugin", () => {
     expect(await transform("# hello", "/app/content.mdx?raw")).toBeUndefined();
     expect(await transform("# hello", "/app/content.mdx?url")).toBeUndefined();
     expect(await transform("# hello", "/app/content.mdx?import&raw")).toBeUndefined();
+    expect(await transform("# hello", "/app/content.mdx?registry-usage")).toBeUndefined();
   });
 
   test("transforms queried MDX module imports that are not asset requests", async () => {
@@ -65,6 +66,48 @@ export function Preview() {
       expect(code).toContain('from "./example"');
       expect(code).toContain("function Preview");
       expect(code).not.toContain("Usage content");
+    } finally {
+      await rm(tempDir, { force: true, recursive: true });
+    }
+  });
+
+  test("generates usage modules without evaluating preview imports or exports", async () => {
+    const tempDir = await mkdtemp(join(tmpdir(), "registry-mdx-"));
+    const path = join(tempDir, "_registry.mdx");
+
+    try {
+      await writeFile(
+        path,
+        `---
+name: example
+type: registry:ui
+title: Example
+description: Example.
+---
+
+import { Example } from "./example";
+
+Usage content stays in the usage module.
+
+\`\`\`tsx
+<Example />
+\`\`\`
+
+export function Preview() {
+  return <Example />;
+}
+`,
+      );
+
+      const result = await mdxWithQueryBypass().load(`${path}?registry-usage`);
+      const code = typeof result === "object" && result && "code" in result ? result.code : result;
+
+      expect(code).toContain("export default");
+      expect(code).toContain("Usage content stays in the usage module.");
+      expect(code).toContain("<Example />");
+      expect(code).not.toContain('"use client";');
+      expect(code).not.toContain('from "./example"');
+      expect(code).not.toContain("function Preview");
     } finally {
       await rm(tempDir, { force: true, recursive: true });
     }

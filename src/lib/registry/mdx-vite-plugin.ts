@@ -3,13 +3,18 @@ import { readFile } from "node:fs/promises";
 import createMdx, { type Options } from "@mdx-js/rollup";
 import { transformWithOxc, type Plugin } from "vite";
 
-import { getMdxEsmSource, parseRegistryMdxAst } from "./mdx-ast.ts";
+import { getRegistryMdxSections, parseRegistryMdxAst } from "./mdx-ast.ts";
 
 const REGISTRY_PREVIEW_QUERY = "registry-preview";
+const REGISTRY_USAGE_QUERY = "registry-usage";
 const VITE_FILE_SYSTEM_PREFIX = "/@fs/";
 
-type MdxTransformResult = ReturnType<ReturnType<typeof createMdx>["transform"]> | undefined;
-type MdxLoadResult = Awaited<ReturnType<typeof transformWithOxc>> | undefined;
+type MdxDelegate = ReturnType<typeof createMdx>;
+type MdxTransformResult = ReturnType<MdxDelegate["transform"]> | undefined;
+type MdxLoadResult =
+  | Awaited<ReturnType<typeof transformWithOxc>>
+  | Awaited<NonNullable<MdxTransformResult>>
+  | undefined;
 type MdxQueryBypassPlugin = Omit<Plugin, "load" | "transform"> & {
   load: (id: string) => Promise<MdxLoadResult>;
   transform: (code: string, id: string) => MdxTransformResult;
@@ -23,15 +28,19 @@ export function mdxWithQueryBypass(options?: Readonly<Options> | null): MdxQuery
     name: "underscore-cn:mdx",
     enforce: "pre",
     async load(id: string) {
-      if (!isRegistryPreviewModule(id)) {
+      if (!isRegistryPreviewModule(id) && !isRegistryUsageModule(id)) {
         return undefined;
       }
 
       const path = getFilePathFromModuleId(id);
       const source = await readFile(path, "utf8");
-      const previewSource = getMdxEsmSource(parseRegistryMdxAst(path, source));
+      const sections = getRegistryMdxSections(path, parseRegistryMdxAst(path, source), source);
 
-      return transformWithOxc(`"use client";\n\n${previewSource}\n`, `${path}.tsx`);
+      if (isRegistryUsageModule(id)) {
+        return delegate.transform(sections.usageSource, `${path}?${REGISTRY_USAGE_QUERY}`);
+      }
+
+      return transformWithOxc(`"use client";\n\n${sections.previewSource}\n`, `${path}.tsx`);
     },
     transform: (code, id) => {
       if (shouldBypassMdxTransform(id)) {
@@ -47,6 +56,10 @@ function isRegistryPreviewModule(id: string): boolean {
   return getQueryParams(id)?.has(REGISTRY_PREVIEW_QUERY) ?? false;
 }
 
+function isRegistryUsageModule(id: string): boolean {
+  return getQueryParams(id)?.has(REGISTRY_USAGE_QUERY) ?? false;
+}
+
 function shouldBypassMdxTransform(id: string): boolean {
   const params = getQueryParams(id);
 
@@ -54,7 +67,12 @@ function shouldBypassMdxTransform(id: string): boolean {
     return false;
   }
 
-  return params.has("raw") || params.has("url") || params.has(REGISTRY_PREVIEW_QUERY);
+  return (
+    params.has("raw") ||
+    params.has("url") ||
+    params.has(REGISTRY_PREVIEW_QUERY) ||
+    params.has(REGISTRY_USAGE_QUERY)
+  );
 }
 
 function getQueryParams(id: string): URLSearchParams | null {

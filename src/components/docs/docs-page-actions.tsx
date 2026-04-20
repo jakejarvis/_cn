@@ -25,7 +25,6 @@ type MenuItem = {
   label: string;
   href: (urls: { markdownPath: string; pageUrl: string }) => string;
   icon: (props: SVGProps<SVGSVGElement>) => ReactElement;
-  labelClassName?: string;
 };
 
 const menuItems: readonly MenuItem[] = [
@@ -38,7 +37,6 @@ const menuItems: readonly MenuItem[] = [
     label: "Open in v0",
     href: ({ pageUrl }) => getPromptUrl("https://v0.dev", pageUrl),
     icon: V0Icon,
-    labelClassName: "-translate-x-[2px]",
   },
   {
     label: "Open in ChatGPT",
@@ -77,7 +75,7 @@ export function DocsPageActions({ markdownPath, pageUrl, className }: DocsPageAc
       <DropdownMenu>
         <DropdownMenuTrigger render={<Button size="icon" variant="outline" />}>
           <IconChevronDown data-icon aria-hidden="true" />
-          <span className="sr-only">Open page actions</span>
+          <span className="sr-only">Open page actions menu</span>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-max min-w-56">
           <DropdownMenuGroup>
@@ -97,7 +95,7 @@ export function DocsPageActions({ markdownPath, pageUrl, className }: DocsPageAc
                   }
                 >
                   <Icon aria-hidden="true" data-icon="inline-start" />
-                  <span className={item.labelClassName}>{item.label}</span>
+                  <span>{item.label}</span>
                 </DropdownMenuItem>
               );
             })}
@@ -123,10 +121,13 @@ async function getMarkdown(markdownPath: string): Promise<string> {
 }
 
 function getPromptUrl(baseUrl: string, url: string): string {
+  const promptUrl = new URL(baseUrl);
   const prompt = `I'm looking at this documentation: ${url}.
 Help me understand how to use it. Be ready to explain concepts, give examples, or help debug based on it.`;
 
-  return `${baseUrl}?q=${encodeURIComponent(prompt)}`;
+  promptUrl.searchParams.set("q", prompt);
+
+  return promptUrl.toString();
 }
 
 function MarkdownIcon(props: SVGProps<SVGSVGElement>) {

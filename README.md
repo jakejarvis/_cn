@@ -61,6 +61,7 @@ The public registry is flat by default:
 - `/registry.json` serves the registry index.
 - `/<name>.json` serves an item JSON file.
 - `/r/registry.json` and `/r/<name>.json` remain aliases.
+- `/llms.txt` and `/llms-full.txt` are generated from the same Markdown docs and registry item pages used by the site.
 
 This matches the public shadcn registry shape while keeping the old `/r` route family available.
 
@@ -169,6 +170,7 @@ discoverable before installation.
 - [ ] Update or replace the starter docs under `registry/docs`.
 - [ ] Replace the starter registry items.
 - [ ] Verify `/registry.json` and at least one `/<name>.json` item URL.
+- [ ] Verify `/llms.txt` and `/llms-full.txt`.
 - [ ] Update `package.json` metadata, `README.md` details, `LICENSE` owner, etc.
 - [ ] Run `vp check` and `vp build`.
 - [ ] Deploy and test install commands with npm, pnpm, yarn, and bun.

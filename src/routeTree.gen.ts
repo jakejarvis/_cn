@@ -12,6 +12,8 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as Char123nameChar125DotjsonRouteImport } from './routes/{$name}[.]json'
 import { Route as UtilitiesDotmdRouteImport } from './routes/utilities[.]md'
 import { Route as RegistryDotjsonRouteImport } from './routes/registry[.]json'
+import { Route as LlmsDottxtRouteImport } from './routes/llms[.]txt'
+import { Route as LlmsFullDottxtRouteImport } from './routes/llms-full[.]txt'
 import { Route as DocsDotmdRouteImport } from './routes/docs[.]md'
 import { Route as ComponentsDotmdRouteImport } from './routes/components[.]md'
 import { Route as BlocksDotmdRouteImport } from './routes/blocks[.]md'
@@ -45,6 +47,16 @@ const UtilitiesDotmdRoute = UtilitiesDotmdRouteImport.update({
 const RegistryDotjsonRoute = RegistryDotjsonRouteImport.update({
   id: '/registry.json',
   path: '/registry.json',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LlmsDottxtRoute = LlmsDottxtRouteImport.update({
+  id: '/llms.txt',
+  path: '/llms.txt',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LlmsFullDottxtRoute = LlmsFullDottxtRouteImport.update({
+  id: '/llms-full.txt',
+  path: '/llms-full.txt',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DocsDotmdRoute = DocsDotmdRouteImport.update({
@@ -148,6 +160,8 @@ export interface FileRoutesByFullPath {
   '/blocks.md': typeof BlocksDotmdRoute
   '/components.md': typeof ComponentsDotmdRoute
   '/docs.md': typeof DocsDotmdRoute
+  '/llms-full.txt': typeof LlmsFullDottxtRoute
+  '/llms.txt': typeof LlmsDottxtRoute
   '/registry.json': typeof RegistryDotjsonRoute
   '/utilities.md': typeof UtilitiesDotmdRoute
   '/{$name}.json': typeof Char123nameChar125DotjsonRoute
@@ -171,6 +185,8 @@ export interface FileRoutesByTo {
   '/blocks.md': typeof BlocksDotmdRoute
   '/components.md': typeof ComponentsDotmdRoute
   '/docs.md': typeof DocsDotmdRoute
+  '/llms-full.txt': typeof LlmsFullDottxtRoute
+  '/llms.txt': typeof LlmsDottxtRoute
   '/registry.json': typeof RegistryDotjsonRoute
   '/utilities.md': typeof UtilitiesDotmdRoute
   '/{$name}.json': typeof Char123nameChar125DotjsonRoute
@@ -195,6 +211,8 @@ export interface FileRoutesById {
   '/blocks.md': typeof BlocksDotmdRoute
   '/components.md': typeof ComponentsDotmdRoute
   '/docs.md': typeof DocsDotmdRoute
+  '/llms-full.txt': typeof LlmsFullDottxtRoute
+  '/llms.txt': typeof LlmsDottxtRoute
   '/registry.json': typeof RegistryDotjsonRoute
   '/utilities.md': typeof UtilitiesDotmdRoute
   '/{$name}.json': typeof Char123nameChar125DotjsonRoute
@@ -220,6 +238,8 @@ export interface FileRouteTypes {
     | '/blocks.md'
     | '/components.md'
     | '/docs.md'
+    | '/llms-full.txt'
+    | '/llms.txt'
     | '/registry.json'
     | '/utilities.md'
     | '/{$name}.json'
@@ -243,6 +263,8 @@ export interface FileRouteTypes {
     | '/blocks.md'
     | '/components.md'
     | '/docs.md'
+    | '/llms-full.txt'
+    | '/llms.txt'
     | '/registry.json'
     | '/utilities.md'
     | '/{$name}.json'
@@ -266,6 +288,8 @@ export interface FileRouteTypes {
     | '/blocks.md'
     | '/components.md'
     | '/docs.md'
+    | '/llms-full.txt'
+    | '/llms.txt'
     | '/registry.json'
     | '/utilities.md'
     | '/{$name}.json'
@@ -290,6 +314,8 @@ export interface RootRouteChildren {
   BlocksDotmdRoute: typeof BlocksDotmdRoute
   ComponentsDotmdRoute: typeof ComponentsDotmdRoute
   DocsDotmdRoute: typeof DocsDotmdRoute
+  LlmsFullDottxtRoute: typeof LlmsFullDottxtRoute
+  LlmsDottxtRoute: typeof LlmsDottxtRoute
   RegistryDotjsonRoute: typeof RegistryDotjsonRoute
   UtilitiesDotmdRoute: typeof UtilitiesDotmdRoute
   Char123nameChar125DotjsonRoute: typeof Char123nameChar125DotjsonRoute
@@ -330,6 +356,20 @@ declare module '@tanstack/react-router' {
       path: '/registry.json'
       fullPath: '/registry.json'
       preLoaderRoute: typeof RegistryDotjsonRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/llms.txt': {
+      id: '/llms.txt'
+      path: '/llms.txt'
+      fullPath: '/llms.txt'
+      preLoaderRoute: typeof LlmsDottxtRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/llms-full.txt': {
+      id: '/llms-full.txt'
+      path: '/llms-full.txt'
+      fullPath: '/llms-full.txt'
+      preLoaderRoute: typeof LlmsFullDottxtRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/docs.md': {
@@ -466,6 +506,8 @@ const rootRouteChildren: RootRouteChildren = {
   BlocksDotmdRoute: BlocksDotmdRoute,
   ComponentsDotmdRoute: ComponentsDotmdRoute,
   DocsDotmdRoute: DocsDotmdRoute,
+  LlmsFullDottxtRoute: LlmsFullDottxtRoute,
+  LlmsDottxtRoute: LlmsDottxtRoute,
   RegistryDotjsonRoute: RegistryDotjsonRoute,
   UtilitiesDotmdRoute: UtilitiesDotmdRoute,
   Char123nameChar125DotjsonRoute: Char123nameChar125DotjsonRoute,

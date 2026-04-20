@@ -4,7 +4,7 @@ import { getRegistrySectionsWithItems } from "@/lib/registry/sections";
 import { getRegistrySearchRecords, searchRegistryItems } from "@/lib/search/registry-search";
 
 describe("registry search", () => {
-  test("builds one search record for every visible registry item", () => {
+  test("builds search records for docs and every visible registry item", () => {
     const records = getRegistrySearchRecords();
     const sectionItems = getRegistrySectionsWithItems().flatMap((section) =>
       section.items.map((item) => ({
@@ -13,9 +13,15 @@ describe("registry search", () => {
       })),
     );
 
-    expect(records.map((record) => ({ name: record.name, section: record.section }))).toEqual(
-      sectionItems,
-    );
+    expect(records.map((record) => ({ name: record.name, section: record.section }))).toEqual([
+      { name: "docs", section: "docs" },
+      { name: "installation", section: "docs" },
+      { name: "theming", section: "docs" },
+      { name: "cli", section: "docs" },
+      { name: "registry", section: "docs" },
+      { name: "changelog", section: "docs" },
+      ...sectionItems,
+    ]);
   });
 
   test("keeps registry metadata in search records", () => {
@@ -36,6 +42,12 @@ describe("registry search", () => {
     const response = await searchRegistryItems({ query: "", limit: 10 });
 
     expect(response.results.map((result) => result.name)).toEqual([
+      "docs",
+      "installation",
+      "theming",
+      "cli",
+      "registry",
+      "changelog",
       "example-card",
       "stats-panel",
       "use-copy-to-clipboard",
@@ -45,13 +57,27 @@ describe("registry search", () => {
   test("boosts title and name matches over dependency-only matches", async () => {
     const response = await searchRegistryItems({ query: "card", limit: 10 });
 
-    expect(response.results.map((result) => result.name)).toEqual(["example-card", "stats-panel"]);
+    expect(response.results.slice(0, 2).map((result) => result.name)).toEqual([
+      "example-card",
+      "stats-panel",
+    ]);
   });
 
   test("returns typo-tolerant matches", async () => {
     const response = await searchRegistryItems({ query: "exampel", limit: 1 });
 
     expect(response.results[0]?.name).toBe("example-card");
+  });
+
+  test("returns docs matches with route paths", async () => {
+    const response = await searchRegistryItems({ query: "installation", limit: 1 });
+
+    expect(response.results[0]).toMatchObject({
+      name: "installation",
+      section: "docs",
+      routePath: "/docs/installation",
+      type: "docs",
+    });
   });
 
   test("clamps the result limit", async () => {

@@ -37,6 +37,8 @@ Use **Vite+**: `vp install`, `vp dev`, `vp build`, `vp test`
 - Use `registry:component` only when the item is not intended for `components/ui`.
 - Put published registry source under `registry/items/**`, never under `src/components/ui`.
 - `src/components/ui` is for the docs app shell shadcn components only.
+- Put public documentation pages directly under `registry/docs/`; they render at `/docs`.
+- `registry/docs/**` is documentation-only and must not be listed as item source.
 
 ## Registry Item Pattern
 - Each item folder has `_registry.mdx` with YAML frontmatter metadata, an optional MDX Usage body, and a named `Preview` export.
@@ -78,6 +80,7 @@ export function Preview() {
 ## Key Conventions
 - Routes: `src/routes/`; do not edit `src/routeTree.gen.ts` by hand.
 - Site config: `src/lib/site-config.ts` controls public copy, links, registry name, homepage, and URL helpers.
+- Authored docs: direct `registry/docs/*.mdx` or `registry/docs/*.md` files with optional `title`, `description`, `order`, and `group` frontmatter. Nested docs pages are not supported yet.
 - Registry catalog: `src/lib/registry/catalog.ts`; JSON output: `src/lib/registry/json.server.ts`.
 - Registry JSON routes: canonical `/registry.json` and `/<name>.json`; `/r/*` routes are aliases.
 - Docs sections: components and blocks plus utilities for `registry:hook` and `registry:lib`.

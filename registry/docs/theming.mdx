@@ -1,0 +1,13 @@
+---
+title: Theming
+description: Customize the docs shell and published components with your own design tokens.
+order: 2
+---
+
+# Theming
+
+The docs app uses the local shadcn configuration in `components.json` and the global theme in `src/styles.css`.
+
+Published registry items are independent from the docs shell. Put installable component source in `registry/items/**`, and include any required CSS, dependencies, or registry dependencies in the item frontmatter.
+
+Use semantic tokens such as `background`, `foreground`, `primary`, `muted`, and `border` so installed components remain easy to customize.

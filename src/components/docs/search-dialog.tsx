@@ -32,7 +32,7 @@ type SearchState = "idle" | "loading" | "ready" | "error";
 const searchDebounceMs = 120;
 const searchResultLimit = 20;
 const searchHotkey = "Mod+K" satisfies Hotkey;
-const sectionOrder = ["components", "blocks", "utilities"] as const;
+const sectionOrder = ["docs", "components", "blocks", "utilities"] as const;
 
 export function SearchDialog() {
   const navigate = useNavigate();
@@ -112,6 +112,14 @@ export function SearchDialog() {
     handleOpenChange(false);
 
     switch (result.section) {
+      case "docs":
+        if (result.routePath === "/docs") {
+          void navigate({ to: "/docs" });
+          return;
+        }
+
+        void navigate({ to: "/docs/$slug", params: { slug: result.name } });
+        return;
       case "components":
         void navigate({ to: "/components/$name", params: { name: result.name } });
         return;
@@ -133,7 +141,7 @@ export function SearchDialog() {
       >
         <span className="flex min-w-0 items-center gap-2">
           <IconSearch data-icon="inline-start" />
-          <span className="truncate">Search registry</span>
+          <span className="truncate">Search docs</span>
         </span>
         <span
           className="rounded border px-1.5 text-xs text-muted-foreground"
@@ -147,7 +155,7 @@ export function SearchDialog() {
         size="icon"
         className="sm:hidden"
         onClick={() => setOpen(true)}
-        aria-label="Search registry"
+        aria-label="Search docs and registry"
       >
         <IconSearch data-icon />
       </Button>
@@ -155,19 +163,17 @@ export function SearchDialog() {
       <Dialog open={open} onOpenChange={handleOpenChange}>
         <SearchDialogContent>
           <DialogHeader className="sr-only">
-            <DialogTitle>Search Registry</DialogTitle>
-            <DialogDescription>Search components, blocks, hooks, and utilities.</DialogDescription>
+            <DialogTitle>Search Docs</DialogTitle>
+            <DialogDescription>
+              Search docs, components, blocks, hooks, and utilities.
+            </DialogDescription>
           </DialogHeader>
           <Command
             shouldFilter={false}
             className="rounded-none! bg-transparent p-0! **:data-[slot=command-input]:h-9! **:data-[slot=command-input]:py-0 **:data-[slot=command-input-wrapper]:p-0! **:data-[slot=input-group]:h-9! **:data-[slot=input-group]:rounded-md! **:data-[slot=input-group]:border-input **:data-[slot=input-group]:bg-input/50"
           >
             <div className="relative">
-              <CommandInput
-                value={query}
-                onValueChange={setQuery}
-                placeholder="Search registry..."
-              />
+              <CommandInput value={query} onValueChange={setQuery} placeholder="Search docs..." />
               {state === "loading" ? (
                 <div className="pointer-events-none absolute top-1/2 right-3 flex -translate-y-1/2 items-center justify-center">
                   <Spinner className="size-4 text-muted-foreground" />
@@ -177,7 +183,7 @@ export function SearchDialog() {
             <CommandList className="no-scrollbar min-h-80 scroll-pt-2 scroll-pb-1.5">
               {state === "loading" ? (
                 <CommandEmpty className="py-12 text-center text-sm text-muted-foreground">
-                  Searching registry...
+                  Searching docs...
                 </CommandEmpty>
               ) : null}
               {state === "error" ? (

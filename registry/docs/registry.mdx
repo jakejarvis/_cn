@@ -1,0 +1,21 @@
+---
+title: Registry
+description: Author installable registry items under registry/items.
+order: 4
+---
+
+# Registry
+
+Create each item in its own folder under `registry/items/<section>/<item-name>/`.
+
+```text
+registry/items/components/example-card/
+  _registry.mdx
+  example-card.tsx
+```
+
+Use `_registry.mdx` for public metadata, usage docs, and the named `Preview` export.
+
+For one-file `registry:ui` items, the catalog infers `<item-name>.tsx`. Hooks, libs, blocks, pages, target paths, and multi-file items should list `files` explicitly.
+
+Use `localRegistryDependencies` for dependencies on other local registry items.

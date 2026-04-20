@@ -1,3 +1,5 @@
+import { normalizeGlobFiles } from "@/lib/glob";
+
 import { registryItems, type RegistryCatalogItem, type RegistryPreviewSourceFile } from "./catalog";
 
 const supportedRegistrySourceExtensions = new Set(["css", "js", "jsx", "json", "ts", "tsx"]);
@@ -95,14 +97,4 @@ function getRegistrySource(path: string): string {
   const source = registrySourceByPath[path];
 
   return source ? trimBlankTrailingLines(source) : "";
-}
-
-function normalizeGlobFiles<T>(files: Record<string, T>): Record<string, T> {
-  return Object.fromEntries(
-    Object.entries(files).map(([path, source]) => [normalizeGlobPath(path), source]),
-  );
-}
-
-function normalizeGlobPath(path: string): string {
-  return path.replace(/^(?:\.\.\/){3}/u, "");
 }

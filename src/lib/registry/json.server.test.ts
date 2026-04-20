@@ -38,6 +38,14 @@ describe("registry JSON route responses", () => {
     );
   });
 
+  test("keeps authored docs out of registry JSON", async () => {
+    const registry = getRegistryIndexJson();
+    const itemFilePaths = registry.items.flatMap((item) => item.files.map((file) => file.path));
+
+    expect(itemFilePaths.some((path) => path.startsWith("registry/docs/"))).toBe(false);
+    expect(registry.items.map((item) => item.name)).not.toContain("installation");
+  });
+
   test("returns JSON 404 responses for unknown items", async () => {
     const canonical = getRegistryItemJsonResponse("missing-item");
     const alias = getRegistryItemJsonResponse("missing-item");

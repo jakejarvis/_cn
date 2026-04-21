@@ -76,7 +76,9 @@ function CopyButton({
       disabled={disabled}
       aria-label={copied ? copiedLabel : copyLabel}
       className={cn("shrink-0", copied && "cursor-default", className)}
-      onClick={handleClick}
+      onClick={(event) => {
+        void handleClick(event);
+      }}
       {...props}
     >
       {copied ? (

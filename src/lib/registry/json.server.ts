@@ -72,10 +72,10 @@ const registryItemOptionalFieldNames = [
 
 type RegistrySourceValidationItem = {
   name: string;
-  sourceFiles: Array<{
+  sourceFiles: {
     source: string;
     sourcePath: string;
-  }>;
+  }[];
 };
 
 export function getRegistryIndexJsonResponse(): Response {
@@ -369,7 +369,7 @@ function toRegistryItemFileJson(
   return registryFile;
 }
 
-function formatSchemaIssue(issue: { path: Array<string | number>; message: string }): string {
+function formatSchemaIssue(issue: { path: (string | number)[]; message: string }): string {
   const path = issue.path.length > 0 ? issue.path.join(".") : "<root>";
 
   return `${path}: ${issue.message}`;

@@ -242,11 +242,11 @@ function getOrganizationJsonLd(): JsonLdObject {
 }
 
 function formatHttpLinkHeader(
-  links: ReadonlyArray<{
+  links: readonly {
     rel: string;
     url: string;
     type?: string;
-  }>,
+  }[],
 ): string {
   return links
     .map((link) => {

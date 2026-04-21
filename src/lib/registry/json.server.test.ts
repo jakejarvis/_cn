@@ -46,7 +46,7 @@ describe("registry JSON route responses", () => {
     );
   });
 
-  test("keeps authored docs out of registry JSON", async () => {
+  test("keeps authored docs out of registry JSON", () => {
     const registry = getRegistryIndexJson();
     const itemFilePaths = registry.items.flatMap((item) => item.files.map((file) => file.path));
 

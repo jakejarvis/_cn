@@ -19,23 +19,14 @@ const config = defineConfig({
     "*": "vp check --fix",
   },
   fmt: {
-    sortImports: {
-      groups: [
-        "builtin",
-        "external",
-        ["internal", "subpath"],
-        ["parent", "sibling", "index"],
-        "style",
-        "unknown",
-      ],
-      internalPattern: ["@/"],
-      newlinesBetween: true,
-      order: "asc",
-    },
+    sortImports: {},
     sortTailwindcss: {
       stylesheet: "src/styles.css",
-      functions: ["clsx", "cn", "cva", "classList"],
+      functions: ["clsx", "cn", "cva", "tw"],
+      preserveDuplicates: false,
+      preserveWhitespace: false,
     },
+    sortPackageJson: true,
     overrides: [
       {
         files: ["**/*.json", "**/*.jsonc"],
@@ -68,8 +59,21 @@ const config = defineConfig({
       perf: "warn",
     },
     rules: {
-      "react/react-in-jsx-scope": "off",
+      "no-dupe-else-if": "error",
+      "no-empty": "error",
+      "no-restricted-globals": "error",
+      "react/exhaustive-deps": "error",
+      "react/rules-of-hooks": "error",
+      "typescript/array-type": "error",
+      "typescript/consistent-type-exports": "error",
+      "typescript/no-floating-promises": "error",
+      "typescript/no-misused-promises": "error",
+      "typescript/no-namespace": "error",
+      "typescript/prefer-for-of": "error",
+      "typescript/require-await": "error",
+      "unicorn/no-new-buffer": "error",
       "jsx-a11y/anchor-has-content": "off",
+      "react/react-in-jsx-scope": "off",
     },
     overrides: [
       {

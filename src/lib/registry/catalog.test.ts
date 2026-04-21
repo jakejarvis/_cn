@@ -230,7 +230,7 @@ function getRegistryItemByName(name: string): (typeof registryItems)[number] {
   return item;
 }
 
-function getAlphabetizedItemNames(items: Array<{ name: string; title: string }>): string[] {
+function getAlphabetizedItemNames(items: { name: string; title: string }[]): string[] {
   return items.toSorted(compareRegistryItemNames).map((item) => item.name);
 }
 

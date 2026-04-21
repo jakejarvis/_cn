@@ -9,12 +9,13 @@ import { siteConfig } from "@/lib/site-config";
 export const Route = createFileRoute("/docs/$slug")({
   loader: async ({ params }) => {
     const data = await getDocsPageDetail({ data: { path: params.slug } });
+    const { page } = data;
 
-    if (!data.page) {
+    if (!page) {
       throw notFound();
     }
 
-    return data;
+    return { ...data, page };
   },
   head: ({ loaderData }) => {
     const page = loaderData?.page;
@@ -48,13 +49,7 @@ export const Route = createFileRoute("/docs/$slug")({
 });
 
 function DocsSlugRoute() {
-  const data = Route.useLoaderData();
-
-  if (!data?.page) {
-    throw notFound();
-  }
-
-  const { page } = data;
+  const { page } = Route.useLoaderData();
 
   return (
     <DocsLayout section="docs">

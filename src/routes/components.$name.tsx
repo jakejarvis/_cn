@@ -58,10 +58,6 @@ export const Route = createFileRoute("/components/$name")({
 function ComponentRoute() {
   const item = Route.useLoaderData();
 
-  if (!item) {
-    throw notFound();
-  }
-
   return (
     <DocsLayout section={section.id}>
       <RegistryItemDoc item={item} section={section.title} sectionPath={section.basePath} />

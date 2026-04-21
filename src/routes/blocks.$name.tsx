@@ -58,10 +58,6 @@ export const Route = createFileRoute("/blocks/$name")({
 function BlockRoute() {
   const item = Route.useLoaderData();
 
-  if (!item) {
-    throw notFound();
-  }
-
   return (
     <DocsLayout section={section.id}>
       <RegistryItemDoc item={item} section={section.title} sectionPath={section.basePath} />

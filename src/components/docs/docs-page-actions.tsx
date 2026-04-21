@@ -24,7 +24,7 @@ type DocsPageActionsProps = {
 
 type DocsPageActionUrls = Pick<DocsPageActionsProps, "markdownPath" | "pageUrl">;
 
-export type DocsPageActionLink = {
+type DocsPageActionLink = {
   label: string;
   href: string;
 };

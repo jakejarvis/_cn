@@ -26,11 +26,11 @@ type ContentDiagnosticInput = {
   path: string;
 };
 
-const mdxProcessor = createMdxProcessor();
-
-export function createMdxProcessor() {
+function createMdxProcessor() {
   return unified().use(remarkParse).use(remarkMdx).use(remarkFrontmatter, ["yaml"]).use(remarkGfm);
 }
+
+const mdxProcessor = createMdxProcessor();
 
 export function parseMdxAst({
   label,

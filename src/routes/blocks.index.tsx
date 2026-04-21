@@ -2,8 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import { DocsLayout } from "@/components/docs/docs-layout";
 import { RegistryItemList } from "@/components/docs/registry-item-list";
-import { registrySections } from "@/lib/registry/section-config";
-import { getRegistrySectionItems } from "@/lib/registry/sections";
+import { getRegistrySectionItems } from "@/lib/registry/section-items";
+import { registrySections } from "@/lib/registry/sections";
 import { getCollectionPageJsonLd, getMarkdownAlternatePath, getSeoHead } from "@/lib/seo";
 
 const section = registrySections.blocks;

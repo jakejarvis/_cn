@@ -18,10 +18,6 @@ export function getAuthoredDocsPageMarkdownResponse(path: string): Response {
   return createLinkedMarkdownResponse(markdown, page.routePath);
 }
 
-export function getAuthoredDocsIndexMarkdown(): string {
-  return createAuthoredDocsIndexMarkdown(docsPages);
-}
-
 export function createAuthoredDocsIndexMarkdown(
   pages: readonly Pick<
     NonNullable<(typeof docsPages)[number]>,

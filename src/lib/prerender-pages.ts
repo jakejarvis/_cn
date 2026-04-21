@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 import { parse as parseYaml } from "yaml";
 
 import { parseRegistryMdxAst } from "./registry/mdx-ast.ts";
-import { registrySectionList } from "./registry/section-config.ts";
+import { registrySectionList } from "./registry/sections.ts";
 import { shouldExcludeFromSitemap } from "./seo.ts";
 import {
   getAliasRegistryIndexPaths,
@@ -15,19 +15,19 @@ import {
   getDocsMarkdownPath,
 } from "./site-config.ts";
 
-export type PrerenderPage = {
+type PrerenderPage = {
   path: string;
   sitemap?: {
     exclude?: boolean;
   };
 };
 
-export type RegistryPrerenderItem = {
+type RegistryPrerenderItem = {
   name: string;
   type: string;
 };
 
-export type PrerenderPagesInput = {
+type PrerenderPagesInput = {
   docsPagePaths: readonly string[];
   registryItems: readonly RegistryPrerenderItem[];
 };

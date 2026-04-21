@@ -12,7 +12,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { RegistryItemDetail } from "@/lib/registry/detail.server";
-import type { RegistrySectionConfig } from "@/lib/registry/section-config";
+import type { RegistrySectionConfig } from "@/lib/registry/sections";
 
 import { CodeBlock } from "./code-block";
 import { ComponentPreview } from "./component-preview";

@@ -2,7 +2,7 @@ import { describe, expect, test } from "vitest";
 
 import type { DocsPage } from "@/lib/docs/catalog";
 import { docsPages } from "@/lib/docs/catalog";
-import { getRegistrySectionsWithItems } from "@/lib/registry/sections";
+import { getRegistrySectionsWithItems } from "@/lib/registry/section-items";
 import {
   createRegistrySearchRecords,
   getRegistrySearchRecords,

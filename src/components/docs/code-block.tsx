@@ -23,11 +23,11 @@ export function CodeBlock({ code, highlightedHtml, className }: CodeBlockProps) 
       />
       {highlightedHtml ? (
         <div
-          className="overflow-x-auto py-3 pr-12 pl-6 text-sm leading-6"
+          className="overflow-x-auto py-3 pr-12 pl-4 text-sm leading-6 has-[pre[style*='--line-number-width']]:pl-6"
           dangerouslySetInnerHTML={{ __html: highlightedHtml }}
         />
       ) : (
-        <pre className="overflow-x-auto py-3 pr-12 pl-6 text-sm leading-6">
+        <pre className="overflow-x-auto py-3 pr-12 pl-4 text-sm leading-6">
           <code>{code}</code>
         </pre>
       )}

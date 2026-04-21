@@ -3,13 +3,13 @@ import {
   type DocsNavigationItem,
   type DocsNavigationSection,
 } from "@/lib/docs/catalog";
+import { getRegistrySectionItems } from "@/lib/registry/section-items";
 import {
   registrySectionList,
   registrySections,
   type RegistrySection,
   type RegistrySectionConfig,
-} from "@/lib/registry/section-config";
-import { getRegistrySectionItems } from "@/lib/registry/sections";
+} from "@/lib/registry/sections";
 
 type RegistryNavigationItem = {
   kind: "registry";

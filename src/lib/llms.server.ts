@@ -9,8 +9,8 @@ import {
   getRegistryItemMarkdown,
   getRegistrySectionMarkdown,
 } from "@/lib/registry/markdown.server";
-import { registrySectionList } from "@/lib/registry/section-config";
-import { getRegistrySectionItems } from "@/lib/registry/sections";
+import { getRegistrySectionItems } from "@/lib/registry/section-items";
+import { registrySectionList } from "@/lib/registry/sections";
 import {
   getCanonicalRegistryIndexUrl,
   getCanonicalSiteUrl,

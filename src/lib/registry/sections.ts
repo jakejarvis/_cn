@@ -1,23 +1,50 @@
-import { getRegistryItemsByTypes, type RegistryCatalogItem } from "./catalog";
-import {
-  registrySectionList,
-  registrySections,
-  type RegistrySection,
-  type RegistrySectionConfig,
-} from "./section-config";
+import type { RegistryDetailType } from "./detail.types";
 
-type RegistrySectionWithItems = RegistrySectionConfig & {
-  items: RegistryCatalogItem[];
+export type RegistrySection = "components" | "blocks" | "utilities";
+
+export type RegistrySectionConfig = {
+  id: RegistrySection;
+  title: "Components" | "Blocks" | "Utilities";
+  description: string;
+  basePath: "/components" | "/blocks" | "/utilities";
+  detailRoute: "/components/$name" | "/blocks/$name" | "/utilities/$name";
+  registryTypes: readonly RegistryDetailType[];
 };
 
-export function getRegistrySectionItems(section: RegistrySection): RegistryCatalogItem[] {
-  return getRegistryItemsByTypes(registrySections[section].registryTypes);
-}
+export const componentRegistryTypes = [
+  "registry:ui",
+  "registry:component",
+] as const satisfies readonly RegistryDetailType[];
 
-export function getRegistrySectionsWithItems(): RegistrySectionWithItems[] {
-  return registrySectionList.flatMap((section) => {
-    const items = getRegistrySectionItems(section.id);
+export const registrySections = {
+  components: {
+    id: "components",
+    title: "Components",
+    description: "Reusable UI components you can install into your project.",
+    basePath: "/components",
+    detailRoute: "/components/$name",
+    registryTypes: componentRegistryTypes,
+  },
+  blocks: {
+    id: "blocks",
+    title: "Blocks",
+    description: "Larger composed UI patterns you can install into your project.",
+    basePath: "/blocks",
+    detailRoute: "/blocks/$name",
+    registryTypes: ["registry:block"],
+  },
+  utilities: {
+    id: "utilities",
+    title: "Utilities",
+    description: "Hooks and helpers you can install into your project.",
+    basePath: "/utilities",
+    detailRoute: "/utilities/$name",
+    registryTypes: ["registry:hook", "registry:lib"],
+  },
+} as const satisfies Record<RegistrySection, RegistrySectionConfig>;
 
-    return items.length > 0 ? [{ ...section, items }] : [];
-  });
-}
+export const registrySectionList = [
+  registrySections.components,
+  registrySections.blocks,
+  registrySections.utilities,
+] as const;

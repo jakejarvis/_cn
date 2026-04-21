@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 
 import type { RegistryCatalogItem } from "@/lib/registry/catalog";
-import type { RegistrySectionConfig } from "@/lib/registry/section-config";
+import type { RegistrySectionConfig } from "@/lib/registry/sections";
 
 import { DocsPageHeader } from "./docs-page-header";
 

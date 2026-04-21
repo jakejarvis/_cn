@@ -3,7 +3,7 @@ import { describe, expect, test } from "vitest";
 import { docsPages } from "@/lib/docs/catalog";
 import { createPrerenderPages, getPrerenderPages } from "@/lib/prerender-pages";
 import { registryItems } from "@/lib/registry/catalog";
-import { registrySectionList } from "@/lib/registry/section-config";
+import { registrySectionList } from "@/lib/registry/sections";
 import { shouldExcludeFromSitemap } from "@/lib/seo";
 import {
   getAliasRegistryIndexPaths,

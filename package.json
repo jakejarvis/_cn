@@ -17,10 +17,11 @@
   "scripts": {
     "dev": "vp dev",
     "build": "vp build",
+    "start": "node .output/server/index.mjs",
     "preview": "vp preview",
     "test": "vp test run",
     "prepare": "vp config",
-    "knip": "knip"
+    "knip": "vp exec knip"
   },
   "dependencies": {
     "@base-ui/react": "^1.4.1",

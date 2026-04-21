@@ -12,8 +12,8 @@ import {
   getRegistryValidationErrors,
 } from "@/lib/registry/json.server";
 import { registryItemSchema } from "@/lib/registry/metadata";
-import { componentRegistryTypes, registrySectionList } from "@/lib/registry/section-config";
-import { getRegistrySectionsWithItems } from "@/lib/registry/sections";
+import { getRegistrySectionsWithItems } from "@/lib/registry/section-items";
+import { componentRegistryTypes, registrySectionList } from "@/lib/registry/sections";
 import {
   getMissingRegistryPreviewPaths,
   getMissingRegistrySourcePaths,

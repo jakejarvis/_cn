@@ -84,6 +84,8 @@ The public registry index is available at both the root and `/r` paths, while in
 - `/r/<name>.json` serves an item JSON file.
 - `/llms.txt` and `/llms-full.txt` are generated from the same Markdown docs and registry item pages used by the site.
 
+Docs pages, registry section pages, and registry item pages also support Markdown content negotiation (inspired by [Fumadocs](https://www.fumadocs.dev/docs/headless/utils/negotiation)). AI clients that request `text/markdown`, `text/x-markdown`, or `text/plain` in the `Accept` header receive the Markdown version of the current page directly, while normal browser requests still receive HTML.
+
 Install command URLs and local registry dependency URLs are generated from the registry path config in `src/lib/site-config.ts`.
 
 ## Author Docs
@@ -182,7 +184,7 @@ The docs site renders non-empty `Components`, `Blocks`, and `Utilities` sections
 - [ ] Update or replace the starter docs under `registry/docs`.
 - [ ] Replace the starter registry items.
 - [ ] Verify `/registry.json`, `/r/registry.json`, and at least one `/r/<name>.json` item URL.
-- [ ] Verify `/llms.txt` and `/llms-full.txt`.
+- [ ] Verify `/llms.txt`, `/llms-full.txt`, and Markdown negotiation with `Accept: text/markdown` on a docs or item page.
 - [ ] Update `package.json` metadata, `README.md` details, `LICENSE` owner, etc.
 - [ ] Run `vp check` and `vp build`.
 - [ ] Deploy and test install commands with npm, pnpm, yarn, and bun.

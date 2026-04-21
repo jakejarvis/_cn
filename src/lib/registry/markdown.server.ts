@@ -13,12 +13,8 @@ import { getCanonicalDocsUrl, getCanonicalRegistryItemUrl } from "@/lib/site-con
 import { getRegistryItem } from "./catalog";
 import type { RegistryDetailType } from "./detail.types";
 import { getRegistryDisplaySource } from "./display-source.server";
-import {
-  registrySections,
-  type RegistrySection,
-  type RegistrySectionConfig,
-} from "./section-config";
-import { getRegistrySectionItems } from "./sections";
+import { getRegistrySectionItems } from "./section-items";
+import { registrySections, type RegistrySection, type RegistrySectionConfig } from "./sections";
 import { getRegistryItemWithSources, type RegistryCatalogItemWithSources } from "./source.server";
 
 type RegistrySectionMarkdownConfig = Pick<

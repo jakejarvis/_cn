@@ -1,5 +1,4 @@
-export const sharedCacheControlHeader =
-  "public, max-age=0, s-maxage=3600, stale-while-revalidate=86400";
+const sharedCacheControlHeader = "public, max-age=0, s-maxage=3600, stale-while-revalidate=86400";
 
 export const markdownResponseHeaders = {
   "Cache-Control": sharedCacheControlHeader,

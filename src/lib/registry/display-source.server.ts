@@ -20,6 +20,10 @@ type RegistryDisplaySourceItem = {
   sourceFiles: readonly RegistryDisplayPublishedFile[];
 };
 
+type RegistryDisplaySourceOptions = {
+  registryItems?: readonly RegistryDisplaySourceItem[];
+};
+
 const targetAliasPrefixes = [
   ["components/ui/", componentsConfig.aliases.ui],
   ["components/", componentsConfig.aliases.components],
@@ -33,8 +37,9 @@ const importSpecifierPattern =
 export function getRegistryDisplaySource(
   item: RegistryDisplaySourceItem,
   file: RegistryDisplaySourceFile,
+  options: RegistryDisplaySourceOptions = {},
 ): string {
-  const displayImportPaths = getRegistryDisplayImportPaths(item);
+  const displayImportPaths = getRegistryDisplayImportPaths(item, options);
   const importerPath = file.sourcePath ?? file.path;
 
   return file.source.replace(
@@ -57,11 +62,15 @@ export function getRegistryDisplaySource(
   );
 }
 
-function getRegistryDisplayImportPaths(item: RegistryDisplaySourceItem): Map<string, string> {
+function getRegistryDisplayImportPaths(
+  item: RegistryDisplaySourceItem,
+  options: RegistryDisplaySourceOptions,
+): Map<string, string> {
   const importPaths = new Map<string, string>();
+  const knownRegistryItems = options.registryItems ?? registryItems;
 
   for (const file of [
-    ...registryItems.flatMap((registryItem) => registryItem.sourceFiles),
+    ...knownRegistryItems.flatMap((registryItem) => registryItem.sourceFiles),
     ...item.sourceFiles,
   ]) {
     const importPath = getRegistryFileDisplayImportPath(file);

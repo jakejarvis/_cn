@@ -1,40 +1,69 @@
 import { describe, expect, test } from "vitest";
 
+import { docsPages } from "@/lib/docs/catalog";
 import {
-  getAuthoredDocsIndexMarkdown,
+  createAuthoredDocsIndexMarkdown,
+  createAuthoredDocsPageMarkdown,
   getAuthoredDocsPageMarkdown,
   getAuthoredDocsPageMarkdownResponse,
 } from "@/lib/docs/markdown.server";
+import { getMarkdownHttpLinkHeader } from "@/lib/seo";
+import { getCanonicalDocsUrl } from "@/lib/site-config";
 
 describe("authored docs markdown", () => {
-  test("builds docs index markdown with linked pages", () => {
-    const markdown = getAuthoredDocsIndexMarkdown();
+  test("builds docs index markdown with supplied linked pages", () => {
+    const markdown = createAuthoredDocsIndexMarkdown([
+      {
+        title: "Getting Started",
+        description: "Install the registry.",
+        routePath: "/docs/getting-started",
+      },
+    ]);
 
     expect(markdown).toContain("# Docs");
     expect(markdown).toContain(
-      "- [Installation](https://underscore-cn.vercel.app/docs/installation):",
+      `- [Getting Started](${getCanonicalDocsUrl("/docs/getting-started")}): Install the registry.`,
     );
   });
 
-  test("returns authored docs markdown without frontmatter", () => {
-    const markdown = getAuthoredDocsPageMarkdown("installation");
+  test("returns supplied docs markdown without frontmatter", () => {
+    expect(
+      createAuthoredDocsPageMarkdown({
+        title: "Getting Started",
+        description: "Install the registry.",
+        contentSource: "# Getting Started\n\nRun the install command.",
+      }),
+    ).toBe("# Getting Started\n\nRun the install command.\n");
 
-    expect(markdown).not.toBeNull();
-    expect(markdown).toContain("# Installation");
-    expect(markdown).not.toContain("title: Installation");
-    expect(markdown).toContain("vp install");
+    expect(
+      createAuthoredDocsPageMarkdown({
+        title: "Theming",
+        description: "Customize tokens.",
+        contentSource: "Use CSS variables.",
+      }),
+    ).toBe("# Theming\n\nCustomize tokens.\n\nUse CSS variables.\n");
   });
 
-  test("returns markdown and 404 responses with markdown content type", async () => {
-    const found = getAuthoredDocsPageMarkdownResponse("installation");
+  test("returns live authored docs markdown without requiring starter slugs", () => {
+    for (const page of docsPages) {
+      const markdown = getAuthoredDocsPageMarkdown(page.slug);
+
+      expect(markdown).not.toBeNull();
+      expect(markdown).not.toContain(`title: ${page.title}`);
+    }
+  });
+
+  test("returns markdown and 404 responses with markdown content type", () => {
+    for (const page of docsPages) {
+      const found = getAuthoredDocsPageMarkdownResponse(page.slug);
+
+      expect(found.status).toBe(200);
+      expect(found.headers.get("Content-Type")).toBe("text/markdown; charset=utf-8");
+      expect(found.headers.get("Link")).toBe(getMarkdownHttpLinkHeader(page.routePath));
+    }
+
     const missing = getAuthoredDocsPageMarkdownResponse("missing");
 
-    expect(found.status).toBe(200);
-    expect(found.headers.get("Content-Type")).toBe("text/markdown; charset=utf-8");
-    expect(found.headers.get("Link")).toBe(
-      '<https://underscore-cn.vercel.app/docs/installation>; rel="canonical", <https://underscore-cn.vercel.app/docs/installation.md>; rel="alternate"; type="text/markdown"',
-    );
-    expect(await found.text()).toContain("# Installation");
     expect(missing.status).toBe(404);
     expect(missing.headers.get("Content-Type")).toBe("text/markdown; charset=utf-8");
   });

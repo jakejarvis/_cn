@@ -13,6 +13,7 @@ import {
   getRegistryValidationErrors,
 } from "@/lib/registry/json.server";
 import { registryItemSchema } from "@/lib/registry/metadata";
+import { registrySectionList } from "@/lib/registry/section-config";
 import { getRegistrySectionsWithItems } from "@/lib/registry/sections";
 import {
   getMissingRegistryPreviewPaths,
@@ -90,11 +91,11 @@ describe("registry catalog", () => {
   });
 
   test("shows non-empty registry sections in the docs navigation", () => {
-    expect(getRegistrySectionsWithItems().map((section) => section.id)).toEqual([
-      "components",
-      "blocks",
-      "utilities",
-    ]);
+    expect(getRegistrySectionsWithItems().map((section) => section.id)).toEqual(
+      registrySectionList
+        .filter((section) => getRegistryItemsByTypes(section.registryTypes).length > 0)
+        .map((section) => section.id),
+    );
   });
 
   test("has preview snippets for every item", () => {
@@ -128,29 +129,16 @@ describe("registry catalog", () => {
 
   test("loads local-only usage state from MDX bodies", () => {
     for (const item of registryItems) {
-      expect(item.hasUsage).toBe(true);
+      expect(typeof item.hasUsage).toBe("boolean");
+      expect(item.hasUsage).toBe(item.usageSource.trim().length > 0);
     }
   });
 
-  test("normalizes local registry dependencies from frontmatter", () => {
-    const block = getRegistryItemByName("stats-panel");
-
-    expect(block.registryDependencies).toContain("badge");
-    expect(block.registryDependencies).toContain("card");
-    expect(block.registryDependencies).toContain(
-      "https://underscore-cn.vercel.app/r/example-card.json",
-    );
-    expect(block).not.toHaveProperty("localRegistryDependencies");
-  });
-
   test("loads metadata without evaluating client-only preview imports", () => {
-    const hook = getRegistryItemByName("use-copy-to-clipboard");
-    const block = getRegistryItemByName("stats-panel");
-
-    expect(hook.previewSourceFile.path).toBe(
-      "registry/items/hooks/use-copy-to-clipboard/_registry.mdx",
-    );
-    expect(block.previewSourceFile.path).toBe("registry/items/blocks/stats-panel/_registry.mdx");
+    for (const item of registryItems) {
+      expect(item.previewSourceFile.path).toMatch(/\/_registry\.mdx$/u);
+      expect(item.previewSourceFile.source).toContain("export function Preview");
+    }
   });
 
   test("trims blank trailing lines from imported source", () => {
@@ -169,11 +157,26 @@ describe("registry catalog", () => {
   });
 
   test("rewrites preview source imports to installable aliases for display", () => {
-    const item = getRegistryItemWithSources(getRegistryItemByName("example-card"));
-    const displaySource = getRegistryDisplaySource(item, item.previewSourceFile);
+    const item = {
+      sourceFiles: [
+        {
+          path: "registry/items/components/alpha-card/alpha-card.tsx",
+          type: "registry:ui",
+          source: "",
+        },
+      ],
+    } as const;
+    const displaySource = getRegistryDisplaySource(
+      item,
+      {
+        path: "registry/items/components/alpha-card/_registry.mdx",
+        source: `import { AlphaCard } from "./alpha-card";`,
+      },
+      { registryItems: [] },
+    );
 
-    expect(displaySource).toContain(`from "@/components/ui/example-card"`);
-    expect(displaySource).not.toContain(`from "./example-card"`);
+    expect(displaySource).toContain(`from "@/components/ui/alpha-card"`);
+    expect(displaySource).not.toContain(`from "./alpha-card"`);
   });
 
   test("rewrites relative imports between published source files for display", () => {
@@ -191,21 +194,19 @@ describe("registry catalog", () => {
         },
       ],
     } as const;
-    const displaySource = getRegistryDisplaySource(item, {
-      path: "registry/items/components/example/_registry.mdx",
-      source: [`import { useExample } from "./use-example";`, `import "./example.css";`].join("\n"),
-    });
+    const displaySource = getRegistryDisplaySource(
+      item,
+      {
+        path: "registry/items/components/example/_registry.mdx",
+        source: [`import { useExample } from "./use-example";`, `import "./example.css";`].join(
+          "\n",
+        ),
+      },
+      { registryItems: [] },
+    );
 
     expect(displaySource).toContain(`from "@/hooks/use-example"`);
     expect(displaySource).toContain(`import "./example.css";`);
-  });
-
-  test("publishes blocks as multi-file registry items", () => {
-    const blocks = registryItems.filter((item) => item.type === "registry:block");
-
-    for (const block of blocks) {
-      expect(block.files.length).toBeGreaterThan(1);
-    }
   });
 
   test("keeps registry authoring metadata out of preview display source", () => {
@@ -219,16 +220,6 @@ describe("registry catalog", () => {
     }
   });
 });
-
-function getRegistryItemByName(name: string): (typeof registryItems)[number] {
-  const item = registryItems.find((registryItem) => registryItem.name === name);
-
-  if (!item) {
-    throw new Error(`Missing registry item: ${name}`);
-  }
-
-  return item;
-}
 
 function getAlphabetizedItemNames(items: { name: string; title: string }[]): string[] {
   return items.toSorted(compareRegistryItemNames).map((item) => item.name);

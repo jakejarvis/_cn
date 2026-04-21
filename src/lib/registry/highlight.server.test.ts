@@ -8,7 +8,7 @@ import {
 
 describe("registry syntax highlighting", () => {
   test("infers registry source languages from file paths", () => {
-    expect(getCodeLanguage("registry/items/components/example-card/example-card.tsx")).toBe("tsx");
+    expect(getCodeLanguage("registry/items/components/sample-item/sample-item.tsx")).toBe("tsx");
     expect(getCodeLanguage("registry/items/hooks/use-example/use-example.ts")).toBe("ts");
     expect(getCodeLanguage("tsx")).toBe("tsx");
     expect(getCodeLanguage("sh")).toBe("bash");

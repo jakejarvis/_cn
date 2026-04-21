@@ -6,7 +6,7 @@ import { renderMarkdownCodeBlock } from "@/components/docs/mdx-content.server";
 
 describe("registry detail rendering", () => {
   test("renders usage code fences with highlighting and copy affordances", async () => {
-    const code = `import { ExampleCard } from "@/components/ui/example-card";\n\n<ExampleCard />`;
+    const code = `import { SampleItem } from "@/components/ui/sample-item";\n\n<SampleItem />`;
     const rendered = await renderMarkdownCodeBlock(
       <code className="language-tsx">{`${code}\n`}</code>,
     );
@@ -22,6 +22,6 @@ describe("registry detail rendering", () => {
 
     expect(html).toContain("Copy code");
     expect(html).toContain("shiki");
-    expect(html).toContain("ExampleCard");
+    expect(html).toContain("SampleItem");
   });
 });

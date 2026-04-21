@@ -4,9 +4,28 @@ import { getCanonicalDocsUrl, getCanonicalRegistryItemUrl } from "@/lib/site-con
 import { getRegistryItem } from "./catalog";
 import type { RegistryDetailType } from "./detail.types";
 import { getRegistryDisplaySource } from "./display-source.server";
-import { registrySections, type RegistrySection } from "./section-config";
+import {
+  registrySections,
+  type RegistrySection,
+  type RegistrySectionConfig,
+} from "./section-config";
 import { getRegistrySectionItems } from "./sections";
-import { getRegistryItemWithSources } from "./source.server";
+import { getRegistryItemWithSources, type RegistryCatalogItemWithSources } from "./source.server";
+
+type RegistrySectionMarkdownConfig = Pick<
+  RegistrySectionConfig,
+  "basePath" | "description" | "title"
+>;
+
+type RegistrySectionMarkdownItem = Pick<
+  RegistryCatalogItemWithSources,
+  "description" | "name" | "title"
+>;
+
+type RegistryItemMarkdownItem = Pick<
+  RegistryCatalogItemWithSources,
+  "description" | "name" | "previewSourceFile" | "sourceFiles" | "title" | "usageSource"
+>;
 
 const docsMarkdownResponseHeaders = {
   "Cache-Control": "public, max-age=0, s-maxage=3600, stale-while-revalidate=86400",
@@ -50,6 +69,14 @@ export function getRegistryItemMarkdownResponse(
 export function getRegistrySectionMarkdown(section: RegistrySection): string {
   const sectionConfig = registrySections[section];
   const items = getRegistrySectionItems(section);
+
+  return createRegistrySectionMarkdown(sectionConfig, items);
+}
+
+export function createRegistrySectionMarkdown(
+  sectionConfig: RegistrySectionMarkdownConfig,
+  items: readonly RegistrySectionMarkdownItem[],
+): string {
   const itemList = items
     .map(
       (item) =>
@@ -74,7 +101,10 @@ export function getRegistryItemMarkdown(section: RegistrySection, itemName: stri
     return null;
   }
 
-  const itemWithSources = getRegistryItemWithSources(item);
+  return createRegistryItemMarkdown(getRegistryItemWithSources(item));
+}
+
+export function createRegistryItemMarkdown(itemWithSources: RegistryItemMarkdownItem): string {
   const previewSource = getRegistryDisplaySource(
     itemWithSources,
     itemWithSources.previewSourceFile,
@@ -91,11 +121,14 @@ export function getRegistryItemMarkdown(section: RegistrySection, itemName: stri
   const usageSource = itemWithSources.usageSource.trim();
 
   return joinMarkdownBlocks([
-    `# ${item.title}`,
-    item.description,
+    `# ${itemWithSources.title}`,
+    itemWithSources.description,
     "## Installation",
-    formatCodeBlock(`npx shadcn@latest add ${getCanonicalRegistryItemUrl(item.name)}`, "bash"),
-    `[Registry JSON](${getCanonicalRegistryItemUrl(item.name)})`,
+    formatCodeBlock(
+      `npx shadcn@latest add ${getCanonicalRegistryItemUrl(itemWithSources.name)}`,
+      "bash",
+    ),
+    `[Registry JSON](${getCanonicalRegistryItemUrl(itemWithSources.name)})`,
     "## Preview",
     formatCodeBlock(previewSource, "tsx"),
     "## Source",

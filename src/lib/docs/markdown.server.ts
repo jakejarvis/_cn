@@ -28,7 +28,16 @@ export function getAuthoredDocsPageMarkdownResponse(path: string): Response {
 }
 
 export function getAuthoredDocsIndexMarkdown(): string {
-  const pageList = docsPages
+  return createAuthoredDocsIndexMarkdown(docsPages);
+}
+
+export function createAuthoredDocsIndexMarkdown(
+  pages: readonly Pick<
+    NonNullable<(typeof docsPages)[number]>,
+    "description" | "routePath" | "title"
+  >[],
+): string {
+  const pageList = pages
     .map(
       (page) =>
         `- [${escapeMarkdownLinkText(page.title)}](${getCanonicalDocsUrl(page.routePath)}): ${
@@ -47,6 +56,12 @@ export function getAuthoredDocsPageMarkdown(path: string): string | null {
     return null;
   }
 
+  return createAuthoredDocsPageMarkdown(page);
+}
+
+export function createAuthoredDocsPageMarkdown(
+  page: Pick<NonNullable<(typeof docsPages)[number]>, "contentSource" | "description" | "title">,
+): string {
   const content = page.contentSource.trim();
 
   if (content.startsWith("# ")) {

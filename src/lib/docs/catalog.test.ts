@@ -11,8 +11,8 @@ import {
 describe("docs catalog", () => {
   test("maps registry docs files to public docs routes", () => {
     expect(getDocsRoutePathFromSourcePath("registry/docs/index.mdx")).toBe("/docs");
-    expect(getDocsRoutePathFromSourcePath("registry/docs/installation.mdx")).toBe(
-      "/docs/installation",
+    expect(getDocsRoutePathFromSourcePath("registry/docs/getting-started.mdx")).toBe(
+      "/docs/getting-started",
     );
     expect(getDocsRoutePathFromSourcePath("registry/docs/_draft.mdx")).toBeNull();
   });
@@ -115,17 +115,17 @@ Protect a private registry.
     expect(pages.map((page) => page.slug)).toEqual(["", "alpha", "beta"]);
   });
 
-  test("loads the starter docs", () => {
-    expect(docsPages.map((page) => page.slug)).toEqual([
-      "",
-      "installation",
-      "theming",
-      "cli",
-      "registry",
-      "agent-skills",
-      "llms",
-      "changelog",
-    ]);
-    expect(getDocsPage("installation")?.title).toBe("Installation");
+  test("loads authored docs without requiring starter slugs", () => {
+    const slugs = docsPages.map((page) => page.slug);
+
+    expect(new Set(slugs).size).toBe(slugs.length);
+    expect(docsPages).toEqual(getSortedDocsPages(docsPages));
+
+    for (const page of docsPages) {
+      expect(page.sourcePath).toMatch(/^registry\/docs\/[^_].*\.(?:md|mdx)$/u);
+      expect(page.routePath).toBe(getDocsRoutePathFromSourcePath(page.sourcePath));
+      expect(page.title.length).toBeGreaterThan(0);
+      expect(getDocsPage(page.slug)).toBe(page);
+    }
   });
 });

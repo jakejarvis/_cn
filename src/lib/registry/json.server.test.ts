@@ -1,11 +1,13 @@
 import { describe, expect, test } from "vitest";
 
+import { registryItems } from "@/lib/registry/catalog";
 import {
   getRegistryIndexJson,
   getRegistryIndexJsonResponse,
   getRegistryItemJsonResponse,
   getRegistrySourceValidationErrors,
 } from "@/lib/registry/json.server";
+import { registryItemSchema } from "@/lib/registry/metadata";
 
 describe("registry JSON route responses", () => {
   test("serves the same registry index payload for canonical and alias routes", async () => {
@@ -20,30 +22,25 @@ describe("registry JSON route responses", () => {
     expect(canonical).toEqual(getRegistryIndexJson());
   });
 
-  test("serves the same item payload for canonical and alias routes", async () => {
-    const canonicalResponse = getRegistryItemJsonResponse("example-card");
-    const aliasResponse = getRegistryItemJsonResponse("example-card");
-    const canonical = await readJson(canonicalResponse);
-    const alias = await readJson(aliasResponse);
+  test("serves registry item payloads for every live item", async () => {
+    const itemResponses = await Promise.all(
+      registryItems.map(async (item) => {
+        const response = getRegistryItemJsonResponse(item.name);
+        const json = await readJson(response);
 
-    expect(canonicalResponse.headers.get("Link")).toBeNull();
-    expect(aliasResponse.headers.get("Link")).toBeNull();
-    expect(canonical).toEqual(alias);
-    expect(canonical).toMatchObject({
-      name: "example-card",
-      $schema: "https://ui.shadcn.com/schema/registry-item.json",
-    });
-  });
-
-  test("publishes install-time aliases for relative registry source imports", async () => {
-    const item = await readJson(getRegistryItemJsonResponse("stats-panel"));
-
-    expect(getFileContent(item, "registry/items/blocks/stats-panel/stats-panel.tsx")).toContain(
-      `from "@/components/ui/example-card"`,
+        return { item, json, response };
+      }),
     );
-    expect(getFileContent(item, "registry/items/blocks/stats-panel/stats-panel.tsx")).toContain(
-      `from "@/lib/stats-data"`,
-    );
+
+    for (const { item, json, response } of itemResponses) {
+      expect(response.status).toBe(200);
+      expect(response.headers.get("Link")).toBeNull();
+      expect(json).toMatchObject({
+        name: item.name,
+        $schema: registryItemSchema,
+      });
+      expect(getFilePaths(json)).toEqual(item.files.map((file) => file.path));
+    }
   });
 
   test("keeps authored docs out of registry JSON", () => {
@@ -51,7 +48,6 @@ describe("registry JSON route responses", () => {
     const itemFilePaths = registry.items.flatMap((item) => item.files.map((file) => file.path));
 
     expect(itemFilePaths.some((path) => path.startsWith("registry/docs/"))).toBe(false);
-    expect(registry.items.map((item) => item.name)).not.toContain("installation");
   });
 
   test("returns JSON 404 responses for unknown items", async () => {
@@ -90,21 +86,18 @@ async function readJson(response: Response): Promise<unknown> {
   return response.json();
 }
 
-function getFileContent(item: unknown, path: string): string {
+function getFilePaths(item: unknown): string[] {
   if (!isRecord(item) || !Array.isArray(item.files)) {
     throw new Error("Expected registry item JSON.");
   }
 
-  const file = item.files.find(
-    (candidate): candidate is { path: string; content: string } =>
-      isRecord(candidate) && candidate.path === path && typeof candidate.content === "string",
-  );
+  return item.files.map((file) => {
+    if (!isRecord(file) || typeof file.path !== "string") {
+      throw new Error("Expected registry item file path.");
+    }
 
-  if (!file) {
-    throw new Error(`Expected registry item file: ${path}`);
-  }
-
-  return file.content;
+    return file.path;
+  });
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

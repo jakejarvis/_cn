@@ -57,6 +57,24 @@ const registrySearchBoost = {
 type RegistrySearchDatabase = Orama<typeof registrySearchSchema>;
 type SearchSection = RegistrySection | "docs";
 
+export type RegistrySearchItem = Pick<
+  RegistryCatalogItem,
+  "description" | "files" | "name" | "title" | "type"
+> &
+  Partial<Pick<RegistryCatalogItem, "categories" | "registryDependencies">>;
+
+export type RegistrySearchSectionInput = Pick<
+  RegistrySectionConfig,
+  "basePath" | "id" | "title"
+> & {
+  items: readonly RegistrySearchItem[];
+};
+
+export type RegistrySearchRecordsInput = {
+  docsPages: readonly DocsPage[];
+  sections: readonly RegistrySearchSectionInput[];
+};
+
 export type RegistrySearchRecord = {
   id: string;
   name: string;
@@ -92,14 +110,22 @@ let registrySearchRecordsCache: RegistrySearchRecord[] | undefined;
 let registrySearchRecordMapCache: Map<string, RegistrySearchRecord> | undefined;
 
 export function getRegistrySearchRecords(): RegistrySearchRecord[] {
-  registrySearchRecordsCache ??= [
-    ...docsPages.map(toDocsSearchRecord),
-    ...registrySectionList.flatMap((section) =>
-      getRegistrySectionItems(section.id).map((item) => toRegistrySearchRecord(section, item)),
-    ),
-  ];
+  registrySearchRecordsCache ??= createRegistrySearchRecords(
+    getDefaultRegistrySearchRecordsInput(),
+  );
 
   return registrySearchRecordsCache;
+}
+
+export function createRegistrySearchRecords(
+  input: RegistrySearchRecordsInput,
+): RegistrySearchRecord[] {
+  return [
+    ...input.docsPages.map(toDocsSearchRecord),
+    ...input.sections.flatMap((section) =>
+      section.items.map((item) => toRegistrySearchRecord(section, item)),
+    ),
+  ];
 }
 
 export async function searchRegistryItems({
@@ -140,8 +166,45 @@ export async function searchRegistryItems({
   };
 }
 
+export async function searchRegistryRecords(
+  { query, limit = DEFAULT_SEARCH_LIMIT }: RegistrySearchInput,
+  records: readonly RegistrySearchRecord[],
+): Promise<RegistrySearchResponse> {
+  const normalizedQuery = query.trim();
+  const normalizedLimit = clampSearchLimit(limit);
+
+  if (!normalizedQuery) {
+    return {
+      query: normalizedQuery,
+      count: records.length,
+      results: records.slice(0, normalizedLimit).map((record) => toRegistrySearchResult(record, 0)),
+    };
+  }
+
+  const database = await createRegistrySearchDatabase(records);
+  const recordMap = new Map(records.map((record) => [record.id, record]));
+  const response = await searchOrama(database, {
+    term: normalizedQuery,
+    properties: [...registrySearchProperties],
+    boost: registrySearchBoost,
+    tolerance: getSearchTolerance(normalizedQuery),
+    threshold: 0,
+    limit: normalizedLimit,
+  });
+
+  return {
+    query: normalizedQuery,
+    count: response.count,
+    results: response.hits.flatMap((hit) => {
+      const record = recordMap.get(hit.document.id);
+
+      return record ? [toRegistrySearchResult(record, hit.score)] : [];
+    }),
+  };
+}
+
 function getRegistrySearchDatabase(): Promise<RegistrySearchDatabase> {
-  registrySearchDatabasePromise ??= createRegistrySearchDatabase();
+  registrySearchDatabasePromise ??= createRegistrySearchDatabase(getRegistrySearchRecords());
 
   return registrySearchDatabasePromise;
 }
@@ -154,19 +217,23 @@ function getRegistrySearchRecordById(id: string): RegistrySearchRecord | undefin
   return registrySearchRecordMapCache.get(id);
 }
 
-async function createRegistrySearchDatabase(): Promise<RegistrySearchDatabase> {
+async function createRegistrySearchDatabase(
+  records: readonly RegistrySearchRecord[],
+): Promise<RegistrySearchDatabase> {
   const database = create({
     schema: registrySearchSchema,
   });
 
-  await insertMultiple(database, getRegistrySearchRecords());
+  if (records.length > 0) {
+    await insertMultiple(database, [...records]);
+  }
 
   return database;
 }
 
 function toRegistrySearchRecord(
-  section: (typeof registrySectionList)[number],
-  item: RegistryCatalogItem,
+  section: RegistrySearchSectionInput,
+  item: RegistrySearchItem,
 ): RegistrySearchRecord {
   const categories = item.categories?.map(String) ?? [];
   const registryDependencies = item.registryDependencies?.map(String) ?? [];
@@ -229,8 +296,8 @@ function getRegistrySearchKeywords({
   registryDependencies,
   fileNames,
 }: {
-  item: RegistryCatalogItem;
-  section: (typeof registrySectionList)[number];
+  item: RegistrySearchItem;
+  section: RegistrySearchSectionInput;
   categories: string[];
   registryDependencies: string[];
   fileNames: string[];
@@ -244,6 +311,17 @@ function getRegistrySearchKeywords({
     ...registryDependencies.flatMap(getDependencyKeywords),
     ...fileNames.map((fileName) => fileName.replace(/\.[^.]+$/u, "")),
   ].join(" ");
+}
+
+function getDefaultRegistrySearchRecordsInput(): RegistrySearchRecordsInput {
+  return {
+    docsPages,
+    sections: registrySectionList.map((section) =>
+      Object.assign({}, section, {
+        items: getRegistrySectionItems(section.id),
+      }),
+    ),
+  };
 }
 
 function getDependencyKeywords(dependency: string): string[] {

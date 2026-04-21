@@ -1,4 +1,4 @@
-import { readdirSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { relative } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -15,22 +15,37 @@ import {
   getDocsMarkdownPath,
 } from "./site-config.ts";
 
-type PrerenderPage = {
+export type PrerenderPage = {
   path: string;
   sitemap?: {
     exclude?: boolean;
   };
 };
 
-type RegistryPrerenderItem = {
+export type RegistryPrerenderItem = {
   name: string;
   type: string;
+};
+
+export type PrerenderPagesInput = {
+  docsPagePaths: readonly string[];
+  registryItems: readonly RegistryPrerenderItem[];
 };
 
 const docsRoot = fileURLToPath(new URL("../../registry/docs", import.meta.url));
 const registryItemsRoot = fileURLToPath(new URL("../../registry/items", import.meta.url));
 
 export function getPrerenderPages(): PrerenderPage[] {
+  return createPrerenderPages({
+    docsPagePaths: getDocsPagePaths(),
+    registryItems: getRegistryPrerenderItems(),
+  });
+}
+
+export function createPrerenderPages({
+  docsPagePaths,
+  registryItems,
+}: PrerenderPagesInput): PrerenderPage[] {
   const paths = new Set<string>();
   const addPath = (path: string) => {
     paths.add(normalizePagePath(path));
@@ -48,12 +63,12 @@ export function getPrerenderPages(): PrerenderPage[] {
     addPath(getDocsMarkdownPath(section.basePath));
   }
 
-  for (const docsPath of getDocsPagePaths()) {
+  for (const docsPath of docsPagePaths) {
     addPath(docsPath);
     addPath(getDocsMarkdownPath(docsPath));
   }
 
-  for (const item of getRegistryPrerenderItems()) {
+  for (const item of registryItems) {
     addPath(getCanonicalRegistryItemPath(item.name));
     getAliasRegistryItemPaths(item.name).forEach(addPath);
 
@@ -148,6 +163,10 @@ function isRegistryPrerenderItem(value: unknown): value is RegistryPrerenderItem
 }
 
 function findFiles(root: string, predicate: (path: string) => boolean): string[] {
+  if (!existsSync(root)) {
+    return [];
+  }
+
   return readdirSync(root, { recursive: true, withFileTypes: true })
     .filter((entry) => entry.isFile())
     .map((entry) => toPosixPath(`${entry.parentPath}/${entry.name}`))

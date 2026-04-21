@@ -1,43 +1,113 @@
 import { describe, expect, test } from "vitest";
 
+import { docsPages } from "@/lib/docs/catalog";
 import {
+  createLlmsFullText,
+  createLlmsText,
   getLlmsFullText,
   getLlmsFullTextResponse,
   getLlmsText,
   getLlmsTextResponse,
+  type LlmsTextInput,
 } from "@/lib/llms.server";
+import { registrySectionList } from "@/lib/registry/section-config";
+import { getRegistrySectionItems } from "@/lib/registry/sections";
+import {
+  getCanonicalRegistryIndexUrl,
+  getCanonicalSiteUrl,
+  getDocsMarkdownPath,
+  siteConfig,
+} from "@/lib/site-config";
+
+const fixtureLlmsInput = {
+  siteName: "Fixture Registry",
+  siteDescription: "Fixture registry docs.",
+  llmsTextUrl: "https://example.com/llms.txt",
+  llmsFullTextUrl: "https://example.com/llms-full.txt",
+  registryIndexUrl: "https://example.com/registry.json",
+  sections: [
+    {
+      title: "Docs",
+      documents: [
+        {
+          title: "Getting Started",
+          url: "https://example.com/docs/getting-started.md",
+          description: "Install the registry.",
+          renderMarkdown: () => "# Getting Started\n\nInstall it.",
+        },
+      ],
+    },
+    {
+      title: "Components",
+      documents: [
+        {
+          title: "Alpha Card",
+          url: "https://example.com/components/alpha-card.md",
+          description: "A compact card.",
+          renderMarkdown: () => "# Alpha Card\n\n## Installation",
+        },
+      ],
+    },
+  ],
+} satisfies LlmsTextInput;
 
 describe("llms text", () => {
-  test("builds a site-level llms.txt index with markdown routes", () => {
-    const text = getLlmsText();
+  test("builds a site-level llms.txt index from supplied markdown routes", () => {
+    const text = createLlmsText(fixtureLlmsInput);
 
-    expect(text).toContain("# _cn");
+    expect(text).toContain("# Fixture Registry");
+    expect(text).toContain("> Fixture registry docs.");
+    expect(text).toContain("https://example.com/llms-full.txt");
     expect(text).toContain(
-      "> A TanStack Start template for publishing a shadcn-compatible registry.",
+      "- [Getting Started](https://example.com/docs/getting-started.md): Install the registry.",
     );
     expect(text).toContain(
-      "- [Introduction](https://underscore-cn.vercel.app/docs.md): Publish installable components with public docs from the same registry workspace.",
+      "- [Alpha Card](https://example.com/components/alpha-card.md): A compact card.",
     );
     expect(text).toContain(
-      "- [LLMs](https://underscore-cn.vercel.app/docs/llms.md): Point AI tools at the registry docs.",
-    );
-    expect(text).toContain(
-      "- [Example Card](https://underscore-cn.vercel.app/components/example-card.md):",
-    );
-    expect(text).toContain(
-      "- [Registry JSON](https://underscore-cn.vercel.app/registry.json): Machine-readable shadcn registry index.",
+      "- [Registry JSON](https://example.com/registry.json): Machine-readable shadcn registry index.",
     );
   });
 
-  test("builds a full context file from generated markdown pages", () => {
+  test("builds a full context file from supplied markdown renderers", () => {
+    const text = createLlmsFullText(fixtureLlmsInput);
+
+    expect(text).toContain("# Fixture Registry Full Context");
+    expect(text).toContain("URL: https://example.com/docs/getting-started.md");
+    expect(text).toContain("# Getting Started");
+    expect(text).toContain("URL: https://example.com/components/alpha-card.md");
+    expect(text).toContain("## Installation");
+  });
+
+  test("builds live llms.txt without requiring starter content", () => {
+    const text = getLlmsText();
+
+    expect(text).toContain(`# ${siteConfig.name}`);
+    expect(text).toContain(`> ${siteConfig.description}`);
+    expect(text).toContain(getCanonicalSiteUrl("/llms-full.txt"));
+    expect(text).toContain(getCanonicalRegistryIndexUrl());
+
+    for (const page of docsPages) {
+      expect(text).toContain(getCanonicalSiteUrl(getDocsMarkdownPath(page.routePath)));
+    }
+
+    for (const section of registrySectionList) {
+      expect(text).toContain(getCanonicalSiteUrl(getDocsMarkdownPath(section.basePath)));
+
+      for (const item of getRegistrySectionItems(section.id)) {
+        expect(text).toContain(
+          getCanonicalSiteUrl(getDocsMarkdownPath(`${section.basePath}/${item.name}`)),
+        );
+      }
+    }
+  });
+
+  test("builds live full context from generated markdown pages", () => {
     const text = getLlmsFullText();
 
-    expect(text).toContain("# _cn Full Context");
-    expect(text).toContain("URL: https://underscore-cn.vercel.app/docs.md");
-    expect(text).toContain("# Introduction");
-    expect(text).toContain("URL: https://underscore-cn.vercel.app/components/example-card.md");
-    expect(text).toContain("## Installation");
-    expect(text).toContain("## Source");
+    expect(text).toContain(`# ${siteConfig.name} Full Context`);
+    expect(text).toContain(getCanonicalSiteUrl("/llms.txt"));
+    expect(text).toContain(getCanonicalRegistryIndexUrl());
   });
 
   test("returns text responses with cache headers", async () => {

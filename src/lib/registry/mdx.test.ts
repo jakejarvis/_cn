@@ -1,5 +1,7 @@
 import { describe, expect, test } from "vitest";
 
+import { getCanonicalRegistryItemUrl } from "@/lib/site-config";
+
 import { parseRegistryMdx } from "./mdx";
 
 describe("registry MDX parser", () => {
@@ -14,7 +16,7 @@ description: A toast manager.
 registryDependencies:
   - button
 localRegistryDependencies:
-  - example-card
+  - alpha-card
 files:
   - path: registry/items/components/toast/toast.tsx
     type: registry:ui
@@ -45,7 +47,7 @@ export function Preview() {
       type: "registry:ui",
       title: "Toast",
       description: "A toast manager.",
-      registryDependencies: ["button", "https://underscore-cn.vercel.app/r/example-card.json"],
+      registryDependencies: ["button", getCanonicalRegistryItemUrl("alpha-card")],
       files: [
         {
           path: "registry/items/components/toast/toast.tsx",

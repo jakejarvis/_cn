@@ -1,10 +1,54 @@
 import { describe, expect, test } from "vitest";
 
-import { getPrerenderPages } from "@/lib/prerender-pages";
+import { docsPages } from "@/lib/docs/catalog";
+import { createPrerenderPages, getPrerenderPages } from "@/lib/prerender-pages";
+import { registryItems } from "@/lib/registry/catalog";
+import { registrySectionList } from "@/lib/registry/section-config";
 import { shouldExcludeFromSitemap } from "@/lib/seo";
+import {
+  getAliasRegistryIndexPaths,
+  getAliasRegistryItemPaths,
+  getCanonicalRegistryIndexPath,
+  getCanonicalRegistryItemPath,
+  getDocsMarkdownPath,
+} from "@/lib/site-config";
 
 describe("prerender pages", () => {
-  test("enumerates HTML, Markdown, LLM, robots, and registry JSON routes", () => {
+  test("enumerates routes for supplied docs and registry items", () => {
+    const pages = createPrerenderPages({
+      docsPagePaths: ["/docs", "/docs/getting-started"],
+      registryItems: [
+        { name: "alpha-card", type: "registry:ui" },
+        { name: "stats-grid", type: "registry:block" },
+        { name: "use-clipboard", type: "registry:hook" },
+      ],
+    });
+    const paths = pages.map((page) => page.path);
+
+    expect(paths).toEqual(
+      expect.arrayContaining([
+        "/",
+        "/docs",
+        "/docs.md",
+        "/docs/getting-started",
+        "/docs/getting-started.md",
+        "/components/alpha-card",
+        "/components/alpha-card.md",
+        "/blocks/stats-grid",
+        "/blocks/stats-grid.md",
+        "/utilities/use-clipboard",
+        "/utilities/use-clipboard.md",
+        "/r/alpha-card.json",
+        "/r/stats-grid.json",
+        "/r/use-clipboard.json",
+        "/llms.txt",
+        "/llms-full.txt",
+        "/robots.txt",
+      ]),
+    );
+  });
+
+  test("enumerates live HTML, Markdown, LLM, robots, and registry JSON routes", () => {
     const pages = getPrerenderPages();
     const paths = pages.map((page) => page.path);
 
@@ -12,35 +56,44 @@ describe("prerender pages", () => {
     expect(paths).toEqual(
       expect.arrayContaining([
         "/",
-        "/docs",
-        "/docs/installation",
-        "/docs/installation.md",
-        "/components",
-        "/components.md",
-        "/components/example-card",
-        "/components/example-card.md",
-        "/blocks",
-        "/blocks.md",
-        "/blocks/stats-panel",
-        "/blocks/stats-panel.md",
-        "/utilities",
-        "/utilities.md",
-        "/utilities/use-copy-to-clipboard",
-        "/utilities/use-copy-to-clipboard.md",
-        "/registry.json",
-        "/r/registry.json",
-        "/r/example-card.json",
-        "/r/stats-panel.json",
-        "/r/use-copy-to-clipboard.json",
+        getCanonicalRegistryIndexPath(),
+        ...getAliasRegistryIndexPaths(),
         "/llms.txt",
         "/llms-full.txt",
         "/robots.txt",
       ]),
     );
-    expect(paths).not.toContain("/components/");
-    expect(paths).not.toContain("/example-card.json");
-    expect(paths).not.toContain("/stats-panel.json");
-    expect(paths).not.toContain("/use-copy-to-clipboard.json");
+
+    for (const section of registrySectionList) {
+      expect(paths).toContain(section.basePath);
+      expect(paths).toContain(getDocsMarkdownPath(section.basePath));
+    }
+
+    for (const page of docsPages) {
+      expect(paths).toContain(page.routePath);
+      expect(paths).toContain(getDocsMarkdownPath(page.routePath));
+    }
+
+    for (const item of registryItems) {
+      expect(paths).toContain(getCanonicalRegistryItemPath(item.name));
+
+      for (const aliasPath of getAliasRegistryItemPaths(item.name)) {
+        expect(paths).toContain(aliasPath);
+      }
+
+      const section = registrySectionList.find((candidate) =>
+        candidate.registryTypes.some((registryType) => registryType === item.type),
+      );
+
+      if (section) {
+        const itemPath = `${section.basePath}/${item.name}`;
+
+        expect(paths).toContain(itemPath);
+        expect(paths).toContain(getDocsMarkdownPath(itemPath));
+      }
+    }
+
+    expect(paths.filter((path) => path !== "/").every((path) => !path.endsWith("/"))).toBe(true);
   });
 
   test("marks machine-readable prerender pages as sitemap-excluded", () => {

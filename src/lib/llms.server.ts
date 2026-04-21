@@ -13,16 +13,25 @@ import {
   siteConfig,
 } from "@/lib/site-config";
 
-type LlmsDocument = {
+export type LlmsDocument = {
   title: string;
   url: string;
   description: string;
   renderMarkdown: () => string;
 };
 
-type LlmsSection = {
+export type LlmsSection = {
   title: string;
   documents: LlmsDocument[];
+};
+
+export type LlmsTextInput = {
+  siteName: string;
+  siteDescription: string;
+  llmsTextUrl: string;
+  llmsFullTextUrl: string;
+  registryIndexUrl: string;
+  sections: readonly LlmsSection[];
 };
 
 const llmsTextResponseHeaders = {
@@ -43,20 +52,28 @@ export function getLlmsFullTextResponse(): Response {
 }
 
 export function getLlmsText(): string {
+  return createLlmsText(getDefaultLlmsTextInput());
+}
+
+export function getLlmsFullText(): string {
+  return createLlmsFullText(getDefaultLlmsTextInput());
+}
+
+export function createLlmsText(input: LlmsTextInput): string {
   return joinMarkdownBlocks([
-    `# ${siteConfig.name}`,
-    `> ${siteConfig.description}`,
+    `# ${input.siteName}`,
+    `> ${input.siteDescription}`,
     [
-      `This site publishes shadcn-compatible registry items and authored documentation for ${siteConfig.name}.`,
-      `Use ${getCanonicalSiteUrl("/llms-full.txt")} for one expanded context file containing the linked Markdown pages.`,
+      `This site publishes shadcn-compatible registry items and authored documentation for ${input.siteName}.`,
+      `Use ${input.llmsFullTextUrl} for one expanded context file containing the linked Markdown pages.`,
     ].join(" "),
-    ...getLlmsSections().map(formatLlmsSection),
+    ...input.sections.map(formatLlmsSection),
     formatLlmsSection({
       title: "Optional",
       documents: [
         {
           title: "Registry JSON",
-          url: getCanonicalRegistryIndexUrl(),
+          url: input.registryIndexUrl,
           description: "Machine-readable shadcn registry index.",
           renderMarkdown: () => "",
         },
@@ -65,18 +82,29 @@ export function getLlmsText(): string {
   ]);
 }
 
-export function getLlmsFullText(): string {
-  const documents = getLlmsSections().flatMap((section) => section.documents);
+export function createLlmsFullText(input: LlmsTextInput): string {
+  const documents = input.sections.flatMap((section) => section.documents);
 
   return joinMarkdownBlocks([
-    `# ${siteConfig.name} Full Context`,
-    `> ${siteConfig.description}`,
+    `# ${input.siteName} Full Context`,
+    `> ${input.siteDescription}`,
     [
-      `This file expands the Markdown pages listed in ${getCanonicalSiteUrl("/llms.txt")}.`,
-      `Use ${getCanonicalRegistryIndexUrl()} for the machine-readable shadcn registry index.`,
+      `This file expands the Markdown pages listed in ${input.llmsTextUrl}.`,
+      `Use ${input.registryIndexUrl} for the machine-readable shadcn registry index.`,
     ].join(" "),
     ...documents.map(formatLlmsFullDocument),
   ]);
+}
+
+function getDefaultLlmsTextInput(): LlmsTextInput {
+  return {
+    siteName: siteConfig.name,
+    siteDescription: siteConfig.description,
+    llmsTextUrl: getCanonicalSiteUrl("/llms.txt"),
+    llmsFullTextUrl: getCanonicalSiteUrl("/llms-full.txt"),
+    registryIndexUrl: getCanonicalRegistryIndexUrl(),
+    sections: getLlmsSections(),
+  };
 }
 
 function getLlmsSections(): LlmsSection[] {

@@ -93,6 +93,7 @@ const config = defineConfig({
     ],
   },
   test: {
+    setupFiles: ["./src/test/setup.ts"],
     include: ["src/**/*.test.ts", "src/**/*.test.tsx"],
     globals: true,
   },
@@ -122,39 +123,43 @@ const config = defineConfig({
       remarkPlugins: [remarkFrontmatter, remarkGfm],
     }),
     tailwindcss(),
-    tanstackStart({
-      rsc: {
-        enabled: true,
-      },
-      pages: getPrerenderPages(),
-      prerender: {
-        enabled: true,
-        autoStaticPathsDiscovery: false,
-        crawlLinks: false,
-        onSuccess: ({ page }) => {
-          if (!shouldExcludeFromSitemap(page.path)) {
-            return undefined;
-          }
-
-          return {
-            sitemap: {
-              ...page.sitemap,
-              exclude: true,
+    ...(process.env.VITEST === "true"
+      ? []
+      : [
+          tanstackStart({
+            rsc: {
+              enabled: true,
             },
-          };
-        },
-      },
-      sitemap: {
-        enabled: true,
-        host: siteConfig.homepage,
-      },
-    }),
-    rsc(),
+            pages: getPrerenderPages(),
+            prerender: {
+              enabled: true,
+              autoStaticPathsDiscovery: false,
+              crawlLinks: false,
+              onSuccess: ({ page }) => {
+                if (!shouldExcludeFromSitemap(page.path)) {
+                  return undefined;
+                }
+
+                return {
+                  sitemap: {
+                    ...page.sitemap,
+                    exclude: true,
+                  },
+                };
+              },
+            },
+            sitemap: {
+              enabled: true,
+              host: siteConfig.homepage,
+            },
+          }),
+          rsc(),
+        ]),
     viteReact(),
     babel({
       presets: [reactCompilerPreset()],
     }),
-    nitro(),
+    ...(process.env.VITEST === "true" ? [] : [nitro()]),
   ],
 });
 

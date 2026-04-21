@@ -13,6 +13,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { siteConfig } from "@/lib/site-config";
 import { cn } from "@/lib/utils";
 
 type DocsPageActionsProps = {
@@ -21,9 +22,16 @@ type DocsPageActionsProps = {
   className?: string;
 };
 
+type DocsPageActionUrls = Pick<DocsPageActionsProps, "markdownPath" | "pageUrl">;
+
+export type DocsPageActionLink = {
+  label: string;
+  href: string;
+};
+
 type MenuItem = {
   label: string;
-  href: (urls: { markdownPath: string; pageUrl: string }) => string;
+  href: (urls: DocsPageActionUrls) => string;
   icon: (props: SVGProps<SVGSVGElement>) => ReactElement;
 };
 
@@ -35,7 +43,7 @@ const menuItems: readonly MenuItem[] = [
   },
   {
     label: "Open in v0",
-    href: ({ pageUrl }) => getPromptUrl("https://v0.dev", pageUrl),
+    href: ({ pageUrl }) => getPromptUrl("https://v0.app", pageUrl),
     icon: V0Icon,
   },
   {
@@ -49,9 +57,9 @@ const menuItems: readonly MenuItem[] = [
     icon: ClaudeIcon,
   },
   {
-    label: "Open in Scira",
-    href: ({ pageUrl }) => getPromptUrl("https://scira.ai/", pageUrl),
-    icon: SciraIcon,
+    label: "Open in Perplexity",
+    href: ({ pageUrl }) => getPromptUrl("https://www.perplexity.ai/search", pageUrl),
+    icon: PerplexityIcon,
   },
 ];
 
@@ -64,7 +72,7 @@ export function DocsPageActions({ markdownPath, pageUrl, className }: DocsPageAc
       )}
     >
       <CopyButton
-        value={() => getMarkdown(markdownPath)}
+        value={() => getDocsPageMarkdown(markdownPath)}
         showLabel
         copyLabel="Copy Page"
         copiedLabel="Copied"
@@ -106,7 +114,14 @@ export function DocsPageActions({ markdownPath, pageUrl, className }: DocsPageAc
   );
 }
 
-async function getMarkdown(markdownPath: string): Promise<string> {
+export function getDocsPageActionLinks(urls: DocsPageActionUrls): DocsPageActionLink[] {
+  return menuItems.map((item) => ({
+    label: item.label,
+    href: item.href(urls),
+  }));
+}
+
+export async function getDocsPageMarkdown(markdownPath: string): Promise<string> {
   const response = await fetch(markdownPath, {
     headers: {
       Accept: "text/markdown",
@@ -122,8 +137,9 @@ async function getMarkdown(markdownPath: string): Promise<string> {
 
 function getPromptUrl(baseUrl: string, url: string): string {
   const promptUrl = new URL(baseUrl);
-  const prompt = `I'm looking at this documentation: ${url}.
-Help me understand how to use it. Be ready to explain concepts, give examples, or help debug based on it.`;
+  const prompt = `I have questions about this documentation page for the shadcn-compatible ${siteConfig.name} registry: ${url}
+
+Study it and let me know when you're ready to answer my questions.`;
 
   promptUrl.searchParams.set("q", prompt);
 
@@ -143,16 +159,15 @@ function MarkdownIcon(props: SVGProps<SVGSVGElement>) {
   );
 }
 
-function V0Icon({ className, ...props }: SVGProps<SVGSVGElement>) {
+function V0Icon(props: SVGProps<SVGSVGElement>) {
   return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      fill="currentColor"
-      viewBox="0 0 147 70"
-      className={cn("size-4.5 -translate-x-px", className)}
-      {...props}
-    >
-      <path d="M56 50.203V14h14v46.156C70 65.593 65.593 70 60.156 70c-2.596 0-5.158-1-7-2.843L0 14h19.797L56 50.203ZM147 56h-14V23.953L100.953 56H133v14H96.687C85.814 70 77 61.186 77 50.312V14h14v32.156L123.156 14H91V0h36.312C138.186 0 147 8.814 147 19.688V56Z" />
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" {...props}>
+      <path
+        clipRule="evenodd"
+        d="M9.50321 5.5H13.2532C13.3123 5.5 13.3704 5.5041 13.4273 5.51203L9.51242 9.42692C9.50424 9.36912 9.5 9.31006 9.5 9.25L9.5 5.5L8 5.5L8 9.25C8 10.7688 9.23122 12 10.75 12H14.5V10.5L10.75 10.5C10.6899 10.5 10.6309 10.4958 10.5731 10.4876L14.4904 6.57028C14.4988 6.62897 14.5032 6.68897 14.5032 6.75V10.5H16.0032V6.75C16.0032 5.23122 14.772 4 13.2532 4H9.50321V5.5ZM0 5V5.00405L5.12525 11.5307C5.74119 12.3151 7.00106 11.8795 7.00106 10.8822V5H5.50106V9.58056L1.90404 5H0Z"
+        fill="currentColor"
+        fillRule="evenodd"
+      />
     </svg>
   );
 }
@@ -179,62 +194,13 @@ function ClaudeIcon(props: SVGProps<SVGSVGElement>) {
   );
 }
 
-function SciraIcon(props: SVGProps<SVGSVGElement>) {
+function PerplexityIcon(props: SVGProps<SVGSVGElement>) {
   return (
-    <svg
-      width="910"
-      height="934"
-      viewBox="0 0 910 934"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      {...props}
-    >
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" {...props}>
       <path
-        d="M647.664 197.775C569.13 189.049 525.5 145.419 516.774 66.8849C508.048 145.419 464.418 189.049 385.884 197.775C464.418 206.501 508.048 250.131 516.774 328.665C525.5 250.131 569.13 206.501 647.664 197.775Z"
         fill="currentColor"
-        stroke="currentColor"
-        strokeWidth="8"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M516.774 304.217C510.299 275.491 498.208 252.087 480.335 234.214C462.462 216.341 439.058 204.251 410.333 197.775C439.059 191.3 462.462 179.209 480.335 161.336C498.208 143.463 510.299 120.06 516.774 91.334C523.25 120.059 535.34 143.463 553.213 161.336C571.086 179.209 594.49 191.3 623.216 197.775C594.49 204.251 571.086 216.341 553.213 234.214C535.34 252.087 523.25 275.491 516.774 304.217Z"
-        fill="currentColor"
-        stroke="currentColor"
-        strokeWidth="8"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M857.5 508.116C763.259 497.644 710.903 445.288 700.432 351.047C689.961 445.288 637.605 497.644 543.364 508.116C637.605 518.587 689.961 570.943 700.432 665.184C710.903 570.943 763.259 518.587 857.5 508.116Z"
-        stroke="currentColor"
-        strokeWidth="20"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M700.432 615.957C691.848 589.05 678.575 566.357 660.383 548.165C642.191 529.973 619.499 516.7 592.593 508.116C619.499 499.533 642.191 486.258 660.383 468.066C678.575 449.874 691.848 427.181 700.432 400.274C709.015 427.181 722.289 449.874 740.481 468.066C758.673 486.258 781.365 499.533 808.271 508.116C781.365 516.7 758.673 529.973 740.481 548.165C722.289 566.357 709.015 589.05 700.432 615.957Z"
-        stroke="currentColor"
-        strokeWidth="20"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M889.949 121.237C831.049 114.692 798.326 81.9698 791.782 23.0692C785.237 81.9698 752.515 114.692 693.614 121.237C752.515 127.781 785.237 160.504 791.782 219.404C798.326 160.504 831.049 127.781 889.949 121.237Z"
-        fill="currentColor"
-        stroke="currentColor"
-        strokeWidth="8"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M791.782 196.795C786.697 176.937 777.869 160.567 765.16 147.858C752.452 135.15 736.082 126.322 716.226 121.237C736.082 116.152 752.452 107.324 765.16 94.6152C777.869 81.9065 786.697 65.5368 791.782 45.6797C796.867 65.5367 805.695 81.9066 818.403 94.6152C831.112 107.324 847.481 116.152 867.338 121.237C847.481 126.322 831.112 135.15 818.403 147.858C805.694 160.567 796.867 176.937 791.782 196.795Z"
-        fill="currentColor"
-        stroke="currentColor"
-        strokeWidth="8"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M760.632 764.337C720.719 814.616 669.835 855.1 611.872 882.692C553.91 910.285 490.404 924.255 426.213 923.533C362.022 922.812 298.846 907.419 241.518 878.531C184.19 849.643 134.228 808.026 95.4548 756.863C56.6815 705.7 30.1238 646.346 17.8129 583.343C5.50207 520.339 7.76433 455.354 24.4266 393.359C41.089 331.364 71.7099 274.001 113.947 225.658C156.184 177.315 208.919 139.273 268.117 114.442"
-        stroke="currentColor"
-        strokeWidth="30"
-        strokeLinecap="round"
-        strokeLinejoin="round"
+        fillRule="evenodd"
+        d="M8 .188a.5.5 0 0 1 .503.5V4.03l3.022-2.92l.059-.048a.51.51 0 0 1 .49-.054a.5.5 0 0 1 .306.46v3.247h1.117l.1.01a.5.5 0 0 1 .403.49v5.558a.5.5 0 0 1-.503.5H12.38v3.258a.5.5 0 0 1-.312.462a.51.51 0 0 1-.55-.11l-3.016-3.018v3.448c0 .275-.225.5-.503.5a.5.5 0 0 1-.503-.5v-3.448l-3.018 3.019a.51.51 0 0 1-.548.11a.5.5 0 0 1-.312-.463v-3.258H2.503a.5.5 0 0 1-.503-.5V5.215l.01-.1c.047-.229.25-.4.493-.4H3.62V1.469l.006-.074a.5.5 0 0 1 .302-.387a.51.51 0 0 1 .547.102l3.023 2.92V.687c0-.276.225-.5.503-.5M4.626 9.333v3.984l2.87-2.872v-4.01zm3.877 1.113l2.871 2.871V9.333l-2.87-2.897zm3.733-1.668a.5.5 0 0 1 .145.35v1.145h.612V5.715H9.201zm-9.23 1.495h.613V9.13c0-.131.052-.257.145-.35l3.033-3.064h-3.79zm1.62-5.558H6.76L4.626 2.652zm4.613 0h2.134V2.652z"
       />
     </svg>
   );

@@ -18,16 +18,19 @@ skills:
 # Agent Instructions
 
 ## Package Manager
+
 Use **Vite+**: `vp install`, `vp dev`, `vp build`, `vp test`
 
 ## File-Scoped Commands
-| Task | Command |
-|------|---------|
-| Check | `vp check path/to/file.tsx` |
-| Check with auto-fix | `vp check --fix path/to/file.tsx` |
-| Test | `vp test run path/to/file.test.ts` |
+
+| Task                | Command                            |
+| ------------------- | ---------------------------------- |
+| Check               | `vp check path/to/file.tsx`        |
+| Check with auto-fix | `vp check --fix path/to/file.tsx`  |
+| Test                | `vp test run path/to/file.test.ts` |
 
 ## Registry Requests
+
 - Treat short prompts like "add a button component to the registry" as implementation requests.
 - Default mappings:
   - component/ui: `registry:ui` in `registry/items/components/<kebab-name>/`
@@ -41,6 +44,7 @@ Use **Vite+**: `vp install`, `vp dev`, `vp build`, `vp test`
 - `registry/docs/**` is documentation-only and must not be listed as item source.
 
 ## Registry Item Pattern
+
 - Each item folder has `_registry.mdx` with YAML frontmatter metadata, an optional MDX Usage body, and a named `Preview` export.
 - One-file `registry:ui` items can omit `files`; the catalog infers `<item-name>.tsx`.
 - Hooks, libs, blocks, pages, target paths, and multi-file items must list `files` explicitly.
@@ -50,8 +54,9 @@ Use **Vite+**: `vp install`, `vp dev`, `vp build`, `vp test`
 - Use `localRegistryDependencies` in frontmatter for dependencies on other local registry items.
 - Use shadcn item names like `"button"`, `"card"`, `"badge"` in `registryDependencies` for shadcn primitives.
 
-## _registry.mdx Template
-~~~mdx
+## \_registry.mdx Template
+
+````mdx
 ---
 name: button-demo
 type: registry:ui
@@ -60,6 +65,7 @@ description: A short public description.
 registryDependencies:
   - button
 ---
+
 import { ButtonDemo } from "./button-demo";
 
 Use the component in any client or server component.
@@ -75,19 +81,22 @@ export function Example() {
 export function Preview() {
   return <ButtonDemo />;
 }
-~~~
+````
 
 ## Key Conventions
+
 - Routes: `src/routes/`; do not edit `src/routeTree.gen.ts` by hand.
-- Site config: `src/lib/site-config.ts` controls public copy, links, registry name, homepage, and URL helpers.
+- Registry site config: `registry/config.ts` controls public copy, links, registry name, namespace, homepage, and repository URL.
+- Registry URL helpers and route path policy stay in `src/lib/site-config.ts`.
 - Authored docs: direct `registry/docs/*.mdx` or `registry/docs/*.md` files with optional `title`, `description`, `order`, and `group` frontmatter. Nested docs pages are not supported yet.
 - Registry catalog: `src/lib/registry/catalog.ts`; JSON output: `src/lib/registry/json.server.ts`.
-- Registry JSON routes: canonical `/registry.json` and `/<name>.json`; `/r/*` routes are aliases.
+- Registry JSON routes: `/registry.json` and `/r/registry.json` serve the index; item JSON routes live under `/r/<name>.json`.
 - Docs sections: components and blocks plus utilities for `registry:hook` and `registry:lib`.
 - Docs chrome: `src/components/docs/`; theme/CSS: `src/styles.css`.
 - See `README.md` for the registry authoring workflow.
 
 ## Verification
+
 - After registry edits, run `vp check --fix` on touched files.
 - For route/docs changes, run `vp build` so `src/routeTree.gen.ts` updates.
 - Build before handoff when registry JSON, routes, or source loading changed: `vp build`.

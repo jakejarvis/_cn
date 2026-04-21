@@ -3,9 +3,18 @@ import { Link, createFileRoute } from "@tanstack/react-router";
 
 import { Button } from "@/components/ui/button";
 import { getRegistrySectionsWithItems } from "@/lib/registry/sections";
+import { getSeoHead } from "@/lib/seo";
 import { siteConfig } from "@/lib/site-config";
 
-export const Route = createFileRoute("/")({ component: HomePage });
+export const Route = createFileRoute("/")({
+  head: () =>
+    getSeoHead({
+      title: siteConfig.name,
+      description: siteConfig.description,
+      path: "/",
+    }),
+  component: HomePage,
+});
 
 function HomePage() {
   const firstSection = getRegistrySectionsWithItems()[0];

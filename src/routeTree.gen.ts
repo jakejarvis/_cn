@@ -9,8 +9,8 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as Char123nameChar125DotjsonRouteImport } from './routes/{$name}[.]json'
 import { Route as UtilitiesDotmdRouteImport } from './routes/utilities[.]md'
+import { Route as RobotsDottxtRouteImport } from './routes/robots[.]txt'
 import { Route as RegistryDotjsonRouteImport } from './routes/registry[.]json'
 import { Route as LlmsDottxtRouteImport } from './routes/llms[.]txt'
 import { Route as LlmsFullDottxtRouteImport } from './routes/llms-full[.]txt'
@@ -33,15 +33,14 @@ import { Route as ComponentsNameRouteImport } from './routes/components.$name'
 import { Route as BlocksChar123nameChar125DotmdRouteImport } from './routes/blocks.{$name}[.]md'
 import { Route as BlocksNameRouteImport } from './routes/blocks.$name'
 
-const Char123nameChar125DotjsonRoute =
-  Char123nameChar125DotjsonRouteImport.update({
-    id: '/{$name}.json',
-    path: '/{$name}.json',
-    getParentRoute: () => rootRouteImport,
-  } as any)
 const UtilitiesDotmdRoute = UtilitiesDotmdRouteImport.update({
   id: '/utilities.md',
   path: '/utilities.md',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RobotsDottxtRoute = RobotsDottxtRouteImport.update({
+  id: '/robots.txt',
+  path: '/robots.txt',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RegistryDotjsonRoute = RegistryDotjsonRouteImport.update({
@@ -163,8 +162,8 @@ export interface FileRoutesByFullPath {
   '/llms-full.txt': typeof LlmsFullDottxtRoute
   '/llms.txt': typeof LlmsDottxtRoute
   '/registry.json': typeof RegistryDotjsonRoute
+  '/robots.txt': typeof RobotsDottxtRoute
   '/utilities.md': typeof UtilitiesDotmdRoute
-  '/{$name}.json': typeof Char123nameChar125DotjsonRoute
   '/blocks/$name': typeof BlocksNameRoute
   '/blocks/{$name}.md': typeof BlocksChar123nameChar125DotmdRoute
   '/components/$name': typeof ComponentsNameRoute
@@ -188,8 +187,8 @@ export interface FileRoutesByTo {
   '/llms-full.txt': typeof LlmsFullDottxtRoute
   '/llms.txt': typeof LlmsDottxtRoute
   '/registry.json': typeof RegistryDotjsonRoute
+  '/robots.txt': typeof RobotsDottxtRoute
   '/utilities.md': typeof UtilitiesDotmdRoute
-  '/{$name}.json': typeof Char123nameChar125DotjsonRoute
   '/blocks/$name': typeof BlocksNameRoute
   '/blocks/{$name}.md': typeof BlocksChar123nameChar125DotmdRoute
   '/components/$name': typeof ComponentsNameRoute
@@ -214,8 +213,8 @@ export interface FileRoutesById {
   '/llms-full.txt': typeof LlmsFullDottxtRoute
   '/llms.txt': typeof LlmsDottxtRoute
   '/registry.json': typeof RegistryDotjsonRoute
+  '/robots.txt': typeof RobotsDottxtRoute
   '/utilities.md': typeof UtilitiesDotmdRoute
-  '/{$name}.json': typeof Char123nameChar125DotjsonRoute
   '/blocks/$name': typeof BlocksNameRoute
   '/blocks/{$name}.md': typeof BlocksChar123nameChar125DotmdRoute
   '/components/$name': typeof ComponentsNameRoute
@@ -241,8 +240,8 @@ export interface FileRouteTypes {
     | '/llms-full.txt'
     | '/llms.txt'
     | '/registry.json'
+    | '/robots.txt'
     | '/utilities.md'
-    | '/{$name}.json'
     | '/blocks/$name'
     | '/blocks/{$name}.md'
     | '/components/$name'
@@ -266,8 +265,8 @@ export interface FileRouteTypes {
     | '/llms-full.txt'
     | '/llms.txt'
     | '/registry.json'
+    | '/robots.txt'
     | '/utilities.md'
-    | '/{$name}.json'
     | '/blocks/$name'
     | '/blocks/{$name}.md'
     | '/components/$name'
@@ -291,8 +290,8 @@ export interface FileRouteTypes {
     | '/llms-full.txt'
     | '/llms.txt'
     | '/registry.json'
+    | '/robots.txt'
     | '/utilities.md'
-    | '/{$name}.json'
     | '/blocks/$name'
     | '/blocks/{$name}.md'
     | '/components/$name'
@@ -317,8 +316,8 @@ export interface RootRouteChildren {
   LlmsFullDottxtRoute: typeof LlmsFullDottxtRoute
   LlmsDottxtRoute: typeof LlmsDottxtRoute
   RegistryDotjsonRoute: typeof RegistryDotjsonRoute
+  RobotsDottxtRoute: typeof RobotsDottxtRoute
   UtilitiesDotmdRoute: typeof UtilitiesDotmdRoute
-  Char123nameChar125DotjsonRoute: typeof Char123nameChar125DotjsonRoute
   BlocksNameRoute: typeof BlocksNameRoute
   BlocksChar123nameChar125DotmdRoute: typeof BlocksChar123nameChar125DotmdRoute
   ComponentsNameRoute: typeof ComponentsNameRoute
@@ -337,18 +336,18 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/{$name}.json': {
-      id: '/{$name}.json'
-      path: '/{$name}.json'
-      fullPath: '/{$name}.json'
-      preLoaderRoute: typeof Char123nameChar125DotjsonRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/utilities.md': {
       id: '/utilities.md'
       path: '/utilities.md'
       fullPath: '/utilities.md'
       preLoaderRoute: typeof UtilitiesDotmdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/robots.txt': {
+      id: '/robots.txt'
+      path: '/robots.txt'
+      fullPath: '/robots.txt'
+      preLoaderRoute: typeof RobotsDottxtRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/registry.json': {
@@ -509,8 +508,8 @@ const rootRouteChildren: RootRouteChildren = {
   LlmsFullDottxtRoute: LlmsFullDottxtRoute,
   LlmsDottxtRoute: LlmsDottxtRoute,
   RegistryDotjsonRoute: RegistryDotjsonRoute,
+  RobotsDottxtRoute: RobotsDottxtRoute,
   UtilitiesDotmdRoute: UtilitiesDotmdRoute,
-  Char123nameChar125DotjsonRoute: Char123nameChar125DotjsonRoute,
   BlocksNameRoute: BlocksNameRoute,
   BlocksChar123nameChar125DotmdRoute: BlocksChar123nameChar125DotmdRoute,
   ComponentsNameRoute: ComponentsNameRoute,

@@ -1,3 +1,4 @@
+import { getLinkedHeaders, getMarkdownHttpLinkHeader } from "@/lib/seo";
 import { getCanonicalDocsUrl } from "@/lib/site-config";
 
 import { docsPages, getDocsPage } from "./catalog";
@@ -8,9 +9,10 @@ export const authoredDocsMarkdownResponseHeaders = {
 } as const;
 
 export function getAuthoredDocsPageMarkdownResponse(path: string): Response {
+  const page = getDocsPage(path);
   const markdown = getAuthoredDocsPageMarkdown(path);
 
-  if (!markdown) {
+  if (!page || !markdown) {
     return new Response("Docs page not found.", {
       headers: authoredDocsMarkdownResponseHeaders,
       status: 404,
@@ -18,7 +20,10 @@ export function getAuthoredDocsPageMarkdownResponse(path: string): Response {
   }
 
   return new Response(markdown, {
-    headers: authoredDocsMarkdownResponseHeaders,
+    headers: getLinkedHeaders(
+      authoredDocsMarkdownResponseHeaders,
+      getMarkdownHttpLinkHeader(page.routePath),
+    ),
   });
 }
 

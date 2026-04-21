@@ -138,7 +138,7 @@ describe("registry catalog", () => {
     expect(block.registryDependencies).toContain("badge");
     expect(block.registryDependencies).toContain("card");
     expect(block.registryDependencies).toContain(
-      "https://underscore-cn.vercel.app/example-card.json",
+      "https://underscore-cn.vercel.app/r/example-card.json",
     );
     expect(block).not.toHaveProperty("localRegistryDependencies");
   });

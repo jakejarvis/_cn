@@ -9,17 +9,25 @@ import {
 
 describe("registry JSON route responses", () => {
   test("serves the same registry index payload for canonical and alias routes", async () => {
-    const canonical = await readJson(getRegistryIndexJsonResponse());
-    const alias = await readJson(getRegistryIndexJsonResponse());
+    const canonicalResponse = getRegistryIndexJsonResponse();
+    const aliasResponse = getRegistryIndexJsonResponse();
+    const canonical = await readJson(canonicalResponse);
+    const alias = await readJson(aliasResponse);
 
+    expect(canonicalResponse.headers.get("Link")).toBeNull();
+    expect(aliasResponse.headers.get("Link")).toBeNull();
     expect(canonical).toEqual(alias);
     expect(canonical).toEqual(getRegistryIndexJson());
   });
 
   test("serves the same item payload for canonical and alias routes", async () => {
-    const canonical = await readJson(getRegistryItemJsonResponse("example-card"));
-    const alias = await readJson(getRegistryItemJsonResponse("example-card"));
+    const canonicalResponse = getRegistryItemJsonResponse("example-card");
+    const aliasResponse = getRegistryItemJsonResponse("example-card");
+    const canonical = await readJson(canonicalResponse);
+    const alias = await readJson(aliasResponse);
 
+    expect(canonicalResponse.headers.get("Link")).toBeNull();
+    expect(aliasResponse.headers.get("Link")).toBeNull();
     expect(canonical).toEqual(alias);
     expect(canonical).toMatchObject({
       name: "example-card",

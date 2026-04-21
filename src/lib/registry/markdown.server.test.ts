@@ -24,10 +24,10 @@ describe("docs markdown", () => {
     expect(markdown).toContain("# Example Card");
     expect(markdown).toContain("## Installation");
     expect(markdown).toContain(
-      "npx shadcn@latest add https://underscore-cn.vercel.app/example-card.json",
+      "npx shadcn@latest add https://underscore-cn.vercel.app/r/example-card.json",
     );
     expect(markdown).toContain(
-      "[Registry JSON](https://underscore-cn.vercel.app/example-card.json)",
+      "[Registry JSON](https://underscore-cn.vercel.app/r/example-card.json)",
     );
     expect(markdown).toContain("## Preview");
     expect(markdown).toContain("## Source");
@@ -47,6 +47,9 @@ describe("docs markdown", () => {
 
     expect(found.status).toBe(200);
     expect(found.headers.get("Content-Type")).toBe("text/markdown; charset=utf-8");
+    expect(found.headers.get("Link")).toBe(
+      '<https://underscore-cn.vercel.app/components/example-card>; rel="canonical", <https://underscore-cn.vercel.app/components/example-card.md>; rel="alternate"; type="text/markdown"',
+    );
     expect(await found.text()).toContain("# Example Card");
     expect(missing.status).toBe(404);
     expect(missing.headers.get("Content-Type")).toBe("text/markdown; charset=utf-8");

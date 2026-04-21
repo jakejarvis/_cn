@@ -31,6 +31,9 @@ describe("authored docs markdown", () => {
 
     expect(found.status).toBe(200);
     expect(found.headers.get("Content-Type")).toBe("text/markdown; charset=utf-8");
+    expect(found.headers.get("Link")).toBe(
+      '<https://underscore-cn.vercel.app/docs/installation>; rel="canonical", <https://underscore-cn.vercel.app/docs/installation.md>; rel="alternate"; type="text/markdown"',
+    );
     expect(await found.text()).toContain("# Installation");
     expect(missing.status).toBe(404);
     expect(missing.headers.get("Content-Type")).toBe("text/markdown; charset=utf-8");

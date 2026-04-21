@@ -9,7 +9,10 @@ import remarkFrontmatter from "remark-frontmatter";
 import remarkGfm from "remark-gfm";
 import { defineConfig } from "vite-plus";
 
+import { getPrerenderPages } from "./src/lib/prerender-pages.ts";
 import { mdxWithQueryBypass } from "./src/lib/registry/mdx-vite-plugin.ts";
+import { shouldExcludeFromSitemap } from "./src/lib/seo.ts";
+import { siteConfig } from "./src/lib/site-config.ts";
 
 const config = defineConfig({
   staged: {
@@ -119,8 +122,27 @@ const config = defineConfig({
       rsc: {
         enabled: true,
       },
+      pages: getPrerenderPages(),
       prerender: {
         enabled: true,
+        autoStaticPathsDiscovery: false,
+        crawlLinks: false,
+        onSuccess: ({ page }) => {
+          if (!shouldExcludeFromSitemap(page.path)) {
+            return undefined;
+          }
+
+          return {
+            sitemap: {
+              ...page.sitemap,
+              exclude: true,
+            },
+          };
+        },
+      },
+      sitemap: {
+        enabled: true,
+        host: siteConfig.homepage,
       },
     }),
     rsc(),

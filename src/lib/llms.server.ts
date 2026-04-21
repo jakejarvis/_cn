@@ -16,7 +16,7 @@ type LlmsDocument = {
   title: string;
   url: string;
   description: string;
-  markdown: string;
+  renderMarkdown: () => string;
 };
 
 type LlmsSection = {
@@ -57,7 +57,7 @@ export function getLlmsText(): string {
           title: "Registry JSON",
           url: getCanonicalRegistryIndexUrl(),
           description: "Machine-readable shadcn registry index.",
-          markdown: "",
+          renderMarkdown: () => "",
         },
       ],
     }),
@@ -86,7 +86,7 @@ function getLlmsSections(): LlmsSection[] {
         title: page.title,
         url: getCanonicalSiteUrl(getDocsMarkdownPath(page.routePath)),
         description: page.description || "Documentation page.",
-        markdown: getAuthoredDocsPageMarkdown(page.slug) ?? "",
+        renderMarkdown: () => getAuthoredDocsPageMarkdown(page.slug) ?? "",
       })),
     },
     ...registrySectionList.map((section) => ({
@@ -96,13 +96,13 @@ function getLlmsSections(): LlmsSection[] {
           title: `${section.title} index`,
           url: getCanonicalSiteUrl(getDocsMarkdownPath(section.basePath)),
           description: section.description,
-          markdown: getRegistrySectionMarkdown(section.id),
+          renderMarkdown: () => getRegistrySectionMarkdown(section.id),
         },
         ...getRegistrySectionItems(section.id).map((item) => ({
           title: item.title,
           url: getCanonicalSiteUrl(getDocsMarkdownPath(`${section.basePath}/${item.name}`)),
           description: item.description,
-          markdown: getRegistryItemMarkdown(section.id, item.name) ?? "",
+          renderMarkdown: () => getRegistryItemMarkdown(section.id, item.name) ?? "",
         })),
       ],
     })),
@@ -127,7 +127,7 @@ function formatLlmsFullDocument(document: LlmsDocument): string {
     "---",
     `URL: ${document.url}`,
     document.description,
-    document.markdown.trim(),
+    document.renderMarkdown().trim(),
   ]);
 }
 

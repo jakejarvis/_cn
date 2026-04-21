@@ -1,6 +1,7 @@
 import { create, insertMultiple, search as searchOrama } from "@orama/orama";
 import type { Orama } from "@orama/orama";
 
+import { docsPages, type DocsPage } from "@/lib/docs/catalog";
 import type { RegistryCatalogItem } from "@/lib/registry/catalog";
 import {
   getRegistrySectionItems,
@@ -13,11 +14,13 @@ const DEFAULT_SEARCH_LIMIT = 20;
 const MAX_SEARCH_LIMIT = 50;
 
 const registrySearchSchema = {
+  id: "string",
   name: "string",
   title: "string",
   description: "string",
   section: "enum",
   sectionTitle: "string",
+  routePath: "string",
   type: "string",
   categories: "string[]",
   registryDependencies: "string[]",
@@ -30,6 +33,7 @@ const registrySearchProperties = [
   "name",
   "description",
   "sectionTitle",
+  "routePath",
   "type",
   "categories",
   "registryDependencies",
@@ -42,6 +46,7 @@ const registrySearchBoost = {
   name: 6,
   description: 3,
   sectionTitle: 2,
+  routePath: 1,
   categories: 2,
   registryDependencies: 1.5,
   fileNames: 1.5,
@@ -50,15 +55,17 @@ const registrySearchBoost = {
 } satisfies Partial<Record<(typeof registrySearchProperties)[number], number>>;
 
 type RegistrySearchDatabase = Orama<typeof registrySearchSchema>;
+type SearchSection = RegistrySection | "docs";
 
 export type RegistrySearchRecord = {
   id: string;
   name: string;
   title: string;
   description: string;
-  section: RegistrySection;
-  sectionTitle: RegistrySectionConfig["title"];
-  type: RegistryCatalogItem["type"];
+  section: SearchSection;
+  sectionTitle: RegistrySectionConfig["title"] | "Docs";
+  routePath: string;
+  type: RegistryCatalogItem["type"] | "docs";
   categories: string[];
   registryDependencies: string[];
   fileNames: string[];
@@ -85,9 +92,12 @@ let registrySearchRecordsCache: RegistrySearchRecord[] | undefined;
 let registrySearchRecordMapCache: Map<string, RegistrySearchRecord> | undefined;
 
 export function getRegistrySearchRecords(): RegistrySearchRecord[] {
-  registrySearchRecordsCache ??= registrySectionList.flatMap((section) =>
-    getRegistrySectionItems(section.id).map((item) => toRegistrySearchRecord(section, item)),
-  );
+  registrySearchRecordsCache ??= [
+    ...docsPages.map(toDocsSearchRecord),
+    ...registrySectionList.flatMap((section) =>
+      getRegistrySectionItems(section.id).map((item) => toRegistrySearchRecord(section, item)),
+    ),
+  ];
 
   return registrySearchRecordsCache;
 }
@@ -123,7 +133,7 @@ export async function searchRegistryItems({
     query: normalizedQuery,
     count: response.count,
     results: response.hits.flatMap((hit) => {
-      const record = getRegistrySearchRecordByName(hit.document.name);
+      const record = getRegistrySearchRecordById(hit.document.id);
 
       return record ? [toRegistrySearchResult(record, hit.score)] : [];
     }),
@@ -136,12 +146,12 @@ function getRegistrySearchDatabase(): Promise<RegistrySearchDatabase> {
   return registrySearchDatabasePromise;
 }
 
-function getRegistrySearchRecordByName(name: string): RegistrySearchRecord | undefined {
+function getRegistrySearchRecordById(id: string): RegistrySearchRecord | undefined {
   registrySearchRecordMapCache ??= new Map(
-    getRegistrySearchRecords().map((record) => [record.name, record]),
+    getRegistrySearchRecords().map((record) => [record.id, record]),
   );
 
-  return registrySearchRecordMapCache.get(name);
+  return registrySearchRecordMapCache.get(id);
 }
 
 async function createRegistrySearchDatabase(): Promise<RegistrySearchDatabase> {
@@ -169,6 +179,7 @@ function toRegistrySearchRecord(
     description: item.description,
     section: section.id,
     sectionTitle: section.title,
+    routePath: `${section.basePath}/${item.name}`,
     type: item.type,
     categories,
     registryDependencies,
@@ -180,6 +191,25 @@ function toRegistrySearchRecord(
       registryDependencies,
       fileNames,
     }),
+  };
+}
+
+function toDocsSearchRecord(page: DocsPage): RegistrySearchRecord {
+  const categories = page.group ? [page.group] : [];
+
+  return {
+    id: `docs:${page.slug || "index"}`,
+    name: page.slug || "docs",
+    title: page.title,
+    description: page.description,
+    section: "docs",
+    sectionTitle: "Docs",
+    routePath: page.routePath,
+    type: "docs",
+    categories,
+    registryDependencies: [],
+    fileNames: [getFileName(page.sourcePath)],
+    keywords: page.keywords,
   };
 }
 

@@ -1,16 +1,12 @@
 import { useRouterState } from "@tanstack/react-router";
 import type * as React from "react";
 
-import {
-  getRegistrySectionItems,
-  registrySections,
-  type RegistrySection,
-} from "@/lib/registry/sections";
+import { getSiteNavigationSection, type SiteNavigationSectionId } from "@/lib/navigation";
 
 import { DocsSidebar } from "./docs-sidebar";
 
 type DocsLayoutProps = {
-  section: RegistrySection;
+  section: SiteNavigationSectionId;
   children: React.ReactNode;
 };
 
@@ -18,9 +14,7 @@ export function DocsLayout({ section, children }: DocsLayoutProps) {
   const pathname = useRouterState({
     select: (state) => state.location.pathname,
   });
-  const sectionConfig = registrySections[section];
-  const items = getRegistrySectionItems(section);
-  const sidebarSections = [{ ...sectionConfig, items }];
+  const sidebarSections = [getSiteNavigationSection(section)];
 
   return (
     <div className="mx-auto flex w-full max-w-screen-2xl gap-8 px-4 sm:px-6 lg:px-8">

@@ -22,6 +22,10 @@ export function getCanonicalRegistryItemUrl(itemName: string): string {
 }
 
 export function getCanonicalDocsUrl(path: string): string {
+  return getCanonicalSiteUrl(path);
+}
+
+export function getCanonicalSiteUrl(path: string): string {
   return `${getSiteOrigin()}${normalizeSitePath(path)}`;
 }
 

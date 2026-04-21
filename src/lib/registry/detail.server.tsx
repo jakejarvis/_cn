@@ -1,12 +1,8 @@
-import {
-  createCompositeComponent,
-  renderServerComponent,
-  type AnyCompositeComponent,
-} from "@tanstack/react-start/rsc";
+import { createCompositeComponent, type AnyCompositeComponent } from "@tanstack/react-start/rsc";
 import * as React from "react";
 
-import { CodeBlock } from "@/components/docs/code-block";
-import { cn } from "@/lib/utils";
+import { renderMdxContent, type MdxContentModule } from "@/components/docs/mdx-content.server";
+import { normalizeGlobFiles } from "@/lib/glob";
 
 import { getRegistryItem } from "./catalog";
 import { isRegistryDetailType, type RegistryItemDetailInput } from "./detail.types";
@@ -21,14 +17,9 @@ import {
 
 type RenderedUsage = Awaited<ReturnType<typeof renderUsage>>;
 type RenderedPreview = Awaited<ReturnType<typeof renderPreview>>;
-type RegistryMdxModule = {
-  default?: React.ComponentType<{
-    components?: Record<string, unknown>;
-  }>;
-};
 type RegistryPreviewModule = React.ComponentType;
 
-const registryUsageModules = import.meta.glob<RegistryMdxModule>(
+const registryUsageModules = import.meta.glob<MdxContentModule>(
   "../../../registry/items/**/_registry.mdx",
   {
     query: "?registry-usage",
@@ -44,11 +35,6 @@ const registryPreviewModules = import.meta.glob<RegistryPreviewModule>(
 
 const registryUsageModulesByPath = normalizeGlobFiles(registryUsageModules);
 const registryPreviewModulesByPath = normalizeGlobFiles(registryPreviewModules);
-const usageMdxComponents = {
-  a: MarkdownLink,
-  code: MarkdownInlineCode,
-  pre: MarkdownPre,
-};
 
 export type HighlightedRegistrySourceFile = RegistrySourceFileWithSource & {
   highlightedHtml: string;
@@ -143,7 +129,7 @@ async function renderUsage(path: string, hasUsage: boolean) {
 
   const Content = (await loadUsage()).default;
 
-  return Content ? renderServerComponent(<UsageMdx Content={Content} />) : null;
+  return Content ? renderMdxContent({ Content }) : null;
 }
 
 async function renderPreview(path: string): Promise<AnyCompositeComponent | null> {
@@ -165,79 +151,4 @@ async function renderPreview(path: string): Promise<AnyCompositeComponent | null
       </div>
     </div>
   ));
-}
-
-function UsageMdx({ Content }: { Content: NonNullable<RegistryMdxModule["default"]> }) {
-  return (
-    <div className="prose max-w-none prose-neutral dark:prose-invert prose-pre:my-0">
-      <Content components={usageMdxComponents} />
-    </div>
-  );
-}
-
-function MarkdownLink({ href, ...props }: React.ComponentProps<"a">) {
-  const external = href?.startsWith("http://") || href?.startsWith("https://");
-
-  return (
-    <a {...props} href={href} {...(external ? { rel: "noreferrer", target: "_blank" } : {})} />
-  );
-}
-
-function MarkdownInlineCode({ className, ...props }: React.ComponentProps<"code">) {
-  return (
-    <code
-      className={cn("rounded bg-muted px-1 py-0.5 font-mono text-[0.875em] font-normal", className)}
-      {...props}
-    />
-  );
-}
-
-async function MarkdownPre({ children }: React.ComponentProps<"pre">) {
-  return renderMarkdownCodeBlock(children);
-}
-
-export async function renderMarkdownCodeBlock(children: React.ReactNode) {
-  const child = React.Children.toArray(children).find(React.isValidElement);
-
-  if (!React.isValidElement<CodeElementProps>(child)) {
-    return <pre>{children}</pre>;
-  }
-
-  const code = getCodeText(child.props.children).replace(/\n$/u, "");
-  const language = getMarkdownCodeLanguage(child.props.className);
-
-  return (
-    <CodeBlock
-      code={code}
-      highlightedHtml={await highlightCodeToHtml(code, language ?? "text")}
-      className="not-prose my-4"
-    />
-  );
-}
-
-type CodeElementProps = {
-  className?: string;
-  children?: React.ReactNode;
-};
-
-function getMarkdownCodeLanguage(className: string | undefined): string | null {
-  return className?.match(/(?:^|\s)language-([^\s]+)/u)?.[1] ?? null;
-}
-
-function getCodeText(children: React.ReactNode): string {
-  return React.Children.toArray(children).map(getCodeChildText).join("");
-}
-
-function getCodeChildText(child: React.ReactNode): string {
-  return typeof child === "string" || typeof child === "number" ? String(child) : "";
-}
-
-function normalizeGlobFiles<T>(files: Record<string, T>): Record<string, T> {
-  return Object.fromEntries(
-    Object.entries(files).map(([path, source]) => [normalizeGlobPath(path), source]),
-  );
-}
-
-function normalizeGlobPath(path: string): string {
-  return path.replace(/^(?:\.\.\/){3}/u, "");
 }

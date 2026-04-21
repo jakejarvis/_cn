@@ -2,7 +2,7 @@ import * as React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, test } from "vitest";
 
-import { renderMarkdownCodeBlock } from "@/lib/registry/detail.server";
+import { renderMarkdownCodeBlock } from "@/components/docs/mdx-content.server";
 
 describe("registry detail rendering", () => {
   test("renders usage code fences with highlighting and copy affordances", async () => {

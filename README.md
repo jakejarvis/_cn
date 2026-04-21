@@ -4,7 +4,7 @@
 
 An intentionally minimal [TanStack Start](https://tanstack.com/start/latest) + [Vite+](https://viteplus.dev/) starter template for publishing a [shadcn-compatible registry](https://ui.shadcn.com/docs/registry) without writing the documentation site and registry plumbing from scratch.
 
-The scaffold contains a typed registry authoring layer, live preview pages, syntax-highlighted source snippets, schema validation, package-manager install commands, and TanStack Start server routes. [See a demo here.](https://ui.jarv.is)
+The scaffold contains a typed registry authoring layer, authored docs, live preview pages, syntax-highlighted source snippets, schema validation, package-manager install commands, and TanStack Start server routes. [See a demo here.](https://ui.jarv.is)
 
 > [!NOTE]
 > `_cn` is pronounced "underscore-cn".
@@ -16,7 +16,7 @@ vp install
 vp dev
 ```
 
-Open the local URL from Vite+ and browse the starter component, block, and utility pages.
+Open the local URL from Vite+ and browse the starter docs, component, block, and utility pages.
 
 ## Deploy
 
@@ -61,12 +61,46 @@ The public registry is flat by default:
 - `/registry.json` serves the registry index.
 - `/<name>.json` serves an item JSON file.
 - `/r/registry.json` and `/r/<name>.json` remain aliases.
+- `/llms.txt` and `/llms-full.txt` are generated from the same Markdown docs and registry item pages used by the site.
 
 This matches the public shadcn registry shape while keeping the old `/r` route family available.
 
 Install command URLs are generated from `siteConfig.registry.canonicalBasePath` and
 `siteConfig.registry.itemPathPattern`. Keep the default root-flat shape for public registry
 submission, or point commands at an alias path if you deliberately want that policy.
+
+## Author Docs
+
+Create public documentation pages under `registry/docs/`.
+
+```text
+registry/docs/
+  index.mdx
+  installation.mdx
+  registry.mdx
+```
+
+Docs render under `/docs`: `registry/docs/index.mdx` becomes `/docs`, and
+`registry/docs/installation.mdx` becomes `/docs/installation`. Keep docs files directly under
+`registry/docs` for now; nested docs pages are not supported yet.
+
+Docs files support optional YAML frontmatter:
+
+```mdx
+---
+title: Installation
+description: Install and run this registry.
+order: 1
+group: Getting Started
+---
+
+# Installation
+
+Use Markdown or MDX with the built-in docs components.
+```
+
+Use `registry/docs/*` for documentation only. Installable registry item source must stay under
+`registry/items/**`.
 
 ## Add A Registry Item
 
@@ -122,6 +156,7 @@ The template ships three plain examples:
 - `example-card`: a `registry:ui` item with shadcn dependencies.
 - `use-copy-to-clipboard`: a `registry:hook` item that publishes a non-component file.
 - `stats-panel`: a multi-file `registry:block` item that uses a local registry dependency.
+- `registry/docs`: starter public docs for installation, theming, CLI, registry authoring, and changelog notes.
 
 Replace them with your own registry items before publishing.
 
@@ -132,8 +167,10 @@ discoverable before installation.
 ## Checklist
 
 - [ ] Choose a registry name, namespace, domain, and repository URL.
+- [ ] Update or replace the starter docs under `registry/docs`.
 - [ ] Replace the starter registry items.
 - [ ] Verify `/registry.json` and at least one `/<name>.json` item URL.
+- [ ] Verify `/llms.txt` and `/llms-full.txt`.
 - [ ] Update `package.json` metadata, `README.md` details, `LICENSE` owner, etc.
 - [ ] Run `vp check` and `vp build`.
 - [ ] Deploy and test install commands with npm, pnpm, yarn, and bun.

@@ -1,3 +1,5 @@
+import { normalizeGlobFiles } from "@/lib/glob";
+
 import { parseRegistryMdx } from "./mdx";
 import type {
   RegistryFileDefinition,
@@ -134,16 +136,6 @@ export function getRegistryItemsByTypes(types: readonly RegistryType[]): Registr
   const typeSet = new Set(types);
 
   return registryItems.filter((item) => typeSet.has(item.type));
-}
-
-function normalizeGlobFiles(files: Record<string, string>): Record<string, string> {
-  return Object.fromEntries(
-    Object.entries(files).map(([path, source]) => [normalizeGlobPath(path), source]),
-  );
-}
-
-function normalizeGlobPath(path: string): string {
-  return path.replace(/^(?:\.\.\/){3}/u, "");
 }
 
 function compareRegistryItemNames(

@@ -4,7 +4,7 @@ import {
   getRegistryItemMarkdown,
   getRegistryItemMarkdownResponse,
   getRegistrySectionMarkdown,
-} from "@/lib/registry/docs-markdown.server";
+} from "@/lib/registry/markdown.server";
 
 describe("docs markdown", () => {
   test("builds section markdown with linked registry items", () => {

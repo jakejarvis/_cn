@@ -119,6 +119,9 @@ const config = defineConfig({
       rsc: {
         enabled: true,
       },
+      prerender: {
+        enabled: true,
+      },
     }),
     rsc(),
     viteReact(),

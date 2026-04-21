@@ -4,7 +4,7 @@ import * as React from "react";
 
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { getRegistrySectionsWithItems } from "@/lib/registry/sections";
+import { getSiteNavigationSections, type SiteNavigationSection } from "@/lib/navigation";
 import { siteConfig } from "@/lib/site-config";
 import { cn } from "@/lib/utils";
 
@@ -17,7 +17,7 @@ export function SiteHeader() {
     select: (state) => state.location.pathname,
   });
   const [open, setOpen] = React.useState(false);
-  const visibleSections = getRegistrySectionsWithItems();
+  const visibleSections = getSiteNavigationSections();
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
@@ -47,16 +47,7 @@ export function SiteHeader() {
 
         <nav className="hidden items-center gap-1 lg:flex">
           {visibleSections.map((section) => (
-            <Link
-              key={section.id}
-              to={section.basePath}
-              className={cn(
-                "rounded-md px-3 py-1.5 text-sm transition-colors hover:text-foreground",
-                pathname.startsWith(section.basePath) ? "text-foreground" : "text-muted-foreground",
-              )}
-            >
-              {section.title}
-            </Link>
+            <HeaderSectionLink key={section.id} section={section} pathname={pathname} />
           ))}
         </nav>
 
@@ -76,6 +67,52 @@ export function SiteHeader() {
       </div>
     </header>
   );
+}
+
+function HeaderSectionLink({
+  section,
+  pathname,
+}: {
+  section: SiteNavigationSection;
+  pathname: string;
+}) {
+  const className = cn(
+    "rounded-md px-3 py-1.5 text-sm transition-colors hover:text-foreground",
+    isSectionActive(section, pathname) ? "text-foreground" : "text-muted-foreground",
+  );
+
+  switch (section.id) {
+    case "docs":
+      return (
+        <Link to="/docs" className={className}>
+          {section.title}
+        </Link>
+      );
+    case "components":
+      return (
+        <Link to="/components" className={className}>
+          {section.title}
+        </Link>
+      );
+    case "blocks":
+      return (
+        <Link to="/blocks" className={className}>
+          {section.title}
+        </Link>
+      );
+    case "utilities":
+      return (
+        <Link to="/utilities" className={className}>
+          {section.title}
+        </Link>
+      );
+  }
+
+  return null;
+}
+
+function isSectionActive(section: SiteNavigationSection, pathname: string) {
+  return pathname === section.basePath || pathname.startsWith(`${section.basePath}/`);
 }
 
 function RegistryLogo(props: React.SVGProps<SVGSVGElement>) {

@@ -12,16 +12,22 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as Char123nameChar125DotjsonRouteImport } from './routes/{$name}[.]json'
 import { Route as UtilitiesDotmdRouteImport } from './routes/utilities[.]md'
 import { Route as RegistryDotjsonRouteImport } from './routes/registry[.]json'
+import { Route as LlmsDottxtRouteImport } from './routes/llms[.]txt'
+import { Route as LlmsFullDottxtRouteImport } from './routes/llms-full[.]txt'
+import { Route as DocsDotmdRouteImport } from './routes/docs[.]md'
 import { Route as ComponentsDotmdRouteImport } from './routes/components[.]md'
 import { Route as BlocksDotmdRouteImport } from './routes/blocks[.]md'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as UtilitiesIndexRouteImport } from './routes/utilities.index'
+import { Route as DocsIndexRouteImport } from './routes/docs.index'
 import { Route as ComponentsIndexRouteImport } from './routes/components.index'
 import { Route as BlocksIndexRouteImport } from './routes/blocks.index'
 import { Route as UtilitiesChar123nameChar125DotmdRouteImport } from './routes/utilities.{$name}[.]md'
 import { Route as UtilitiesNameRouteImport } from './routes/utilities.$name'
 import { Route as RChar123nameChar125DotjsonRouteImport } from './routes/r/{$name}[.]json'
 import { Route as RRegistryDotjsonRouteImport } from './routes/r/registry[.]json'
+import { Route as DocsChar123slugChar125DotmdRouteImport } from './routes/docs.{$slug}[.]md'
+import { Route as DocsSlugRouteImport } from './routes/docs.$slug'
 import { Route as ComponentsChar123nameChar125DotmdRouteImport } from './routes/components.{$name}[.]md'
 import { Route as ComponentsNameRouteImport } from './routes/components.$name'
 import { Route as BlocksChar123nameChar125DotmdRouteImport } from './routes/blocks.{$name}[.]md'
@@ -43,6 +49,21 @@ const RegistryDotjsonRoute = RegistryDotjsonRouteImport.update({
   path: '/registry.json',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LlmsDottxtRoute = LlmsDottxtRouteImport.update({
+  id: '/llms.txt',
+  path: '/llms.txt',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LlmsFullDottxtRoute = LlmsFullDottxtRouteImport.update({
+  id: '/llms-full.txt',
+  path: '/llms-full.txt',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DocsDotmdRoute = DocsDotmdRouteImport.update({
+  id: '/docs.md',
+  path: '/docs.md',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ComponentsDotmdRoute = ComponentsDotmdRouteImport.update({
   id: '/components.md',
   path: '/components.md',
@@ -61,6 +82,11 @@ const IndexRoute = IndexRouteImport.update({
 const UtilitiesIndexRoute = UtilitiesIndexRouteImport.update({
   id: '/utilities/',
   path: '/utilities/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DocsIndexRoute = DocsIndexRouteImport.update({
+  id: '/docs/',
+  path: '/docs/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ComponentsIndexRoute = ComponentsIndexRouteImport.update({
@@ -95,6 +121,17 @@ const RRegistryDotjsonRoute = RRegistryDotjsonRouteImport.update({
   path: '/r/registry.json',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DocsChar123slugChar125DotmdRoute =
+  DocsChar123slugChar125DotmdRouteImport.update({
+    id: '/docs/{$slug}.md',
+    path: '/docs/{$slug}.md',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const DocsSlugRoute = DocsSlugRouteImport.update({
+  id: '/docs/$slug',
+  path: '/docs/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ComponentsChar123nameChar125DotmdRoute =
   ComponentsChar123nameChar125DotmdRouteImport.update({
     id: '/components/{$name}.md',
@@ -122,6 +159,9 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/blocks.md': typeof BlocksDotmdRoute
   '/components.md': typeof ComponentsDotmdRoute
+  '/docs.md': typeof DocsDotmdRoute
+  '/llms-full.txt': typeof LlmsFullDottxtRoute
+  '/llms.txt': typeof LlmsDottxtRoute
   '/registry.json': typeof RegistryDotjsonRoute
   '/utilities.md': typeof UtilitiesDotmdRoute
   '/{$name}.json': typeof Char123nameChar125DotjsonRoute
@@ -129,18 +169,24 @@ export interface FileRoutesByFullPath {
   '/blocks/{$name}.md': typeof BlocksChar123nameChar125DotmdRoute
   '/components/$name': typeof ComponentsNameRoute
   '/components/{$name}.md': typeof ComponentsChar123nameChar125DotmdRoute
+  '/docs/$slug': typeof DocsSlugRoute
+  '/docs/{$slug}.md': typeof DocsChar123slugChar125DotmdRoute
   '/r/registry.json': typeof RRegistryDotjsonRoute
   '/r/{$name}.json': typeof RChar123nameChar125DotjsonRoute
   '/utilities/$name': typeof UtilitiesNameRoute
   '/utilities/{$name}.md': typeof UtilitiesChar123nameChar125DotmdRoute
   '/blocks/': typeof BlocksIndexRoute
   '/components/': typeof ComponentsIndexRoute
+  '/docs/': typeof DocsIndexRoute
   '/utilities/': typeof UtilitiesIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/blocks.md': typeof BlocksDotmdRoute
   '/components.md': typeof ComponentsDotmdRoute
+  '/docs.md': typeof DocsDotmdRoute
+  '/llms-full.txt': typeof LlmsFullDottxtRoute
+  '/llms.txt': typeof LlmsDottxtRoute
   '/registry.json': typeof RegistryDotjsonRoute
   '/utilities.md': typeof UtilitiesDotmdRoute
   '/{$name}.json': typeof Char123nameChar125DotjsonRoute
@@ -148,12 +194,15 @@ export interface FileRoutesByTo {
   '/blocks/{$name}.md': typeof BlocksChar123nameChar125DotmdRoute
   '/components/$name': typeof ComponentsNameRoute
   '/components/{$name}.md': typeof ComponentsChar123nameChar125DotmdRoute
+  '/docs/$slug': typeof DocsSlugRoute
+  '/docs/{$slug}.md': typeof DocsChar123slugChar125DotmdRoute
   '/r/registry.json': typeof RRegistryDotjsonRoute
   '/r/{$name}.json': typeof RChar123nameChar125DotjsonRoute
   '/utilities/$name': typeof UtilitiesNameRoute
   '/utilities/{$name}.md': typeof UtilitiesChar123nameChar125DotmdRoute
   '/blocks': typeof BlocksIndexRoute
   '/components': typeof ComponentsIndexRoute
+  '/docs': typeof DocsIndexRoute
   '/utilities': typeof UtilitiesIndexRoute
 }
 export interface FileRoutesById {
@@ -161,6 +210,9 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/blocks.md': typeof BlocksDotmdRoute
   '/components.md': typeof ComponentsDotmdRoute
+  '/docs.md': typeof DocsDotmdRoute
+  '/llms-full.txt': typeof LlmsFullDottxtRoute
+  '/llms.txt': typeof LlmsDottxtRoute
   '/registry.json': typeof RegistryDotjsonRoute
   '/utilities.md': typeof UtilitiesDotmdRoute
   '/{$name}.json': typeof Char123nameChar125DotjsonRoute
@@ -168,12 +220,15 @@ export interface FileRoutesById {
   '/blocks/{$name}.md': typeof BlocksChar123nameChar125DotmdRoute
   '/components/$name': typeof ComponentsNameRoute
   '/components/{$name}.md': typeof ComponentsChar123nameChar125DotmdRoute
+  '/docs/$slug': typeof DocsSlugRoute
+  '/docs/{$slug}.md': typeof DocsChar123slugChar125DotmdRoute
   '/r/registry.json': typeof RRegistryDotjsonRoute
   '/r/{$name}.json': typeof RChar123nameChar125DotjsonRoute
   '/utilities/$name': typeof UtilitiesNameRoute
   '/utilities/{$name}.md': typeof UtilitiesChar123nameChar125DotmdRoute
   '/blocks/': typeof BlocksIndexRoute
   '/components/': typeof ComponentsIndexRoute
+  '/docs/': typeof DocsIndexRoute
   '/utilities/': typeof UtilitiesIndexRoute
 }
 export interface FileRouteTypes {
@@ -182,6 +237,9 @@ export interface FileRouteTypes {
     | '/'
     | '/blocks.md'
     | '/components.md'
+    | '/docs.md'
+    | '/llms-full.txt'
+    | '/llms.txt'
     | '/registry.json'
     | '/utilities.md'
     | '/{$name}.json'
@@ -189,18 +247,24 @@ export interface FileRouteTypes {
     | '/blocks/{$name}.md'
     | '/components/$name'
     | '/components/{$name}.md'
+    | '/docs/$slug'
+    | '/docs/{$slug}.md'
     | '/r/registry.json'
     | '/r/{$name}.json'
     | '/utilities/$name'
     | '/utilities/{$name}.md'
     | '/blocks/'
     | '/components/'
+    | '/docs/'
     | '/utilities/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/blocks.md'
     | '/components.md'
+    | '/docs.md'
+    | '/llms-full.txt'
+    | '/llms.txt'
     | '/registry.json'
     | '/utilities.md'
     | '/{$name}.json'
@@ -208,18 +272,24 @@ export interface FileRouteTypes {
     | '/blocks/{$name}.md'
     | '/components/$name'
     | '/components/{$name}.md'
+    | '/docs/$slug'
+    | '/docs/{$slug}.md'
     | '/r/registry.json'
     | '/r/{$name}.json'
     | '/utilities/$name'
     | '/utilities/{$name}.md'
     | '/blocks'
     | '/components'
+    | '/docs'
     | '/utilities'
   id:
     | '__root__'
     | '/'
     | '/blocks.md'
     | '/components.md'
+    | '/docs.md'
+    | '/llms-full.txt'
+    | '/llms.txt'
     | '/registry.json'
     | '/utilities.md'
     | '/{$name}.json'
@@ -227,12 +297,15 @@ export interface FileRouteTypes {
     | '/blocks/{$name}.md'
     | '/components/$name'
     | '/components/{$name}.md'
+    | '/docs/$slug'
+    | '/docs/{$slug}.md'
     | '/r/registry.json'
     | '/r/{$name}.json'
     | '/utilities/$name'
     | '/utilities/{$name}.md'
     | '/blocks/'
     | '/components/'
+    | '/docs/'
     | '/utilities/'
   fileRoutesById: FileRoutesById
 }
@@ -240,6 +313,9 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   BlocksDotmdRoute: typeof BlocksDotmdRoute
   ComponentsDotmdRoute: typeof ComponentsDotmdRoute
+  DocsDotmdRoute: typeof DocsDotmdRoute
+  LlmsFullDottxtRoute: typeof LlmsFullDottxtRoute
+  LlmsDottxtRoute: typeof LlmsDottxtRoute
   RegistryDotjsonRoute: typeof RegistryDotjsonRoute
   UtilitiesDotmdRoute: typeof UtilitiesDotmdRoute
   Char123nameChar125DotjsonRoute: typeof Char123nameChar125DotjsonRoute
@@ -247,12 +323,15 @@ export interface RootRouteChildren {
   BlocksChar123nameChar125DotmdRoute: typeof BlocksChar123nameChar125DotmdRoute
   ComponentsNameRoute: typeof ComponentsNameRoute
   ComponentsChar123nameChar125DotmdRoute: typeof ComponentsChar123nameChar125DotmdRoute
+  DocsSlugRoute: typeof DocsSlugRoute
+  DocsChar123slugChar125DotmdRoute: typeof DocsChar123slugChar125DotmdRoute
   RRegistryDotjsonRoute: typeof RRegistryDotjsonRoute
   RChar123nameChar125DotjsonRoute: typeof RChar123nameChar125DotjsonRoute
   UtilitiesNameRoute: typeof UtilitiesNameRoute
   UtilitiesChar123nameChar125DotmdRoute: typeof UtilitiesChar123nameChar125DotmdRoute
   BlocksIndexRoute: typeof BlocksIndexRoute
   ComponentsIndexRoute: typeof ComponentsIndexRoute
+  DocsIndexRoute: typeof DocsIndexRoute
   UtilitiesIndexRoute: typeof UtilitiesIndexRoute
 }
 
@@ -277,6 +356,27 @@ declare module '@tanstack/react-router' {
       path: '/registry.json'
       fullPath: '/registry.json'
       preLoaderRoute: typeof RegistryDotjsonRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/llms.txt': {
+      id: '/llms.txt'
+      path: '/llms.txt'
+      fullPath: '/llms.txt'
+      preLoaderRoute: typeof LlmsDottxtRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/llms-full.txt': {
+      id: '/llms-full.txt'
+      path: '/llms-full.txt'
+      fullPath: '/llms-full.txt'
+      preLoaderRoute: typeof LlmsFullDottxtRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/docs.md': {
+      id: '/docs.md'
+      path: '/docs.md'
+      fullPath: '/docs.md'
+      preLoaderRoute: typeof DocsDotmdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/components.md': {
@@ -305,6 +405,13 @@ declare module '@tanstack/react-router' {
       path: '/utilities'
       fullPath: '/utilities/'
       preLoaderRoute: typeof UtilitiesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/docs/': {
+      id: '/docs/'
+      path: '/docs'
+      fullPath: '/docs/'
+      preLoaderRoute: typeof DocsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/components/': {
@@ -349,6 +456,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RRegistryDotjsonRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/docs/{$slug}.md': {
+      id: '/docs/{$slug}.md'
+      path: '/docs/{$slug}.md'
+      fullPath: '/docs/{$slug}.md'
+      preLoaderRoute: typeof DocsChar123slugChar125DotmdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/docs/$slug': {
+      id: '/docs/$slug'
+      path: '/docs/$slug'
+      fullPath: '/docs/$slug'
+      preLoaderRoute: typeof DocsSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/components/{$name}.md': {
       id: '/components/{$name}.md'
       path: '/components/{$name}.md'
@@ -384,6 +505,9 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   BlocksDotmdRoute: BlocksDotmdRoute,
   ComponentsDotmdRoute: ComponentsDotmdRoute,
+  DocsDotmdRoute: DocsDotmdRoute,
+  LlmsFullDottxtRoute: LlmsFullDottxtRoute,
+  LlmsDottxtRoute: LlmsDottxtRoute,
   RegistryDotjsonRoute: RegistryDotjsonRoute,
   UtilitiesDotmdRoute: UtilitiesDotmdRoute,
   Char123nameChar125DotjsonRoute: Char123nameChar125DotjsonRoute,
@@ -392,12 +516,15 @@ const rootRouteChildren: RootRouteChildren = {
   ComponentsNameRoute: ComponentsNameRoute,
   ComponentsChar123nameChar125DotmdRoute:
     ComponentsChar123nameChar125DotmdRoute,
+  DocsSlugRoute: DocsSlugRoute,
+  DocsChar123slugChar125DotmdRoute: DocsChar123slugChar125DotmdRoute,
   RRegistryDotjsonRoute: RRegistryDotjsonRoute,
   RChar123nameChar125DotjsonRoute: RChar123nameChar125DotjsonRoute,
   UtilitiesNameRoute: UtilitiesNameRoute,
   UtilitiesChar123nameChar125DotmdRoute: UtilitiesChar123nameChar125DotmdRoute,
   BlocksIndexRoute: BlocksIndexRoute,
   ComponentsIndexRoute: ComponentsIndexRoute,
+  DocsIndexRoute: DocsIndexRoute,
   UtilitiesIndexRoute: UtilitiesIndexRoute,
 }
 export const routeTree = rootRouteImport

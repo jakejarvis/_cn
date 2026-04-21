@@ -1,10 +1,10 @@
 import { Link } from "@tanstack/react-router";
 
-import type { RegistrySectionWithItems } from "@/lib/registry/sections";
+import type { SiteNavigationItem, SiteNavigationSection } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
 
 type DocsSidebarProps = {
-  sections: readonly RegistrySectionWithItems[];
+  sections: readonly SiteNavigationSection[];
   pathname: string;
   className?: string;
   onNavigate?: () => void;
@@ -40,43 +40,171 @@ function DocsSidebarSection({
   pathname,
   onNavigate,
 }: {
-  section: RegistrySectionWithItems;
+  section: SiteNavigationSection;
   pathname: string;
   onNavigate?: () => void;
 }) {
   return (
     <div className="flex flex-col gap-1">
-      <Link
-        to={section.basePath}
-        onClick={onNavigate}
-        className="rounded-md px-3 py-1 text-sm font-semibold"
-      >
-        {section.title}
-      </Link>
-      <ul className="flex flex-col gap-0.5">
-        {section.items.map((item) => {
-          const href = `${section.basePath}/${item.name}`;
-          const isActive = pathname === href;
-
-          return (
-            <li key={item.name}>
-              <Link
-                to={section.detailRoute}
-                params={{ name: item.name }}
-                onClick={onNavigate}
-                className={cn(
-                  "block truncate rounded-md px-3 py-1.5 text-sm transition-colors",
-                  isActive
-                    ? "bg-accent font-medium text-accent-foreground"
-                    : "text-muted-foreground hover:text-foreground",
-                )}
-              >
-                {item.title}
-              </Link>
-            </li>
-          );
-        })}
-      </ul>
+      <SidebarSectionLink section={section} onNavigate={onNavigate} />
+      <SidebarItems items={section.items} pathname={pathname} onNavigate={onNavigate} />
     </div>
   );
+}
+
+function SidebarSectionLink({
+  section,
+  onNavigate,
+}: {
+  section: SiteNavigationSection;
+  onNavigate?: () => void;
+}) {
+  const className = "rounded-md px-3 py-1 text-sm font-semibold";
+
+  switch (section.id) {
+    case "docs":
+      return (
+        <Link to="/docs" onClick={onNavigate} className={className}>
+          {section.title}
+        </Link>
+      );
+    case "components":
+      return (
+        <Link to="/components" onClick={onNavigate} className={className}>
+          {section.title}
+        </Link>
+      );
+    case "blocks":
+      return (
+        <Link to="/blocks" onClick={onNavigate} className={className}>
+          {section.title}
+        </Link>
+      );
+    case "utilities":
+      return (
+        <Link to="/utilities" onClick={onNavigate} className={className}>
+          {section.title}
+        </Link>
+      );
+  }
+
+  return null;
+}
+
+function SidebarItems({
+  items,
+  pathname,
+  onNavigate,
+}: {
+  items: readonly SiteNavigationItem[];
+  pathname: string;
+  onNavigate?: () => void;
+}) {
+  let previousGroup: string | undefined;
+
+  return (
+    <ul className="flex flex-col gap-0.5">
+      {items.map((item) => {
+        const group = item.kind === "docs" ? item.group : undefined;
+        const showGroup = group && group !== previousGroup;
+        previousGroup = group;
+
+        return (
+          <li key={`${item.kind}:${item.kind === "docs" ? item.slug : item.name}`}>
+            {showGroup ? (
+              <div className="px-3 pt-2 pb-1 text-xs font-medium text-muted-foreground">
+                {group}
+              </div>
+            ) : null}
+            <SidebarItemLink item={item} pathname={pathname} onNavigate={onNavigate} />
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
+function SidebarItemLink({
+  item,
+  pathname,
+  onNavigate,
+}: {
+  item: SiteNavigationItem;
+  pathname: string;
+  onNavigate?: () => void;
+}) {
+  const isActive =
+    item.kind === "docs" ? pathname === item.routePath : isRegistryItemActive(item, pathname);
+  const className = cn(
+    "block truncate rounded-md px-3 py-1.5 text-sm transition-colors",
+    isActive
+      ? "bg-accent font-medium text-accent-foreground"
+      : "text-muted-foreground hover:text-foreground",
+  );
+
+  if (item.kind === "docs") {
+    if (!item.slug) {
+      return (
+        <Link to="/docs" onClick={onNavigate} className={className}>
+          {item.title}
+        </Link>
+      );
+    }
+
+    return (
+      <Link
+        to="/docs/$slug"
+        params={{ slug: item.slug }}
+        onClick={onNavigate}
+        className={className}
+      >
+        {item.title}
+      </Link>
+    );
+  }
+
+  switch (item.section) {
+    case "components":
+      return (
+        <Link
+          to="/components/$name"
+          params={{ name: item.name }}
+          onClick={onNavigate}
+          className={className}
+        >
+          {item.title}
+        </Link>
+      );
+    case "blocks":
+      return (
+        <Link
+          to="/blocks/$name"
+          params={{ name: item.name }}
+          onClick={onNavigate}
+          className={className}
+        >
+          {item.title}
+        </Link>
+      );
+    case "utilities":
+      return (
+        <Link
+          to="/utilities/$name"
+          params={{ name: item.name }}
+          onClick={onNavigate}
+          className={className}
+        >
+          {item.title}
+        </Link>
+      );
+  }
+
+  return null;
+}
+
+function isRegistryItemActive(
+  item: Extract<SiteNavigationItem, { kind: "registry" }>,
+  pathname: string,
+) {
+  return pathname === `/${item.section}/${item.name}`;
 }

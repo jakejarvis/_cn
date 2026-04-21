@@ -1,6 +1,7 @@
 import { normalizeGlobFiles } from "@/lib/glob";
 
 import { parseRegistryMdx } from "./mdx";
+export { componentRegistryTypes } from "./section-config";
 import type {
   RegistryFileDefinition,
   RegistryItemAuthoringDefinition,
@@ -19,11 +20,6 @@ type RegistryItemModuleEntry = {
   hasUsage: boolean;
   usageSource: string;
 };
-
-export const componentRegistryTypes = [
-  "registry:ui",
-  "registry:component",
-] as const satisfies RegistryType[];
 
 const registryItemSources = import.meta.glob<string>("../../../registry/items/**/_registry.mdx", {
   eager: true,

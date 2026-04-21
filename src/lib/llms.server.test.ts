@@ -46,9 +46,11 @@ describe("llms text", () => {
 
     expect(index.status).toBe(200);
     expect(index.headers.get("Content-Type")).toBe("text/plain; charset=utf-8");
+    expect(index.headers.get("Link")).toBeNull();
     expect(await index.text()).toContain("/llms-full.txt");
     expect(full.status).toBe(200);
     expect(full.headers.get("Content-Type")).toBe("text/plain; charset=utf-8");
+    expect(full.headers.get("Link")).toBeNull();
     expect(await full.text()).toContain("/llms.txt");
   });
 });

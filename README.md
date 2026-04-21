@@ -33,41 +33,36 @@ Registry tests live under `src/lib/registry/*.test.ts` and `src/components/docs/
 
 ## Configure The Registry
 
-Edit `src/lib/site-config.ts`.
+Edit `registry/config.ts`.
 
 ```ts
-export const siteConfig = {
+export const registryConfig = {
   name: "_cn",
   registryName: "_cn",
   namespace: "@_cn",
   description: "Installable components for your project.",
   homepage: "https://underscore-cn.vercel.app",
   repositoryUrl: "https://github.com/jakejarvis/_cn",
-  registry: {
-    canonicalBasePath: "",
-    indexPath: "/registry.json",
-    itemPathPattern: "/{name}.json",
-    aliasBasePaths: ["/r"],
-  },
 } as const;
 ```
 
 Set `homepage` before deploying. Install commands and local registry dependency URLs are built from this value.
 
+Registry endpoint paths stay in `src/lib/site-config.ts` with the URL helpers so template plumbing
+can evolve separately from the registry-specific values most projects edit.
+
 ## Registry Endpoints
 
-The public registry is flat by default:
+The public registry index is available at both the root and `/r` paths, while installable item
+JSON lives under `/r`:
 
 - `/registry.json` serves the registry index.
-- `/<name>.json` serves an item JSON file.
-- `/r/registry.json` and `/r/<name>.json` remain aliases.
+- `/r/registry.json` serves the same registry index.
+- `/r/<name>.json` serves an item JSON file.
 - `/llms.txt` and `/llms-full.txt` are generated from the same Markdown docs and registry item pages used by the site.
 
-This matches the public shadcn registry shape while keeping the old `/r` route family available.
-
-Install command URLs are generated from `siteConfig.registry.canonicalBasePath` and
-`siteConfig.registry.itemPathPattern`. Keep the default root-flat shape for public registry
-submission, or point commands at an alias path if you deliberately want that policy.
+Install command URLs and local registry dependency URLs are generated from the registry path config
+in `src/lib/site-config.ts`.
 
 ## Author Docs
 
@@ -116,7 +111,7 @@ Keep item source under `registry/items`. The Vite `import.meta.glob` paths are i
 
 Write metadata, usage docs, and the preview together in `_registry.mdx`.
 
-~~~mdx
+````mdx
 ---
 name: example-card
 type: registry:ui
@@ -143,7 +138,7 @@ export function Example() {
 export function Preview() {
   return <ExampleCard />;
 }
-~~~
+````
 
 For a one-file component, the catalog infers the published file path from the item root and `name`. List `files` explicitly in frontmatter for hooks, libs, blocks, pages, target paths, or any item with multiple published files. Do not publish `_registry.mdx` or other authoring-only files.
 
@@ -169,7 +164,7 @@ discoverable before installation.
 - [ ] Choose a registry name, namespace, domain, and repository URL.
 - [ ] Update or replace the starter docs under `registry/docs`.
 - [ ] Replace the starter registry items.
-- [ ] Verify `/registry.json` and at least one `/<name>.json` item URL.
+- [ ] Verify `/registry.json`, `/r/registry.json`, and at least one `/r/<name>.json` item URL.
 - [ ] Verify `/llms.txt` and `/llms-full.txt`.
 - [ ] Update `package.json` metadata, `README.md` details, `LICENSE` owner, etc.
 - [ ] Run `vp check` and `vp build`.
@@ -178,7 +173,11 @@ discoverable before installation.
 
 ## Compatibility Notes
 
-The registry JSON uses shadcn schemas directly from [`shadcn/schema`](https://github.com/shadcn-ui/ui/blob/main/packages/shadcn/src/registry/schema.ts). Public item files include file contents in each item JSON response, and local registry dependencies should use `localRegistryDependencies` in `_registry.mdx` frontmatter so generated URLs follow `siteConfig.homepage`.
+The registry JSON uses shadcn schemas directly from [`shadcn/schema`](https://github.com/shadcn-ui/ui/blob/main/packages/shadcn/src/registry/schema.ts).
+
+Public item files include file contents in each item JSON response, and local registry dependencies
+should use `localRegistryDependencies` in `_registry.mdx` frontmatter so generated URLs follow the
+`homepage` in `registry/config.ts`.
 
 The docs site uses the local shadcn UI configuration in `components.json`; that styling is for this app shell and does **not** define the identity of published registry items.
 

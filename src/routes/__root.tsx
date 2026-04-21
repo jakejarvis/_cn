@@ -8,6 +8,7 @@ import { SiteHeader } from "@/components/docs/site-header";
 import { ThemeProvider, themeScript } from "@/components/docs/theme-provider";
 import { Button } from "@/components/ui/button";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { getJsonLdScripts, getWebSiteJsonLd } from "@/lib/seo";
 import { siteConfig } from "@/lib/site-config";
 
 import appCss from "../styles.css?url";
@@ -30,6 +31,7 @@ export const Route = createRootRoute({
         content: siteConfig.description,
       },
     ],
+    scripts: getJsonLdScripts([getWebSiteJsonLd()]),
     links: [
       {
         rel: "stylesheet",
@@ -39,6 +41,11 @@ export const Route = createRootRoute({
         rel: "icon",
         type: "image/svg+xml",
         href: "/favicon.svg",
+      },
+      {
+        rel: "icon",
+        type: "image/x-icon",
+        href: "/favicon.ico",
       },
     ],
   }),
@@ -69,7 +76,6 @@ function GlobalNotFoundRoute() {
       <div className="mx-auto grid w-full max-w-5xl items-center gap-10 lg:grid-cols-[minmax(0,1fr)_22rem]">
         <section className="flex min-w-0 flex-col items-start gap-6">
           <div className="inline-flex items-center gap-2 rounded-lg border bg-muted/30 px-3 py-1 text-sm font-medium text-muted-foreground">
-            <img src="/favicon.svg" alt="" className="size-4" />
             <span>404</span>
           </div>
           <div className="flex max-w-2xl flex-col gap-4">
@@ -156,17 +162,19 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       </head>
       <body className="font-sans [overflow-wrap:anywhere] tabular-nums antialiased">
         {children}
-        <TanStackDevtools
-          config={{
-            position: "bottom-right",
-          }}
-          plugins={[
-            {
-              name: "Tanstack Router",
-              render: <TanStackRouterDevtoolsPanel />,
-            },
-          ]}
-        />
+        {import.meta.env.DEV ? (
+          <TanStackDevtools
+            config={{
+              position: "bottom-right",
+            }}
+            plugins={[
+              {
+                name: "Tanstack Router",
+                render: <TanStackRouterDevtoolsPanel />,
+              },
+            ]}
+          />
+        ) : null}
         <Scripts />
       </body>
     </html>

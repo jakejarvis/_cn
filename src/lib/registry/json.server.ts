@@ -79,7 +79,9 @@ type RegistrySourceValidationItem = {
 };
 
 export function getRegistryIndexJsonResponse(): Response {
-  return Response.json(getRegistryIndexJson(), { headers: registryJsonResponseHeaders });
+  return Response.json(getRegistryIndexJson(), {
+    headers: registryJsonResponseHeaders,
+  });
 }
 
 export function getRegistryItemJsonResponse(name: string): Response {
@@ -95,7 +97,9 @@ export function getRegistryItemJsonResponse(name: string): Response {
     );
   }
 
-  return Response.json(item, { headers: registryJsonResponseHeaders });
+  return Response.json(item, {
+    headers: registryJsonResponseHeaders,
+  });
 }
 
 export function getRegistryIndexJson(): RegistryIndexJson {

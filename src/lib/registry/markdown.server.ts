@@ -1,3 +1,4 @@
+import { getLinkedHeaders, getMarkdownHttpLinkHeader } from "@/lib/seo";
 import { getCanonicalDocsUrl, getCanonicalRegistryItemUrl } from "@/lib/site-config";
 
 import { getRegistryItem } from "./catalog";
@@ -12,8 +13,13 @@ export const docsMarkdownResponseHeaders = {
 } as const;
 
 export function getRegistrySectionMarkdownResponse(section: RegistrySection): Response {
+  const sectionConfig = registrySections[section];
+
   return new Response(getRegistrySectionMarkdown(section), {
-    headers: docsMarkdownResponseHeaders,
+    headers: getLinkedHeaders(
+      docsMarkdownResponseHeaders,
+      getMarkdownHttpLinkHeader(sectionConfig.basePath),
+    ),
   });
 }
 
@@ -30,8 +36,13 @@ export function getRegistryItemMarkdownResponse(
     });
   }
 
+  const sectionConfig = registrySections[section];
+
   return new Response(markdown, {
-    headers: docsMarkdownResponseHeaders,
+    headers: getLinkedHeaders(
+      docsMarkdownResponseHeaders,
+      getMarkdownHttpLinkHeader(`${sectionConfig.basePath}/${itemName}`),
+    ),
   });
 }
 

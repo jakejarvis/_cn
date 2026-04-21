@@ -1,16 +1,15 @@
+import { registryConfig } from "../../registry/config.ts";
+
+const registryPathConfig = {
+  indexPath: "/registry.json",
+  indexAliasPaths: ["/r/registry.json"],
+  itemPathPattern: "/r/{name}.json",
+  itemAliasPathPatterns: [],
+} as const;
+
 export const siteConfig = {
-  name: "_cn",
-  registryName: "_cn",
-  namespace: "@_cn",
-  description: "A TanStack Start template for publishing a shadcn-compatible registry.",
-  homepage: "https://underscore-cn.vercel.app",
-  repositoryUrl: "https://github.com/jakejarvis/_cn",
-  registry: {
-    canonicalBasePath: "",
-    indexPath: "/registry.json",
-    itemPathPattern: "/{name}.json",
-    aliasBasePaths: ["/r"],
-  },
+  ...registryConfig,
+  registry: registryPathConfig,
 } as const;
 
 export function getCanonicalRegistryIndexUrl(): string {
@@ -34,31 +33,21 @@ export function getDocsMarkdownPath(path: string): string {
 }
 
 export function getCanonicalRegistryIndexPath(): string {
-  return joinRegistryPath(siteConfig.registry.canonicalBasePath, siteConfig.registry.indexPath);
+  return normalizeSitePath(siteConfig.registry.indexPath);
 }
 
 export function getCanonicalRegistryItemPath(itemName: string): string {
-  const itemPath = siteConfig.registry.itemPathPattern.replaceAll(
-    "{name}",
-    encodeURIComponent(itemName),
-  );
-
-  return joinRegistryPath(siteConfig.registry.canonicalBasePath, itemPath);
+  return formatRegistryItemPath(siteConfig.registry.itemPathPattern, itemName);
 }
 
 export function getAliasRegistryIndexPaths(): string[] {
-  return siteConfig.registry.aliasBasePaths.map((basePath) =>
-    joinRegistryPath(basePath, siteConfig.registry.indexPath),
-  );
+  return siteConfig.registry.indexAliasPaths.map(normalizeSitePath);
 }
 
 export function getAliasRegistryItemPaths(itemName: string): string[] {
-  const itemPath = siteConfig.registry.itemPathPattern.replaceAll(
-    "{name}",
-    encodeURIComponent(itemName),
+  return siteConfig.registry.itemAliasPathPatterns.map((pattern) =>
+    formatRegistryItemPath(pattern, itemName),
   );
-
-  return siteConfig.registry.aliasBasePaths.map((basePath) => joinRegistryPath(basePath, itemPath));
 }
 
 function getSiteOrigin(): string {
@@ -71,17 +60,6 @@ function normalizeSitePath(path: string): string {
   return trimmedPath ? `/${trimmedPath}` : "/";
 }
 
-function joinRegistryPath(basePath: string, path: string): string {
-  const trimmedBasePath = basePath.replace(/^\/+|\/+$/gu, "");
-  const trimmedPath = path.replace(/^\/+|\/+$/gu, "");
-
-  if (!trimmedBasePath) {
-    return `/${trimmedPath}`;
-  }
-
-  if (!trimmedPath) {
-    return `/${trimmedBasePath}`;
-  }
-
-  return `/${trimmedBasePath}/${trimmedPath}`;
+function formatRegistryItemPath(pattern: string, itemName: string): string {
+  return normalizeSitePath(pattern.replaceAll("{name}", encodeURIComponent(itemName)));
 }

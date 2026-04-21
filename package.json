@@ -23,7 +23,7 @@
     "knip": "vpx knip@latest"
   },
   "dependencies": {
-    "@base-ui/react": "^1.4.0",
+    "@base-ui/react": "^1.4.1",
     "@fontsource-variable/geist": "^5.2.8",
     "@fontsource-variable/geist-mono": "^5.2.7",
     "@mdx-js/rollup": "^3.1.1",
@@ -46,7 +46,7 @@
     "remark-gfm": "^4.0.1",
     "remark-mdx": "^3.1.1",
     "remark-parse": "^11.0.0",
-    "shadcn": "^4.3.0",
+    "shadcn": "^4.4.0",
     "tailwind-merge": "^3.5.0",
     "tw-animate-css": "^1.4.0",
     "unified": "^11.0.5",
@@ -56,7 +56,7 @@
   "devDependencies": {
     "@rolldown/plugin-babel": "^0.2.3",
     "@tailwindcss/typography": "^0.5.19",
-    "@tailwindcss/vite": "^4.2.2",
+    "@tailwindcss/vite": "^4.2.4",
     "@tanstack/devtools-vite": "^0.6.0",
     "@tanstack/react-devtools": "^0.10.2",
     "@tanstack/react-router-devtools": "^1.166.13",
@@ -67,7 +67,7 @@
     "@vitejs/plugin-react": "^6.0.1",
     "@vitejs/plugin-rsc": "^0.5.24",
     "babel-plugin-react-compiler": "1.0.0",
-    "tailwindcss": "^4.2.2",
+    "tailwindcss": "^4.2.4",
     "typescript": "^6.0.3",
     "vite": "npm:@voidzero-dev/vite-plus-core@latest",
     "vite-plus": "latest",
@@ -77,5 +77,5 @@
     "vite": "npm:@voidzero-dev/vite-plus-core@latest",
     "vitest": "npm:@voidzero-dev/vite-plus-test@latest"
   },
-  "packageManager": "bun@1.3.12"
+  "packageManager": "bun@1.3.13"
 }

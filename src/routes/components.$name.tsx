@@ -4,6 +4,7 @@ import { RegistryItemDoc, RegistryItemNotFound } from "@/components/docs/compone
 import { DocsLayout } from "@/components/docs/docs-layout";
 import { getRegistryItemDetail } from "@/lib/registry/detail.functions";
 import { registrySections } from "@/lib/registry/sections";
+import { getMarkdownAlternatePath, getSeoHead, getTechArticleJsonLd } from "@/lib/seo";
 
 const section = registrySections.components;
 
@@ -22,12 +23,44 @@ export const Route = createFileRoute("/components/$name")({
 
     return detail.item;
   },
+  head: ({ loaderData: item }) => {
+    if (!item) {
+      return getSeoHead({
+        title: section.title,
+        description: section.description,
+        path: section.basePath,
+        markdownPath: getMarkdownAlternatePath(section.basePath),
+      });
+    }
+
+    const path = `${section.basePath}/${item.name}`;
+
+    return getSeoHead({
+      title: item.title,
+      description: item.description,
+      path,
+      markdownPath: getMarkdownAlternatePath(path),
+      ogType: "article",
+      jsonLd: [
+        getTechArticleJsonLd({
+          title: item.title,
+          description: item.description,
+          path,
+          section: section.title,
+        }),
+      ],
+    });
+  },
   component: ComponentRoute,
   notFoundComponent: ComponentNotFoundRoute,
 });
 
 function ComponentRoute() {
   const item = Route.useLoaderData();
+
+  if (!item) {
+    throw notFound();
+  }
 
   return (
     <DocsLayout section={section.id}>

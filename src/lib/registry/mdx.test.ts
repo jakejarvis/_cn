@@ -45,7 +45,7 @@ export function Preview() {
       type: "registry:ui",
       title: "Toast",
       description: "A toast manager.",
-      registryDependencies: ["button", "https://underscore-cn.vercel.app/example-card.json"],
+      registryDependencies: ["button", "https://underscore-cn.vercel.app/r/example-card.json"],
       files: [
         {
           path: "registry/items/components/toast/toast.tsx",

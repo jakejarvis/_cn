@@ -1,7 +1,6 @@
 import { normalizeGlobFiles } from "@/lib/glob";
 
 import { parseRegistryMdx } from "./mdx";
-export { componentRegistryTypes } from "./section-config";
 import type {
   RegistryFileDefinition,
   RegistryItemAuthoringDefinition,

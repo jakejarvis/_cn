@@ -1,3 +1,8 @@
+import {
+  escapeMarkdownLinkText,
+  joinMarkdownBlocks,
+  plainTextResponseHeaders,
+} from "@/lib/content/markdown";
 import { docsPages } from "@/lib/docs/catalog";
 import { getAuthoredDocsPageMarkdown } from "@/lib/docs/markdown.server";
 import {
@@ -34,20 +39,15 @@ export type LlmsTextInput = {
   sections: readonly LlmsSection[];
 };
 
-const llmsTextResponseHeaders = {
-  "Cache-Control": "public, max-age=0, s-maxage=3600, stale-while-revalidate=86400",
-  "Content-Type": "text/plain; charset=utf-8",
-} as const;
-
 export function getLlmsTextResponse(): Response {
   return new Response(getLlmsText(), {
-    headers: llmsTextResponseHeaders,
+    headers: plainTextResponseHeaders,
   });
 }
 
 export function getLlmsFullTextResponse(): Response {
   return new Response(getLlmsFullText(), {
-    headers: llmsTextResponseHeaders,
+    headers: plainTextResponseHeaders,
   });
 }
 
@@ -158,12 +158,4 @@ function formatLlmsFullDocument(document: LlmsDocument): string {
     document.description,
     document.renderMarkdown().trim(),
   ]);
-}
-
-function joinMarkdownBlocks(blocks: string[]): string {
-  return `${blocks.filter((block) => block.trim().length > 0).join("\n\n")}\n`;
-}
-
-function escapeMarkdownLinkText(value: string): string {
-  return value.replace(/[[\]\\]/gu, "\\$&");
 }

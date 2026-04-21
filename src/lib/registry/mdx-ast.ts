@@ -1,22 +1,4 @@
-import remarkFrontmatter from "remark-frontmatter";
-import remarkGfm from "remark-gfm";
-import remarkMdx from "remark-mdx";
-import remarkParse from "remark-parse";
-import { unified } from "unified";
-
-export type MdxAstNode = {
-  type: string;
-  value?: string;
-  children?: MdxAstNode[];
-  position?: {
-    start?: {
-      offset?: number;
-    };
-    end?: {
-      offset?: number;
-    };
-  };
-};
+import { getMdxNodesSource, parseMdxAst, type MdxAstNode } from "../content/mdx.ts";
 
 type RegistryMdxSections = {
   previewSource: string;
@@ -24,20 +6,8 @@ type RegistryMdxSections = {
   usageSource: string;
 };
 
-const registryMdxProcessor = unified()
-  .use(remarkParse)
-  .use(remarkMdx)
-  .use(remarkFrontmatter, ["yaml"])
-  .use(remarkGfm);
-
 export function parseRegistryMdxAst(path: string, source: string): MdxAstNode {
-  try {
-    return registryMdxProcessor.parse(source) as MdxAstNode;
-  } catch (error) {
-    throw new Error(`Registry item ${path} contains invalid MDX: ${getErrorMessage(error)}`, {
-      cause: error,
-    });
-  }
+  return parseMdxAst({ label: "Registry item", path, source });
 }
 
 export function getRegistryMdxSections(
@@ -77,7 +47,7 @@ export function getRegistryMdxSections(
   return {
     previewSource: getEsmSource([...setupNodes, children[previewIndex]].filter(isEsmNode)),
     hasUsage: usageNodes.length > 0,
-    usageSource: getNodesSource(usageNodes, source),
+    usageSource: getMdxNodesSource(usageNodes, source),
   };
 }
 
@@ -88,25 +58,10 @@ function getEsmSource(nodes: MdxAstNode[]): string {
     .join("\n\n");
 }
 
-function getNodesSource(nodes: MdxAstNode[], source: string): string {
-  const startOffset = nodes[0]?.position?.start?.offset;
-  const endOffset = nodes.at(-1)?.position?.end?.offset;
-
-  if (typeof startOffset !== "number" || typeof endOffset !== "number") {
-    return "";
-  }
-
-  return source.slice(startOffset, endOffset).trim();
-}
-
 function isEsmNode(node: MdxAstNode): boolean {
   return node.type === "mdxjsEsm";
 }
 
 function isPreviewExportNode(node: MdxAstNode): boolean {
   return isEsmNode(node) && /(?:^|\n)\s*export\s+function\s+Preview\s*\(/u.test(node.value ?? "");
-}
-
-export function getErrorMessage(error: unknown): string {
-  return error instanceof Error ? error.message : String(error);
 }

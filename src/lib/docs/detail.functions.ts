@@ -2,8 +2,6 @@ import { createServerFn } from "@tanstack/react-start";
 
 import type { DocsPageDetailInput } from "./detail.types";
 
-export type { DocsPageDetail } from "./detail.server";
-
 export const getDocsPageDetail = createServerFn({ method: "GET" })
   .inputValidator(validateDocsPageDetailInput)
   .handler(async ({ data }) => {

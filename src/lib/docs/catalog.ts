@@ -1,27 +1,13 @@
-import remarkFrontmatter from "remark-frontmatter";
-import remarkGfm from "remark-gfm";
-import remarkMdx from "remark-mdx";
-import remarkParse from "remark-parse";
-import { unified } from "unified";
-import { parse as parseYaml } from "yaml";
-
+import {
+  getFrontmatterSource,
+  getMdxNodesSource,
+  getOptionalNumberField,
+  getOptionalStringField,
+  parseMdxAst,
+  parseYamlFrontmatter,
+  type MdxAstNode,
+} from "@/lib/content/mdx";
 import { normalizeGlobFiles } from "@/lib/glob";
-
-type MdxAstNode = {
-  type: string;
-  value?: string;
-  name?: string;
-  depth?: number;
-  children?: MdxAstNode[];
-  position?: {
-    start?: {
-      offset?: number;
-    };
-    end?: {
-      offset?: number;
-    };
-  };
-};
 
 type DocsFrontmatter = {
   title?: string;
@@ -59,12 +45,6 @@ const docsSources = import.meta.glob<string>("../../../registry/docs/**/*.{md,md
   import: "default",
   query: "?raw",
 });
-
-const docsMdxProcessor = unified()
-  .use(remarkParse)
-  .use(remarkMdx)
-  .use(remarkFrontmatter, ["yaml"])
-  .use(remarkGfm);
 
 const docsCollator = new Intl.Collator("en", {
   numeric: true,
@@ -183,29 +163,7 @@ function getDocsSlugFromSourcePath(sourcePath: string): string | null {
 }
 
 function parseDocsMdxAst(path: string, source: string): MdxAstNode {
-  try {
-    const root = docsMdxProcessor.parse(source);
-
-    if (!isMdxAstNode(root)) {
-      throw new Error("Parsed MDX did not produce a valid document tree.");
-    }
-
-    return root;
-  } catch (error) {
-    throw new Error(`Docs page ${path} contains invalid MDX: ${getErrorMessage(error)}`, {
-      cause: error,
-    });
-  }
-}
-
-function isMdxAstNode(value: unknown): value is MdxAstNode {
-  return isRecord(value) && typeof value.type === "string";
-}
-
-function getFrontmatterSource(root: MdxAstNode): string {
-  const frontmatter = root.children?.[0];
-
-  return frontmatter?.type === "yaml" ? (frontmatter.value ?? "") : "";
+  return parseMdxAst({ label: "Docs page", path, source });
 }
 
 function parseDocsFrontmatter(path: string, frontmatter: string): DocsFrontmatter {
@@ -213,67 +171,19 @@ function parseDocsFrontmatter(path: string, frontmatter: string): DocsFrontmatte
     return {};
   }
 
-  const value = parseYamlFrontmatter(path, frontmatter);
+  const diagnostic = { label: "Docs page", path };
+  const value = parseYamlFrontmatter({ ...diagnostic, source: frontmatter });
 
   if (!isRecord(value)) {
     throw new Error(`Docs page ${path} frontmatter must be an object.`);
   }
 
   return {
-    title: getOptionalStringField(path, value, "title"),
-    description: getOptionalStringField(path, value, "description"),
-    order: getOptionalNumberField(path, value, "order"),
-    group: getOptionalStringField(path, value, "group"),
+    title: getOptionalStringField(diagnostic, value, "title"),
+    description: getOptionalStringField(diagnostic, value, "description"),
+    order: getOptionalNumberField(diagnostic, value, "order"),
+    group: getOptionalStringField(diagnostic, value, "group"),
   };
-}
-
-function parseYamlFrontmatter(path: string, frontmatter: string): unknown {
-  try {
-    return parseYaml(frontmatter);
-  } catch (error) {
-    throw new Error(
-      `Docs page ${path} contains invalid YAML frontmatter: ${getErrorMessage(error)}`,
-      {
-        cause: error,
-      },
-    );
-  }
-}
-
-function getOptionalStringField(
-  path: string,
-  value: Record<string, unknown>,
-  field: keyof DocsFrontmatter,
-): string | undefined {
-  const fieldValue = value[field];
-
-  if (fieldValue === undefined) {
-    return undefined;
-  }
-
-  if (typeof fieldValue === "string") {
-    return fieldValue;
-  }
-
-  throw new Error(`Docs page ${path} frontmatter field "${field}" must be a string.`);
-}
-
-function getOptionalNumberField(
-  path: string,
-  value: Record<string, unknown>,
-  field: keyof DocsFrontmatter,
-): number | undefined {
-  const fieldValue = value[field];
-
-  if (fieldValue === undefined) {
-    return undefined;
-  }
-
-  if (typeof fieldValue === "number" && Number.isFinite(fieldValue)) {
-    return fieldValue;
-  }
-
-  throw new Error(`Docs page ${path} frontmatter field "${field}" must be a number.`);
 }
 
 function assertCuratedDocsMdx(path: string, root: MdxAstNode): void {
@@ -319,14 +229,7 @@ function getUnsupportedMdxComponentNames(root: MdxAstNode): string[] {
 
 function getContentSource(root: MdxAstNode, source: string): string {
   const contentNodes = root.children?.filter((node) => node.type !== "yaml") ?? [];
-  const startOffset = contentNodes[0]?.position?.start?.offset;
-  const endOffset = contentNodes.at(-1)?.position?.end?.offset;
-
-  if (typeof startOffset !== "number" || typeof endOffset !== "number") {
-    return "";
-  }
-
-  return source.slice(startOffset, endOffset).trim();
+  return getMdxNodesSource(contentNodes, source);
 }
 
 function getFirstHeadingText(root: MdxAstNode): string | undefined {
@@ -455,8 +358,4 @@ function titleizePathSegment(value: string): string {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-
-function getErrorMessage(error: unknown): string {
-  return error instanceof Error ? error.message : String(error);
 }

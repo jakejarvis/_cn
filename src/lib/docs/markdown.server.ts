@@ -1,30 +1,21 @@
-import { getLinkedHeaders, getMarkdownHttpLinkHeader } from "@/lib/seo";
+import { escapeMarkdownLinkText, joinMarkdownBlocks } from "@/lib/content/markdown";
+import {
+  createLinkedMarkdownResponse,
+  createMarkdownNotFoundResponse,
+} from "@/lib/content/responses.server";
 import { getCanonicalDocsUrl } from "@/lib/site-config";
 
 import { docsPages, getDocsPage } from "./catalog";
-
-const authoredDocsMarkdownResponseHeaders = {
-  "Cache-Control": "public, max-age=0, s-maxage=3600, stale-while-revalidate=86400",
-  "Content-Type": "text/markdown; charset=utf-8",
-} as const;
 
 export function getAuthoredDocsPageMarkdownResponse(path: string): Response {
   const page = getDocsPage(path);
   const markdown = getAuthoredDocsPageMarkdown(path);
 
   if (!page || !markdown) {
-    return new Response("Docs page not found.", {
-      headers: authoredDocsMarkdownResponseHeaders,
-      status: 404,
-    });
+    return createMarkdownNotFoundResponse();
   }
 
-  return new Response(markdown, {
-    headers: getLinkedHeaders(
-      authoredDocsMarkdownResponseHeaders,
-      getMarkdownHttpLinkHeader(page.routePath),
-    ),
-  });
+  return createLinkedMarkdownResponse(markdown, page.routePath);
 }
 
 export function getAuthoredDocsIndexMarkdown(): string {
@@ -69,12 +60,4 @@ export function createAuthoredDocsPageMarkdown(
   }
 
   return joinMarkdownBlocks([`# ${page.title}`, page.description, content]);
-}
-
-function joinMarkdownBlocks(blocks: string[]): string {
-  return `${blocks.filter((block) => block.trim().length > 0).join("\n\n")}\n`;
-}
-
-function escapeMarkdownLinkText(value: string): string {
-  return value.replace(/[[\]\\]/gu, "\\$&");
 }

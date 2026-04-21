@@ -1,13 +1,14 @@
-import { parse as parseYaml } from "yaml";
-
+import {
+  assertOptionalStringArrayField,
+  assertOptionalStringField,
+  getFirstYamlFrontmatterNode,
+  getRequiredStringField,
+  parseYamlFrontmatter,
+  type MdxAstNode,
+} from "@/lib/content/mdx";
 import { getCanonicalRegistryItemUrl } from "@/lib/site-config";
 
-import {
-  getErrorMessage,
-  getRegistryMdxSections,
-  parseRegistryMdxAst,
-  type MdxAstNode,
-} from "./mdx-ast";
+import { getRegistryMdxSections, parseRegistryMdxAst } from "./mdx-ast";
 import type { RegistryItemAuthoringDefinition, RegistrySourceFileDefinition } from "./metadata";
 
 type RegistryMdxFrontmatter = RegistryItemAuthoringDefinition & {
@@ -84,9 +85,9 @@ export function parseRegistryMdx(path: string, source: string): ParsedRegistryMd
 }
 
 function getFrontmatterNode(path: string, root: MdxAstNode): MdxAstNode {
-  const frontmatter = root.children?.[0];
+  const frontmatter = getFirstYamlFrontmatterNode(root);
 
-  if (frontmatter?.type !== "yaml") {
+  if (!frontmatter) {
     throw new Error(`Registry item ${path} must start with YAML frontmatter.`);
   }
 
@@ -94,7 +95,11 @@ function getFrontmatterNode(path: string, root: MdxAstNode): MdxAstNode {
 }
 
 function parseRegistryMdxFrontmatter(path: string, frontmatter: string): RegistryMdxFrontmatter {
-  const value = parseYamlFrontmatter(path, frontmatter);
+  const value = parseYamlFrontmatter({
+    label: "Registry item",
+    path,
+    source: frontmatter,
+  });
 
   if (!isRecord(value)) {
     throw new Error(`Registry item ${path} frontmatter must be an object.`);
@@ -105,21 +110,11 @@ function parseRegistryMdxFrontmatter(path: string, frontmatter: string): Registr
   return value;
 }
 
-function parseYamlFrontmatter(path: string, frontmatter: string): unknown {
-  try {
-    return parseYaml(frontmatter);
-  } catch (error) {
-    throw new Error(
-      `Registry item ${path} contains invalid YAML frontmatter: ${getErrorMessage(error)}`,
-      { cause: error },
-    );
-  }
-}
-
 function assertRegistryMdxFrontmatter(
   path: string,
   value: Record<string, unknown>,
 ): asserts value is RegistryMdxFrontmatter {
+  const diagnostic = { label: "Registry item", path };
   const unknownFields = Object.keys(value).filter((field) => !knownFrontmatterFields.has(field));
 
   if (unknownFields.length > 0) {
@@ -128,21 +123,21 @@ function assertRegistryMdxFrontmatter(
     );
   }
 
-  getStringField(path, value, "name");
-  const type = getStringField(path, value, "type");
-  getStringField(path, value, "title");
-  getStringField(path, value, "description");
+  getRequiredStringField(diagnostic, value, "name");
+  const type = getRequiredStringField(diagnostic, value, "type");
+  getRequiredStringField(diagnostic, value, "title");
+  getRequiredStringField(diagnostic, value, "description");
 
   if (!registryItemTypes.has(type)) {
     throw new Error(`Registry item ${path} has unsupported type "${type}".`);
   }
 
   for (const field of optionalStringFields) {
-    assertOptionalStringField(path, value, field);
+    assertOptionalStringField(diagnostic, value, field);
   }
 
   for (const field of optionalStringArrayFields) {
-    assertOptionalStringArray(path, value, field);
+    assertOptionalStringArrayField(diagnostic, value, field);
   }
 
   assertOptionalRegistryFiles(path, value);
@@ -165,48 +160,6 @@ function toRegistryItemAuthoringDefinition(
     ...item,
     registryDependencies: [...new Set(registryDependencies)],
   };
-}
-
-function getStringField(path: string, value: Record<string, unknown>, field: string): string {
-  const fieldValue = value[field];
-
-  if (typeof fieldValue !== "string" || fieldValue.length === 0) {
-    throw new Error(`Registry item ${path} frontmatter field "${field}" must be a string.`);
-  }
-
-  return fieldValue;
-}
-
-function assertOptionalStringField(
-  path: string,
-  value: Record<string, unknown>,
-  field: string,
-): void {
-  const fieldValue = value[field];
-
-  if (fieldValue === undefined || typeof fieldValue === "string") {
-    return;
-  }
-
-  throw new Error(`Registry item ${path} frontmatter field "${field}" must be a string.`);
-}
-
-function assertOptionalStringArray(
-  path: string,
-  value: Record<string, unknown>,
-  field: string,
-): void {
-  const fieldValue = value[field];
-
-  if (fieldValue === undefined) {
-    return;
-  }
-
-  if (Array.isArray(fieldValue) && fieldValue.every((item) => typeof item === "string")) {
-    return;
-  }
-
-  throw new Error(`Registry item ${path} frontmatter field "${field}" must be a string array.`);
 }
 
 function assertOptionalRegistryFiles(path: string, value: Record<string, unknown>): void {

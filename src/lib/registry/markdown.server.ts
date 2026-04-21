@@ -1,4 +1,13 @@
-import { getLinkedHeaders, getMarkdownHttpLinkHeader } from "@/lib/seo";
+import {
+  escapeMarkdownLinkText,
+  formatCodeBlock,
+  getMarkdownLanguage,
+  joinMarkdownBlocks,
+} from "@/lib/content/markdown";
+import {
+  createLinkedMarkdownResponse,
+  createMarkdownNotFoundResponse,
+} from "@/lib/content/responses.server";
 import { getCanonicalDocsUrl, getCanonicalRegistryItemUrl } from "@/lib/site-config";
 
 import { getRegistryItem } from "./catalog";
@@ -27,20 +36,10 @@ type RegistryItemMarkdownItem = Pick<
   "description" | "name" | "previewSourceFile" | "sourceFiles" | "title" | "usageSource"
 >;
 
-const docsMarkdownResponseHeaders = {
-  "Cache-Control": "public, max-age=0, s-maxage=3600, stale-while-revalidate=86400",
-  "Content-Type": "text/markdown; charset=utf-8",
-} as const;
-
 export function getRegistrySectionMarkdownResponse(section: RegistrySection): Response {
   const sectionConfig = registrySections[section];
 
-  return new Response(getRegistrySectionMarkdown(section), {
-    headers: getLinkedHeaders(
-      docsMarkdownResponseHeaders,
-      getMarkdownHttpLinkHeader(sectionConfig.basePath),
-    ),
-  });
+  return createLinkedMarkdownResponse(getRegistrySectionMarkdown(section), sectionConfig.basePath);
 }
 
 export function getRegistryItemMarkdownResponse(
@@ -50,20 +49,12 @@ export function getRegistryItemMarkdownResponse(
   const markdown = getRegistryItemMarkdown(section, itemName);
 
   if (!markdown) {
-    return new Response("Docs page not found.", {
-      headers: docsMarkdownResponseHeaders,
-      status: 404,
-    });
+    return createMarkdownNotFoundResponse();
   }
 
   const sectionConfig = registrySections[section];
 
-  return new Response(markdown, {
-    headers: getLinkedHeaders(
-      docsMarkdownResponseHeaders,
-      getMarkdownHttpLinkHeader(`${sectionConfig.basePath}/${itemName}`),
-    ),
-  });
+  return createLinkedMarkdownResponse(markdown, `${sectionConfig.basePath}/${itemName}`);
 }
 
 export function getRegistrySectionMarkdown(section: RegistrySection): string {
@@ -142,41 +133,4 @@ function isExpectedRegistryType(
   expectedTypes: readonly RegistryDetailType[],
 ): type is RegistryDetailType {
   return expectedTypes.some((expectedType) => expectedType === type);
-}
-
-function formatCodeBlock(code: string, language: string): string {
-  const fence = getCodeFence(code);
-
-  return `${fence}${language}\n${code}\n${fence}`;
-}
-
-function getCodeFence(code: string): string {
-  const backtickRuns = code.match(/`+/gu) ?? [];
-  const longestRunLength = Math.max(0, ...backtickRuns.map((run) => run.length));
-
-  return "`".repeat(Math.max(3, longestRunLength + 1));
-}
-
-function getMarkdownLanguage(path: string): string {
-  const extension = path.split(".").at(-1);
-
-  switch (extension) {
-    case "tsx":
-    case "ts":
-    case "jsx":
-    case "js":
-    case "css":
-    case "json":
-      return extension;
-    default:
-      return "text";
-  }
-}
-
-function joinMarkdownBlocks(blocks: string[]): string {
-  return `${blocks.filter((block) => block.trim().length > 0).join("\n\n")}\n`;
-}
-
-function escapeMarkdownLinkText(value: string): string {
-  return value.replace(/[[\]\\]/gu, "\\$&");
 }

@@ -1,7 +1,6 @@
 import { describe, expect, test } from "vitest";
 
 import {
-  componentRegistryTypes,
   getRegistryItemsByTypes,
   registryMetadataItems,
   registryItems,
@@ -13,7 +12,7 @@ import {
   getRegistryValidationErrors,
 } from "@/lib/registry/json.server";
 import { registryItemSchema } from "@/lib/registry/metadata";
-import { registrySectionList } from "@/lib/registry/section-config";
+import { componentRegistryTypes, registrySectionList } from "@/lib/registry/section-config";
 import { getRegistrySectionsWithItems } from "@/lib/registry/sections";
 import {
   getMissingRegistryPreviewPaths,

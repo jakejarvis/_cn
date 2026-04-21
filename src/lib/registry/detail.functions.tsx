@@ -2,8 +2,6 @@ import { createServerFn } from "@tanstack/react-start";
 
 import { isRegistryDetailType, type RegistryItemDetailInput } from "./detail.types";
 
-export type { RegistryItemDetail } from "./detail.server";
-
 export const getRegistryItemDetail = createServerFn({ method: "GET" })
   .inputValidator(validateRegistryItemDetailInput)
   .handler(async ({ data }) => {

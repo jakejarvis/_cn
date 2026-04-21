@@ -122,6 +122,7 @@ Protect a private registry.
       "theming",
       "cli",
       "registry",
+      "agent-skills",
       "llms",
       "changelog",
     ]);

@@ -19,6 +19,7 @@ describe("registry search", () => {
       { name: "theming", section: "docs" },
       { name: "cli", section: "docs" },
       { name: "registry", section: "docs" },
+      { name: "agent-skills", section: "docs" },
       { name: "llms", section: "docs" },
       { name: "changelog", section: "docs" },
       ...sectionItems,
@@ -48,11 +49,11 @@ describe("registry search", () => {
       "theming",
       "cli",
       "registry",
+      "agent-skills",
       "llms",
       "changelog",
       "example-card",
       "stats-panel",
-      "use-copy-to-clipboard",
     ]);
   });
 

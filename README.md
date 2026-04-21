@@ -1,6 +1,6 @@
 # \_cn
 
-<p align="center"><a href="https://underscore-cn.vercel.app"><img width="2178" height="1448" alt="Screenshot 2026-04-16 at 1 12 48 PM" src="https://github.com/user-attachments/assets/e5fffac0-1a09-4e1d-b604-10752de7320c" /></a></p>
+<p align="center"><a href="https://underscore-cn.vercel.app"><img width="2776" height="1596" alt="underscorecn" src="https://github.com/user-attachments/assets/04bbb481-9ca8-49c3-bc83-b7d9a72e4b61" /></a></p>
 
 An intentionally minimal [TanStack Start](https://tanstack.com/start/latest) + [Vite+](https://viteplus.dev/) starter template for publishing a [shadcn-compatible registry](https://ui.shadcn.com/docs/registry) without writing the documentation site and registry plumbing from scratch.
 
@@ -11,16 +11,41 @@ The scaffold contains a typed registry authoring layer, authored docs, live prev
 
 ## Quick Start
 
+Ensure you have [Vite+](https://viteplus.dev/) installed first; this will ensure all other requirements are taken care of for you.
+
 ```bash
+# Install Vite+
+curl -fsSL https://vite.plus | bash
+
+# Setup and start local server
 vp install
 vp dev
 ```
 
-Open the local URL from Vite+ and browse the starter docs, component, block, and utility pages.
+Open the localhost URL from Vite+ and browse the starter docs, component, block, and utility pages.
+
+## Agent Skill
+
+This repository includes an installable Agent Skill for authoring `_cn` registry items. Install it into your harness from the upstream template using the [Skills CLI](https://skills.sh/):
+
+```bash
+npx skills add jakejarvis/_cn --skill shadcn-registry
+```
+
+After installing the skill, ask your agent for registry authoring work directly:
+
+- "add a button component to the registry"
+- "adapt this modal from my app to make it reusable via this shadcn registry"
+- "add a reusable hook to the registry"
+- "turn this dashboard section into a registry block"
 
 ## Deploy
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fjakejarvis%2F_cn&project-name=my-registry&repository-name=my-registry&demo-title=_cn%20Registry&demo-url=https%3A%2F%2Funderscore-cn.vercel.app)
+
+Above is a one-click button to fork the template and deploy it to Vercel as a platform-agnostic [Nitro server](https://nitro.build/).
+
+You can just as easily use any other platform (Cloudflare Workers, Netlify, etc.) by following the [TanStack Start docs](https://tanstack.com/start/latest/docs/framework/react/guide/hosting#deployment) to make a few adjustments to your `vite.config.ts` file (agents are usually pretty good at this too).
 
 ## Build
 
@@ -48,21 +73,18 @@ export const registryConfig = {
 
 Set `homepage` before deploying. Install commands and local registry dependency URLs are built from this value.
 
-Registry endpoint paths stay in `src/lib/site-config.ts` with the URL helpers so template plumbing
-can evolve separately from the registry-specific values most projects edit.
+Registry endpoint paths stay in `src/lib/site-config.ts` with the URL helpers so template plumbing can evolve separately from the registry-specific values most projects edit.
 
 ## Registry Endpoints
 
-The public registry index is available at both the root and `/r` paths, while installable item
-JSON lives under `/r`:
+The public registry index is available at both the root and `/r` paths, while installable item JSON lives under `/r`:
 
 - `/registry.json` serves the registry index.
 - `/r/registry.json` serves the same registry index.
 - `/r/<name>.json` serves an item JSON file.
 - `/llms.txt` and `/llms-full.txt` are generated from the same Markdown docs and registry item pages used by the site.
 
-Install command URLs and local registry dependency URLs are generated from the registry path config
-in `src/lib/site-config.ts`.
+Install command URLs and local registry dependency URLs are generated from the registry path config in `src/lib/site-config.ts`.
 
 ## Author Docs
 
@@ -75,9 +97,7 @@ registry/docs/
   registry.mdx
 ```
 
-Docs render under `/docs`: `registry/docs/index.mdx` becomes `/docs`, and
-`registry/docs/installation.mdx` becomes `/docs/installation`. Keep docs files directly under
-`registry/docs` for now; nested docs pages are not supported yet.
+Docs render under `/docs`: `registry/docs/index.mdx` becomes `/docs`, and `registry/docs/installation.mdx` becomes `/docs/installation`. Keep docs files directly under `registry/docs` for now; nested docs pages are not supported yet.
 
 Docs files support optional YAML frontmatter:
 
@@ -94,8 +114,7 @@ group: Getting Started
 Use Markdown or MDX with the built-in docs components.
 ```
 
-Use `registry/docs/*` for documentation only. Installable registry item source must stay under
-`registry/items/**`.
+Use `registry/docs/*` for documentation only. Installable registry item source must stay under `registry/items/**`.
 
 ## Add A Registry Item
 
@@ -155,9 +174,7 @@ The template ships three plain examples:
 
 Replace them with your own registry items before publishing.
 
-The docs site renders non-empty `Components`, `Blocks`, and `Utilities` sections. Utility items
-cover `registry:hook` and `registry:lib` entries so non-component registry items remain
-discoverable before installation.
+The docs site renders non-empty `Components`, `Blocks`, and `Utilities` sections. Utility items cover `registry:hook` and `registry:lib` entries so non-component registry items remain discoverable before installation.
 
 ## Checklist
 
@@ -175,9 +192,7 @@ discoverable before installation.
 
 The registry JSON uses shadcn schemas directly from [`shadcn/schema`](https://github.com/shadcn-ui/ui/blob/main/packages/shadcn/src/registry/schema.ts).
 
-Public item files include file contents in each item JSON response, and local registry dependencies
-should use `localRegistryDependencies` in `_registry.mdx` frontmatter so generated URLs follow the
-`homepage` in `registry/config.ts`.
+Public item files include file contents in each item JSON response, and local registry dependencies should use `localRegistryDependencies` in `_registry.mdx` frontmatter so generated URLs follow the `homepage` in `registry/config.ts`.
 
 The docs site uses the local shadcn UI configuration in `components.json`; that styling is for this app shell and does **not** define the identity of published registry items.
 

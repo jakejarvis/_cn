@@ -1,0 +1,4 @@
+interface:
+  display_name: "Shadcn Registry"
+  short_description: "Author and adapt installable shadcn/ui registry items in a _cn-based repo."
+  default_prompt: "Use $shadcn-registry to add or adapt a registry item in a _cn-based repo."

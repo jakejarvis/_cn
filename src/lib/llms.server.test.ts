@@ -19,6 +19,9 @@ describe("llms text", () => {
       "- [Introduction](https://underscore-cn.vercel.app/docs.md): Publish installable components with public docs from the same registry workspace.",
     );
     expect(text).toContain(
+      "- [LLMs](https://underscore-cn.vercel.app/docs/llms.md): Point AI tools at the registry docs.",
+    );
+    expect(text).toContain(
       "- [Example Card](https://underscore-cn.vercel.app/components/example-card.md):",
     );
     expect(text).toContain(

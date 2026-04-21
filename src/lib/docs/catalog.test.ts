@@ -122,6 +122,7 @@ Protect a private registry.
       "theming",
       "cli",
       "registry",
+      "llms",
       "changelog",
     ]);
     expect(getDocsPage("installation")?.title).toBe("Installation");

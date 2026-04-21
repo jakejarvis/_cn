@@ -144,7 +144,7 @@ export function getSortedDocsPages(pages: DocsPage[]): DocsPage[] {
   return pages.toSorted(compareDocsPages);
 }
 
-export function normalizeDocsPath(path: string): string {
+function normalizeDocsPath(path: string): string {
   return path
     .replace(/\\/gu, "/")
     .replace(/\.mdx?$/u, "")

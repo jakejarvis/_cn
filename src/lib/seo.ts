@@ -1,29 +1,29 @@
 import { getCanonicalSiteUrl, getDocsMarkdownPath, siteConfig } from "./site-config.ts";
 
-export type JsonLdValue = string | number | boolean | null | JsonLdObject | readonly JsonLdValue[];
+type JsonLdValue = string | number | boolean | null | JsonLdObject | readonly JsonLdValue[];
 
-export type JsonLdObject = {
+type JsonLdObject = {
   [key: string]: JsonLdValue | undefined;
 };
 
-export type HeadMeta =
+type HeadMeta =
   | { title: string }
   | { name: string; content: string }
   | { property: string; content: string };
 
-export type HeadLink = {
+type HeadLink = {
   rel: string;
   href: string;
   type?: string;
   title?: string;
 };
 
-export type HeadScript = {
+type HeadScript = {
   type: "application/ld+json";
   children: string;
 };
 
-export type SeoHead = {
+type SeoHead = {
   meta: HeadMeta[];
   links: HeadLink[];
   scripts: HeadScript[];

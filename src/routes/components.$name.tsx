@@ -3,7 +3,7 @@ import { createFileRoute, notFound } from "@tanstack/react-router";
 import { RegistryItemDoc, RegistryItemNotFound } from "@/components/docs/component-doc";
 import { DocsLayout } from "@/components/docs/docs-layout";
 import { getRegistryItemDetail } from "@/lib/registry/detail.functions";
-import { registrySections } from "@/lib/registry/sections";
+import { registrySections } from "@/lib/registry/section-config";
 import { getMarkdownAlternatePath, getSeoHead, getTechArticleJsonLd } from "@/lib/seo";
 
 const section = registrySections.components;

@@ -4,11 +4,11 @@ import type { Orama } from "@orama/orama";
 import { docsPages, type DocsPage } from "@/lib/docs/catalog";
 import type { RegistryCatalogItem } from "@/lib/registry/catalog";
 import {
-  getRegistrySectionItems,
   registrySectionList,
   type RegistrySection,
   type RegistrySectionConfig,
-} from "@/lib/registry/sections";
+} from "@/lib/registry/section-config";
+import { getRegistrySectionItems } from "@/lib/registry/sections";
 
 const DEFAULT_SEARCH_LIMIT = 20;
 const MAX_SEARCH_LIMIT = 50;
@@ -76,7 +76,7 @@ export type RegistrySearchResult = Omit<RegistrySearchRecord, "id" | "keywords">
   score: number;
 };
 
-export type RegistrySearchResponse = {
+type RegistrySearchResponse = {
   query: string;
   count: number;
   results: RegistrySearchResult[];

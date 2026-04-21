@@ -124,10 +124,6 @@ export function getRegistryItem(name: string): RegistryCatalogItem | undefined {
   return registryItems.find((item) => item.name === name);
 }
 
-export function getRegistryItemsByType(type: RegistryType): RegistryCatalogItem[] {
-  return registryItems.filter((item) => item.type === type);
-}
-
 export function getRegistryItemsByTypes(types: readonly RegistryType[]): RegistryCatalogItem[] {
   const typeSet = new Set(types);
 

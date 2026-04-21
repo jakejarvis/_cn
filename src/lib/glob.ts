@@ -4,6 +4,6 @@ export function normalizeGlobFiles<T>(files: Record<string, T>): Record<string, 
   );
 }
 
-export function normalizeGlobPath(path: string): string {
+function normalizeGlobPath(path: string): string {
   return path.replace(/^(?:\.\.\/){3}/u, "");
 }

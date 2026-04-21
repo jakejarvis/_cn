@@ -4,12 +4,12 @@ import {
   type DocsNavigationSection,
 } from "@/lib/docs/catalog";
 import {
-  getRegistrySectionItems,
   registrySectionList,
   registrySections,
   type RegistrySection,
   type RegistrySectionConfig,
-} from "@/lib/registry/sections";
+} from "@/lib/registry/section-config";
+import { getRegistrySectionItems } from "@/lib/registry/sections";
 
 type RegistryNavigationItem = {
   kind: "registry";

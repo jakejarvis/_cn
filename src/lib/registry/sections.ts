@@ -5,15 +5,8 @@ import {
   type RegistrySection,
   type RegistrySectionConfig,
 } from "./section-config";
-export {
-  componentRegistryTypes,
-  registrySectionList,
-  registrySections,
-  type RegistrySection,
-  type RegistrySectionConfig,
-} from "./section-config";
 
-export type RegistrySectionWithItems = RegistrySectionConfig & {
+type RegistrySectionWithItems = RegistrySectionConfig & {
   items: RegistryCatalogItem[];
 };
 

@@ -4,7 +4,8 @@ import {
   getRegistryItemMarkdown,
   getRegistrySectionMarkdown,
 } from "@/lib/registry/markdown.server";
-import { getRegistrySectionItems, registrySectionList } from "@/lib/registry/sections";
+import { registrySectionList } from "@/lib/registry/section-config";
+import { getRegistrySectionItems } from "@/lib/registry/sections";
 import {
   getCanonicalRegistryIndexUrl,
   getCanonicalSiteUrl,
@@ -24,7 +25,7 @@ type LlmsSection = {
   documents: LlmsDocument[];
 };
 
-export const llmsTextResponseHeaders = {
+const llmsTextResponseHeaders = {
   "Cache-Control": "public, max-age=0, s-maxage=3600, stale-while-revalidate=86400",
   "Content-Type": "text/plain; charset=utf-8",
 } as const;

@@ -14,7 +14,7 @@ type RegistryMdxFrontmatter = RegistryItemAuthoringDefinition & {
   localRegistryDependencies?: string[];
 };
 
-export type ParsedRegistryMdx = {
+type ParsedRegistryMdx = {
   registryItem: RegistryItemAuthoringDefinition;
   previewSource: string;
   hasUsage: boolean;

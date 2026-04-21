@@ -4,10 +4,11 @@ import { getCanonicalDocsUrl, getCanonicalRegistryItemUrl } from "@/lib/site-con
 import { getRegistryItem } from "./catalog";
 import type { RegistryDetailType } from "./detail.types";
 import { getRegistryDisplaySource } from "./display-source.server";
-import { getRegistrySectionItems, registrySections, type RegistrySection } from "./sections";
+import { registrySections, type RegistrySection } from "./section-config";
+import { getRegistrySectionItems } from "./sections";
 import { getRegistryItemWithSources } from "./source.server";
 
-export const docsMarkdownResponseHeaders = {
+const docsMarkdownResponseHeaders = {
   "Cache-Control": "public, max-age=0, s-maxage=3600, stale-while-revalidate=86400",
   "Content-Type": "text/markdown; charset=utf-8",
 } as const;

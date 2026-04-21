@@ -18,7 +18,7 @@ import {
   type RegistryCatalogItemWithSources,
 } from "./source.server";
 
-export const registryJsonResponseHeaders = {
+const registryJsonResponseHeaders = {
   "Cache-Control": "public, max-age=0, s-maxage=3600, stale-while-revalidate=86400",
 } as const;
 

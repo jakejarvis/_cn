@@ -18,7 +18,7 @@ export type MdxAstNode = {
   };
 };
 
-export type RegistryMdxSections = {
+type RegistryMdxSections = {
   previewSource: string;
   hasUsage: boolean;
   usageSource: string;
@@ -79,21 +79,6 @@ export function getRegistryMdxSections(
     hasUsage: usageNodes.length > 0,
     usageSource: getNodesSource(usageNodes, source),
   };
-}
-
-export function getMdxEsmSource(root: MdxAstNode): string {
-  return getEsmSource(root.children?.filter(isEsmNode) ?? []);
-}
-
-export function hasMdxUsageContent(root: MdxAstNode): boolean {
-  return (root.children ?? []).some((node) => node.type !== "yaml" && !isEsmNode(node));
-}
-
-export function getMdxUsageSource(root: MdxAstNode, source: string): string {
-  return getNodesSource(
-    root.children?.filter((node) => node.type !== "yaml" && !isEsmNode(node)) ?? [],
-    source,
-  );
 }
 
 function getEsmSource(nodes: MdxAstNode[]): string {

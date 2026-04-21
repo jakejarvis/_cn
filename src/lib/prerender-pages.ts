@@ -15,7 +15,7 @@ import {
   getDocsMarkdownPath,
 } from "./site-config.ts";
 
-export type PrerenderPage = {
+type PrerenderPage = {
   path: string;
   sitemap?: {
     exclude?: boolean;

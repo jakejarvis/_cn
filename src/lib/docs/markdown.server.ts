@@ -3,7 +3,7 @@ import { getCanonicalDocsUrl } from "@/lib/site-config";
 
 import { docsPages, getDocsPage } from "./catalog";
 
-export const authoredDocsMarkdownResponseHeaders = {
+const authoredDocsMarkdownResponseHeaders = {
   "Cache-Control": "public, max-age=0, s-maxage=3600, stale-while-revalidate=86400",
   "Content-Type": "text/markdown; charset=utf-8",
 } as const;

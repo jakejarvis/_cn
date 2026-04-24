@@ -3,6 +3,7 @@ import { TanStackDevtools } from "@tanstack/react-devtools";
 import { HeadContent, Link, Outlet, Scripts, createRootRoute } from "@tanstack/react-router";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 
+import { NavigationProgress } from "@/components/docs/navigation-progress";
 import { SiteFooter } from "@/components/docs/site-footer";
 import { SiteHeader } from "@/components/docs/site-header";
 import { ThemeProvider, themeScript } from "@/components/docs/theme-provider";
@@ -58,6 +59,7 @@ function RootRoute() {
   return (
     <ThemeProvider>
       <TooltipProvider>
+        <NavigationProgress />
         <div className="flex min-h-svh flex-col">
           <SiteHeader />
           <div className="flex-1">

@@ -1,6 +1,7 @@
 import { createFileRoute, notFound } from "@tanstack/react-router";
 
 import { RegistryItemDoc, RegistryItemNotFound } from "@/components/docs/component-doc";
+import { ContentSkeleton } from "@/components/docs/content-skeleton";
 import { DocsLayout } from "@/components/docs/docs-layout";
 import { getRegistryItemDetail } from "@/lib/registry/detail.functions";
 import { registrySections } from "@/lib/registry/sections";
@@ -23,6 +24,7 @@ export const Route = createFileRoute("/components/$name")({
 
     return detail.item;
   },
+  pendingComponent: ComponentPendingRoute,
   head: ({ loaderData: item }) => {
     if (!item) {
       return getSeoHead({
@@ -54,6 +56,10 @@ export const Route = createFileRoute("/components/$name")({
   component: ComponentRoute,
   notFoundComponent: ComponentNotFoundRoute,
 });
+
+function ComponentPendingRoute() {
+  return <ContentSkeleton section={section.id} variant="registry-item" />;
+}
 
 function ComponentRoute() {
   const item = Route.useLoaderData();

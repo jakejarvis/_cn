@@ -1,6 +1,7 @@
 import { createFileRoute, notFound } from "@tanstack/react-router";
 
 import { AuthoredDocsPage } from "@/components/docs/authored-docs-page";
+import { ContentSkeleton } from "@/components/docs/content-skeleton";
 import { DocsLayout } from "@/components/docs/docs-layout";
 import { getDocsPageDetail } from "@/lib/docs/detail.functions";
 import { getMarkdownAlternatePath, getSeoHead, getTechArticleJsonLd } from "@/lib/seo";
@@ -17,6 +18,7 @@ export const Route = createFileRoute("/docs/$slug")({
 
     return { ...data, page };
   },
+  pendingComponent: DocsSlugPendingRoute,
   head: ({ loaderData }) => {
     const page = loaderData?.page;
 
@@ -47,6 +49,10 @@ export const Route = createFileRoute("/docs/$slug")({
   },
   component: DocsSlugRoute,
 });
+
+function DocsSlugPendingRoute() {
+  return <ContentSkeleton section="docs" />;
+}
 
 function DocsSlugRoute() {
   const { page } = Route.useLoaderData();

@@ -122,12 +122,16 @@ const config = defineConfig({
   },
   resolve: {
     tsconfigPaths: true,
-    alias: {
+    alias: [
+      // shadcn/schema is compiled against Zod v3 and still calls deepPartial().
+      // Keep bare zod imports on the v3 entry even when another dependency
+      // hoists Zod v4 to the workspace root. see: https://github.com/shadcn-ui/ui/pull/9311
+      { find: /^zod$/, replacement: "zod/v3" },
       // tslib's CJS UMD sets __esModule: true without providing a default
       // export, which breaks Vite 8 / Rolldown's consistent CJS interop.
       // Alias to the native ESM build to avoid the interop entirely.
-      tslib: "tslib/tslib.es6.js",
-    },
+      { find: /^tslib$/, replacement: "tslib/tslib.es6.js" },
+    ],
   },
   plugins: [
     devtools(),

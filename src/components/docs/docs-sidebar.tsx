@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 
-import type { SiteNavigationItem, SiteNavigationSection } from "@/lib/navigation";
-import { cn } from "@/lib/utils";
+import type { SiteNavigationItem, SiteNavigationSection } from "../../lib/navigation";
+import { cn } from "../../lib/utils";
 
 type DocsSidebarProps = {
   sections: readonly SiteNavigationSection[];

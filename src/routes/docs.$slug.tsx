@@ -3,9 +3,10 @@ import { createFileRoute, notFound } from "@tanstack/react-router";
 import { AuthoredDocsPage } from "@/components/docs/authored-docs-page";
 import { ContentSkeleton } from "@/components/docs/content-skeleton";
 import { DocsLayout } from "@/components/docs/docs-layout";
-import { getDocsPageDetail } from "@/lib/docs/detail.functions";
-import { getMarkdownAlternatePath, getSeoHead, getTechArticleJsonLd } from "@/lib/seo";
-import { siteConfig } from "@/lib/site-config";
+
+import { getDocsPageDetail } from "../lib/docs/detail.functions";
+import { getMarkdownAlternatePath, getSeoHead, getTechArticleJsonLd } from "../lib/seo";
+import { siteConfig } from "../lib/site-config";
 
 export const Route = createFileRoute("/docs/$slug")({
   loader: async ({ params }) => {

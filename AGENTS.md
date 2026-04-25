@@ -32,14 +32,11 @@ Use **Vite+**: `vp install`, `vp dev`, `vp build`, `vp test`
 ## Registry Requests
 
 - Treat short prompts like "add a button component to the registry" as implementation requests.
-- For registry item authoring or adaptation, use the installable [`shadcn-registry` skill](skills/shadcn-registry/SKILL.md) when available.
+- For registry item authoring or adaptation, use the installable `shadcn-registry` [SKILL.md](skills/shadcn-registry/SKILL.md) when available.
+- For new registry items, scaffold the starter files non-interactively with `bun --bun ./scripts/new.ts --type <type> --name <kebab-name> --description "<description>"`; add `--target` for `registry:page` and `registry:file`, and `--file-extension` for non-`ts` `registry:file` items.
 - Put published registry source under `registry/items/**`, never under `src/components/ui`.
 - `src/components/ui` is for the docs app shell shadcn components only.
 - Put public documentation pages directly under `registry/docs/`; they render at `/docs`.
-- `registry/docs/**` is documentation-only and must not be listed as item source.
-- Item folders use `_registry.mdx` for metadata, Usage docs, and `Preview`; do not publish `_registry.mdx` or underscored authoring files.
-- One-file `registry:ui` items may rely on the default `<item-name>.tsx`; hooks, libs, blocks, pages, target paths, and multi-file items list `files` explicitly.
-- Use `registryDependencies` for shadcn primitives and `localRegistryDependencies` for local registry items.
 
 ## Key Conventions
 
@@ -51,10 +48,10 @@ Use **Vite+**: `vp install`, `vp dev`, `vp build`, `vp test`
 - Registry JSON routes: `/registry.json` and `/r/registry.json` serve the index; item JSON routes live under `/r/<name>.json`.
 - Docs sections: components and blocks plus utilities for `registry:hook` and `registry:lib`.
 - Docs chrome: `src/components/docs/`; theme/CSS: `src/styles.css`.
-- See `README.md` for the registry authoring workflow.
+- See the [SKILL.md](skills/shadcn-registry/SKILL.md) file for the registry authoring workflow.
 
 ## Verification
 
-- After registry edits, run `vp check --fix` on touched files.
+- After registry edits, run `vp check --fix` on touched files and `bun --bun ./scripts/doctor.ts` (if Bun is installed).
 - For route/docs changes, run `vp build` so `src/routeTree.gen.ts` updates.
 - Build before handoff when registry JSON, routes, or source loading changed: `vp build`.

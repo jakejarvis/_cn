@@ -1,10 +1,6 @@
 import { describe, expect, test } from "vitest";
 
-import {
-  getCodeLanguage,
-  highlightCodeToHtml,
-  highlightPlainTextToHtml,
-} from "@/lib/registry/highlight.server";
+import { getCodeLanguage, highlightCodeToHtml, highlightPlainTextToHtml } from "./highlight.server";
 
 describe("registry syntax highlighting", () => {
   test("infers registry source languages from file paths", () => {

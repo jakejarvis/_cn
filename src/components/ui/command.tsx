@@ -4,15 +4,9 @@ import { IconSearch, IconCheck } from "@tabler/icons-react";
 import { Command as CommandPrimitive } from "cmdk";
 import * as React from "react";
 
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { InputGroup, InputGroupAddon } from "@/components/ui/input-group";
-import { cn } from "@/lib/utils";
+import { cn } from "../../lib/utils";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "./dialog";
+import { InputGroup, InputGroupAddon } from "./input-group";
 
 function Command({ className, ...props }: React.ComponentProps<typeof CommandPrimitive>) {
   return (

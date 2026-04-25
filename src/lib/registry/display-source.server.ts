@@ -52,7 +52,9 @@ export function getRegistryDisplaySource(
       );
 
       if (!sourcePath) {
-        return match;
+        const aliasImportPath = resolveRegistryAliasImportPath(importerPath, specifier);
+
+        return aliasImportPath ? `${prefix}${aliasImportPath}${suffix}` : match;
       }
 
       const displayImportPath = displayImportPaths.get(sourcePath);
@@ -60,6 +62,16 @@ export function getRegistryDisplaySource(
       return displayImportPath ? `${prefix}${displayImportPath}${suffix}` : match;
     },
   );
+}
+
+function resolveRegistryAliasImportPath(importerPath: string, specifier: string): string | null {
+  const normalizedPath = normalizePath([
+    ...getParentPath(importerPath).split("/"),
+    ...specifier.split(/[?#]/u)[0].split("/"),
+  ]);
+  const aliasImportPath = getAliasImportPathForTarget(normalizedPath);
+
+  return aliasImportPath === normalizedPath ? null : aliasImportPath;
 }
 
 function getRegistryDisplayImportPaths(

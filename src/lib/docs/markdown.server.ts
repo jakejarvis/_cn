@@ -1,10 +1,9 @@
-import { escapeMarkdownLinkText, joinMarkdownBlocks } from "@/lib/content/markdown";
+import { escapeMarkdownLinkText, joinMarkdownBlocks } from "../content/markdown";
 import {
   createLinkedMarkdownResponse,
   createMarkdownNotFoundResponse,
-} from "@/lib/content/responses.server";
-import { getCanonicalDocsUrl } from "@/lib/site-config";
-
+} from "../content/responses.server";
+import { getCanonicalDocsUrl } from "../site-config";
 import { docsPages, getDocsPage } from "./catalog";
 
 export function getAuthoredDocsPageMarkdownResponse(path: string): Response {

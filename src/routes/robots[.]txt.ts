@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { getRobotsText } from "@/lib/seo";
+import { getRobotsText } from "../lib/seo";
 
 const robotsTextResponseHeaders = {
   "Cache-Control": "public, max-age=0, s-maxage=3600, stale-while-revalidate=86400",

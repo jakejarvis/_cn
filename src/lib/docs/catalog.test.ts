@@ -6,7 +6,7 @@ import {
   getDocsRoutePathFromSourcePath,
   getSortedDocsPages,
   parseDocsPageSource,
-} from "@/lib/docs/catalog";
+} from "./catalog";
 
 describe("docs catalog", () => {
   test("maps registry docs files to public docs routes", () => {

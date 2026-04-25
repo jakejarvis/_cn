@@ -1,6 +1,6 @@
 import { createMiddleware, createStart } from "@tanstack/react-start";
 
-import { getMarkdownNegotiationResponseForRequest } from "@/lib/negotiation.server";
+import { getMarkdownNegotiationResponseForRequest } from "./lib/negotiation.server";
 
 const markdownNegotiationMiddleware = createMiddleware().server(({ next, pathname, request }) => {
   const response = getMarkdownNegotiationResponseForRequest(request, pathname);

@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { getRegistryItemMarkdownResponse } from "@/lib/registry/markdown.server";
+import { getRegistryItemMarkdownResponse } from "../lib/registry/markdown.server";
 
 export const Route = createFileRoute("/utilities/{$name}.md")({
   server: {

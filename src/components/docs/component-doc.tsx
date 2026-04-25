@@ -1,6 +1,8 @@
 import { IconAppWindow, IconCode, IconFiles, IconTerminal } from "@tabler/icons-react";
 import { Link } from "@tanstack/react-router";
 
+import type { RegistryItemDetail } from "../../lib/registry/detail.server";
+import type { RegistrySectionConfig } from "../../lib/registry/sections";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -8,12 +10,9 @@ import {
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import type { RegistryItemDetail } from "@/lib/registry/detail.server";
-import type { RegistrySectionConfig } from "@/lib/registry/sections";
-
+} from "../ui/breadcrumb";
+import { Button } from "../ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 import { CodeBlock } from "./code-block";
 import { ComponentPreview } from "./component-preview";
 import { DocsPageHeader } from "./docs-page-header";

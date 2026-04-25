@@ -3,18 +3,18 @@
 import { IconChevronDown } from "@tabler/icons-react";
 import type { ReactElement, SVGProps } from "react";
 
-import { Button } from "@/components/ui/button";
-import { ButtonGroup } from "@/components/ui/button-group";
-import { CopyButton } from "@/components/ui/copy-button";
+import { siteConfig } from "../../lib/site-config";
+import { cn } from "../../lib/utils";
+import { Button } from "../ui/button";
+import { ButtonGroup } from "../ui/button-group";
+import { CopyButton } from "../ui/copy-button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { siteConfig } from "@/lib/site-config";
-import { cn } from "@/lib/utils";
+} from "../ui/dropdown-menu";
 
 type DocsPageActionsProps = {
   markdownPath: string;

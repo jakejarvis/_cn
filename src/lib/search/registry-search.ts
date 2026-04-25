@@ -1,14 +1,14 @@
 import { create, insertMultiple, search as searchOrama } from "@orama/orama";
 import type { Orama } from "@orama/orama";
 
-import { docsPages, type DocsPage } from "@/lib/docs/catalog";
-import type { RegistryCatalogItem } from "@/lib/registry/catalog";
-import { getRegistrySectionItems } from "@/lib/registry/section-items";
+import { docsPages, type DocsPage } from "../docs/catalog";
+import type { RegistryCatalogItem } from "../registry/catalog-builder";
+import { getRegistrySectionItems } from "../registry/section-items";
 import {
   registrySectionList,
   type RegistrySection,
   type RegistrySectionConfig,
-} from "@/lib/registry/sections";
+} from "../registry/sections";
 
 const DEFAULT_SEARCH_LIMIT = 20;
 const MAX_SEARCH_LIMIT = 50;

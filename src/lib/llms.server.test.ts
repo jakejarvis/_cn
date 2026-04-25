@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 
-import { docsPages } from "@/lib/docs/catalog";
+import { docsPages } from "./docs/catalog";
 import {
   createLlmsFullText,
   createLlmsText,
@@ -9,15 +9,15 @@ import {
   getLlmsText,
   getLlmsTextResponse,
   type LlmsTextInput,
-} from "@/lib/llms.server";
-import { getRegistrySectionItems } from "@/lib/registry/section-items";
-import { registrySectionList } from "@/lib/registry/sections";
+} from "./llms.server";
+import { getRegistrySectionItems } from "./registry/section-items";
+import { registrySectionList } from "./registry/sections";
 import {
   getCanonicalRegistryIndexUrl,
   getCanonicalSiteUrl,
   getDocsMarkdownPath,
   siteConfig,
-} from "@/lib/site-config";
+} from "./site-config";
 
 const fixtureLlmsInput = {
   siteName: "Fixture Registry",

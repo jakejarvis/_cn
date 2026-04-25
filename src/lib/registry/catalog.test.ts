@@ -1,27 +1,23 @@
 import { describe, expect, test } from "vitest";
 
-import {
-  getRegistryItemsByTypes,
-  registryMetadataItems,
-  registryItems,
-} from "@/lib/registry/catalog";
-import { getRegistryDisplaySource } from "@/lib/registry/display-source.server";
+import { getRegistryItemsByTypes, registryMetadataItems, registryItems } from "./catalog";
+import { getRegistryDisplaySource } from "./display-source.server";
 import {
   getRegistryIndexJson,
   getRegistryItemJson,
   getRegistryValidationErrors,
-} from "@/lib/registry/json.server";
-import { registryItemSchema } from "@/lib/registry/metadata";
-import { getRegistrySectionsWithItems } from "@/lib/registry/section-items";
-import { componentRegistryTypes, registrySectionList } from "@/lib/registry/sections";
+} from "./json.server";
+import { registryItemSchema } from "./metadata";
+import { getRegistrySectionsWithItems } from "./section-items";
+import { componentRegistryTypes, registrySectionList } from "./sections";
+import { isSupportedRegistrySourcePath } from "./source-types";
 import {
   getMissingRegistryPreviewPaths,
   getMissingRegistrySourcePaths,
   getRegistryItemWithSources,
   getUnsupportedRegistrySourcePaths,
-  isSupportedRegistrySourcePath,
   trimBlankTrailingLines,
-} from "@/lib/registry/source.server";
+} from "./source.server";
 
 const registryItemCollator = new Intl.Collator("en", {
   numeric: true,

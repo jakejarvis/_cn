@@ -1,9 +1,9 @@
 import { renderServerComponent } from "@tanstack/react-start/rsc";
 import * as React from "react";
 
-import { CodeBlock } from "@/components/docs/code-block";
-import { highlightCodeToHtml } from "@/lib/registry/highlight.server";
-import { cn } from "@/lib/utils";
+import { highlightCodeToHtml } from "../../lib/registry/highlight.server";
+import { cn } from "../../lib/utils";
+import { CodeBlock } from "./code-block";
 
 export type MdxContentModule = {
   default?: React.ComponentType<{

@@ -54,8 +54,6 @@ vp check
 vp build
 ```
 
-Registry tests live under `src/lib/registry/*.test.ts` and `src/components/docs/*.test.ts`.
-
 ## Configure The Registry
 
 Edit `registry/config.ts`.
@@ -119,6 +117,14 @@ Use Markdown or MDX with the built-in docs components.
 Use `registry/docs/*` for documentation only. Installable registry item source must stay under `registry/items/**`.
 
 ## Add A Registry Item
+
+### Automatic
+
+Run `bun --bun ./scripts/new.ts` to interactively scaffold new registry items under `registry/items/**`.
+
+It's always a good idea to also run `bun --bun ./scripts/doctor.ts` after making changes; this validates registry authoring and reports ignored or suspicious files under `registry/**`.
+
+### Manual
 
 Create a folder under `registry/items/<section>/<item-name>/`.
 
@@ -186,6 +192,8 @@ The docs site renders non-empty `Components`, `Blocks`, and `Utilities` sections
 - [ ] Verify `/registry.json`, `/r/registry.json`, and at least one `/r/<name>.json` item URL.
 - [ ] Verify `/llms.txt`, `/llms-full.txt`, and Markdown negotiation with `Accept: text/markdown` on a docs or item page.
 - [ ] Update `package.json` metadata, `README.md` details, `LICENSE` owner, etc.
+- [ ] Use `bun --bun ./scripts/new.ts` for new registry item stubs.
+- [ ] Run `bun --bun ./scripts/doctor.ts` to verify changes.
 - [ ] Run `vp check` and `vp build`.
 - [ ] Deploy and test install commands with npm, pnpm, yarn, and bun.
 - [ ] Optionally submit your registry to shadcn's [official directory](https://ui.shadcn.com/docs/directory).

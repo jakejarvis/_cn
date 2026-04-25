@@ -2,14 +2,14 @@ import {
   getDocsNavigationSection,
   type DocsNavigationItem,
   type DocsNavigationSection,
-} from "@/lib/docs/catalog";
-import { getRegistrySectionItems } from "@/lib/registry/section-items";
+} from "./docs/catalog";
+import { getRegistrySectionItems } from "./registry/section-items";
 import {
   registrySectionList,
   registrySections,
   type RegistrySection,
   type RegistrySectionConfig,
-} from "@/lib/registry/sections";
+} from "./registry/sections";
 
 type RegistryNavigationItem = {
   kind: "registry";

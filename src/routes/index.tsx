@@ -2,9 +2,10 @@ import { IconBlocks, IconBrandGithub } from "@tabler/icons-react";
 import { Link, createFileRoute } from "@tanstack/react-router";
 
 import { Button } from "@/components/ui/button";
-import { getRegistrySectionsWithItems } from "@/lib/registry/section-items";
-import { getSeoHead } from "@/lib/seo";
-import { siteConfig } from "@/lib/site-config";
+
+import { getRegistrySectionsWithItems } from "../lib/registry/section-items";
+import { getSeoHead } from "../lib/seo";
+import { siteConfig } from "../lib/site-config";
 
 export const Route = createFileRoute("/")({
   head: () =>

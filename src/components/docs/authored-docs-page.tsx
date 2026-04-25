@@ -1,5 +1,4 @@
-import type { DocsPageDetail } from "@/lib/docs/detail.server";
-
+import type { DocsPageDetail } from "../../lib/docs/detail.server";
 import { DocsPageHeader } from "./docs-page-header";
 
 type AuthoredDocsPageProps = {

@@ -3,7 +3,8 @@ import {
   registrySchema as shadcnRegistrySchema,
 } from "shadcn/schema";
 
-import { getRegistryItem, registryItems, type RegistryCatalogItem } from "./catalog";
+import { getRegistryItem, registryItems } from "./catalog";
+import type { RegistryCatalogItem } from "./catalog-builder";
 import { getRegistryDisplaySource } from "./display-source.server";
 import {
   registryConfig,
@@ -12,11 +13,8 @@ import {
   type RegistryItemDefinition,
 } from "./metadata";
 import { getFileName } from "./paths";
-import {
-  getRegistryItemWithSources,
-  isSupportedRegistrySourcePath,
-  type RegistryCatalogItemWithSources,
-} from "./source.server";
+import { isSupportedRegistrySourcePath } from "./source-types";
+import { getRegistryItemWithSources, type RegistryCatalogItemWithSources } from "./source.server";
 
 const registryJsonResponseHeaders = {
   "Cache-Control": "public, max-age=0, s-maxage=3600, stale-while-revalidate=86400",

@@ -1,4 +1,4 @@
-import { IconArrowRight, IconBlocks, IconHome } from "@tabler/icons-react";
+import { IconArrowRight, IconBlocks, IconBooks, IconHome } from "@tabler/icons-react";
 import { TanStackDevtools } from "@tanstack/react-devtools";
 import { HeadContent, Link, Outlet, Scripts, createRootRoute } from "@tanstack/react-router";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
@@ -9,8 +9,9 @@ import { SiteHeader } from "@/components/docs/site-header";
 import { ThemeProvider, themeScript } from "@/components/docs/theme-provider";
 import { Button } from "@/components/ui/button";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { getJsonLdScripts, getWebSiteJsonLd } from "@/lib/seo";
-import { siteConfig } from "@/lib/site-config";
+
+import { getJsonLdScripts, getWebSiteJsonLd } from "../lib/seo";
+import { siteConfig } from "../lib/site-config";
 
 import appCss from "../styles.css?url";
 
@@ -95,6 +96,7 @@ function GlobalNotFoundRoute() {
               Home
             </Button>
             <Button size="lg" variant="outline" nativeButton={false} render={<Link to="/docs" />}>
+              <IconBooks data-icon="inline-start" />
               Docs
             </Button>
             <Button

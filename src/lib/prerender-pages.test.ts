@@ -1,17 +1,17 @@
 import { describe, expect, test } from "vitest";
 
-import { docsPages } from "@/lib/docs/catalog";
-import { createPrerenderPages, getPrerenderPages } from "@/lib/prerender-pages";
-import { registryItems } from "@/lib/registry/catalog";
-import { registrySectionList } from "@/lib/registry/sections";
-import { shouldExcludeFromSitemap } from "@/lib/seo";
+import { docsPages } from "./docs/catalog";
+import { createPrerenderPages, getPrerenderPages } from "./prerender-pages";
+import { registryItems } from "./registry/catalog";
+import { registrySectionList } from "./registry/sections";
+import { shouldExcludeFromSitemap } from "./seo";
 import {
   getAliasRegistryIndexPaths,
   getAliasRegistryItemPaths,
   getCanonicalRegistryIndexPath,
   getCanonicalRegistryItemPath,
   getDocsMarkdownPath,
-} from "@/lib/site-config";
+} from "./site-config";
 
 describe("prerender pages", () => {
   test("enumerates routes for supplied docs and registry items", () => {

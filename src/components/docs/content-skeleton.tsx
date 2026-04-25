@@ -1,6 +1,5 @@
-import { Skeleton } from "@/components/ui/skeleton";
-import type { SiteNavigationSectionId } from "@/lib/navigation";
-
+import type { SiteNavigationSectionId } from "../../lib/navigation";
+import { Skeleton } from "../ui/skeleton";
 import { DocsLayout } from "./docs-layout";
 
 type ContentSkeletonProps = {

@@ -1,9 +1,9 @@
-import { getAuthoredDocsPageMarkdownResponse } from "@/lib/docs/markdown.server";
+import { getAuthoredDocsPageMarkdownResponse } from "./docs/markdown.server";
 import {
   getRegistryItemMarkdownResponse,
   getRegistrySectionMarkdownResponse,
-} from "@/lib/registry/markdown.server";
-import { registrySectionList, type RegistrySection } from "@/lib/registry/sections";
+} from "./registry/markdown.server";
+import { registrySectionList, type RegistrySection } from "./registry/sections";
 
 const markdownMediaTypes = new Set(["text/plain", "text/markdown", "text/x-markdown"]);
 const fileExtensionPattern = /\/[^/]+\.[^/]+$/u;

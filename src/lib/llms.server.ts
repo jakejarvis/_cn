@@ -2,21 +2,18 @@ import {
   escapeMarkdownLinkText,
   joinMarkdownBlocks,
   plainTextResponseHeaders,
-} from "@/lib/content/markdown";
-import { docsPages } from "@/lib/docs/catalog";
-import { getAuthoredDocsPageMarkdown } from "@/lib/docs/markdown.server";
-import {
-  getRegistryItemMarkdown,
-  getRegistrySectionMarkdown,
-} from "@/lib/registry/markdown.server";
-import { getRegistrySectionItems } from "@/lib/registry/section-items";
-import { registrySectionList } from "@/lib/registry/sections";
+} from "./content/markdown";
+import { docsPages } from "./docs/catalog";
+import { getAuthoredDocsPageMarkdown } from "./docs/markdown.server";
+import { getRegistryItemMarkdown, getRegistrySectionMarkdown } from "./registry/markdown.server";
+import { getRegistrySectionItems } from "./registry/section-items";
+import { registrySectionList } from "./registry/sections";
 import {
   getCanonicalRegistryIndexUrl,
   getCanonicalSiteUrl,
   getDocsMarkdownPath,
   siteConfig,
-} from "@/lib/site-config";
+} from "./site-config";
 
 export type LlmsDocument = {
   title: string;

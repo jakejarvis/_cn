@@ -1,13 +1,13 @@
 import { describe, expect, test } from "vitest";
 
-import { registryItems } from "@/lib/registry/catalog";
+import { registryItems } from "./catalog";
 import {
   getRegistryIndexJson,
   getRegistryIndexJsonResponse,
   getRegistryItemJsonResponse,
   getRegistrySourceValidationErrors,
-} from "@/lib/registry/json.server";
-import { registryItemSchema } from "@/lib/registry/metadata";
+} from "./json.server";
+import { registryItemSchema } from "./metadata";
 
 describe("registry JSON route responses", () => {
   test("serves the same registry index payload for canonical and alias routes", async () => {

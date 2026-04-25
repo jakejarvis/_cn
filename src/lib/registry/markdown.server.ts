@@ -3,13 +3,12 @@ import {
   formatCodeBlock,
   getMarkdownLanguage,
   joinMarkdownBlocks,
-} from "@/lib/content/markdown";
+} from "../content/markdown";
 import {
   createLinkedMarkdownResponse,
   createMarkdownNotFoundResponse,
-} from "@/lib/content/responses.server";
-import { getCanonicalDocsUrl, getCanonicalRegistryItemUrl } from "@/lib/site-config";
-
+} from "../content/responses.server";
+import { getCanonicalDocsUrl, getCanonicalRegistryItemUrl } from "../site-config";
 import { getRegistryItem } from "./catalog";
 import type { RegistryDetailType } from "./detail.types";
 import { getRegistryDisplaySource } from "./display-source.server";

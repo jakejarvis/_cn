@@ -1,5 +1,4 @@
-import { getLinkedHeaders, getMarkdownHttpLinkHeader } from "@/lib/seo";
-
+import { getLinkedHeaders, getMarkdownHttpLinkHeader } from "../seo";
 import { markdownResponseHeaders } from "./markdown";
 
 export function createLinkedMarkdownResponse(markdown: string, pagePath: string): Response {

@@ -4,7 +4,7 @@ import type {
   RegistryItem as ShadcnRegistryItem,
 } from "shadcn/schema";
 
-import { siteConfig } from "@/lib/site-config";
+import { siteConfig } from "../site-config";
 
 export const registryConfig = {
   $schema: "https://ui.shadcn.com/schema/registry.json",

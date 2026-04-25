@@ -6,8 +6,7 @@ import {
   getCanonicalRegistryIndexPath,
   getCanonicalRegistryItemPath,
   getCanonicalRegistryItemUrl,
-} from "@/lib/site-config";
-
+} from "../../lib/site-config";
 import { getInstallCommand } from "./install-command";
 
 describe("install commands", () => {

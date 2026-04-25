@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { getRegistryItemJsonResponse } from "@/lib/registry/json.server";
+import { getRegistryItemJsonResponse } from "../../lib/registry/json.server";
 
 export const Route = createFileRoute("/r/{$name}.json")({
   server: {

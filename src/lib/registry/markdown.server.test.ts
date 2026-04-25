@@ -1,19 +1,16 @@
 import { describe, expect, test } from "vitest";
 
+import { getMarkdownHttpLinkHeader } from "../seo";
+import { getCanonicalDocsUrl, getCanonicalRegistryItemUrl } from "../site-config";
 import {
   createRegistryItemMarkdown,
   createRegistrySectionMarkdown,
   getRegistryItemMarkdown,
   getRegistryItemMarkdownResponse,
   getRegistrySectionMarkdown,
-} from "@/lib/registry/markdown.server";
-import {
-  getRegistrySectionItems,
-  getRegistrySectionsWithItems,
-} from "@/lib/registry/section-items";
-import { registrySectionList } from "@/lib/registry/sections";
-import { getMarkdownHttpLinkHeader } from "@/lib/seo";
-import { getCanonicalDocsUrl, getCanonicalRegistryItemUrl } from "@/lib/site-config";
+} from "./markdown.server";
+import { getRegistrySectionItems, getRegistrySectionsWithItems } from "./section-items";
+import { registrySectionList } from "./sections";
 
 const fixtureSection = {
   title: "Components",

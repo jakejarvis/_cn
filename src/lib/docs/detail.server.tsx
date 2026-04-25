@@ -3,8 +3,8 @@ import {
   renderMdxContent,
   type MdxContentModule,
 } from "@/components/docs/mdx-content.server";
-import { normalizeGlobFiles } from "@/lib/glob";
 
+import { normalizeGlobFiles } from "../glob";
 import { getDocsPage, type DocsPage } from "./catalog";
 import type { DocsPageDetailInput } from "./detail.types";
 

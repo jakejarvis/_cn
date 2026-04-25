@@ -1,8 +1,7 @@
-import { normalizeGlobFiles } from "@/lib/glob";
-
-import { registryItems, type RegistryCatalogItem, type RegistryPreviewSourceFile } from "./catalog";
-
-const supportedRegistrySourceExtensions = new Set(["css", "js", "jsx", "json", "ts", "tsx"]);
+import { normalizeGlobFiles } from "../glob";
+import { registryItems } from "./catalog";
+import type { RegistryCatalogItem, RegistryPreviewSourceFile } from "./catalog-builder";
+import { isSupportedRegistrySourcePath } from "./source-types";
 
 const registrySources = import.meta.glob<string>(
   "../../../registry/items/**/*.{css,js,jsx,json,ts,tsx}",
@@ -71,12 +70,6 @@ export function getUnsupportedRegistrySourcePaths(): string[] {
       .filter((file) => !isSupportedRegistrySourcePath(file.sourcePath))
       .map((file) => file.sourcePath),
   );
-}
-
-export function isSupportedRegistrySourcePath(path: string): boolean {
-  const extension = path.split(".").at(-1);
-
-  return extension ? supportedRegistrySourceExtensions.has(extension) : false;
 }
 
 export function trimBlankTrailingLines(source: string): string {

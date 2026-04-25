@@ -1,4 +1,5 @@
-import { getRegistryItemsByTypes, type RegistryCatalogItem } from "./catalog";
+import { getRegistryItemsByTypes } from "./catalog";
+import type { RegistryCatalogItem } from "./catalog-builder";
 import {
   registrySectionList,
   registrySections,

@@ -2,8 +2,8 @@ import { createCompositeComponent, type AnyCompositeComponent } from "@tanstack/
 import * as React from "react";
 
 import { renderMdxContent, type MdxContentModule } from "@/components/docs/mdx-content.server";
-import { normalizeGlobFiles } from "@/lib/glob";
 
+import { normalizeGlobFiles } from "../glob";
 import { getRegistryItem } from "./catalog";
 import { isRegistryDetailType, type RegistryItemDetailInput } from "./detail.types";
 import { getRegistryDisplaySource } from "./display-source.server";

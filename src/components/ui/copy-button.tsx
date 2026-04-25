@@ -3,8 +3,8 @@
 import { IconCheck, IconCopy } from "@tabler/icons-react";
 import * as React from "react";
 
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { cn } from "../../lib/utils";
+import { Button } from "./button";
 
 type CopyButtonClickEvent = Parameters<
   NonNullable<React.ComponentProps<typeof Button>["onClick"]>

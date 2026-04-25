@@ -2,7 +2,7 @@
 
 import * as React from "react";
 
-import { cn } from "@/lib/utils";
+import { cn } from "../../lib/utils";
 
 /* oxlint-disable jsx-a11y/label-has-associated-control -- Primitive forwards htmlFor/children from callers. */
 function Label({ className, ...props }: React.ComponentProps<"label">) {

@@ -1,14 +1,14 @@
 import { describe, expect, test } from "vitest";
 
-import { docsPages } from "@/lib/docs/catalog";
+import { getMarkdownHttpLinkHeader } from "../seo";
+import { getCanonicalDocsUrl } from "../site-config";
+import { docsPages } from "./catalog";
 import {
   createAuthoredDocsIndexMarkdown,
   createAuthoredDocsPageMarkdown,
   getAuthoredDocsPageMarkdown,
   getAuthoredDocsPageMarkdownResponse,
-} from "@/lib/docs/markdown.server";
-import { getMarkdownHttpLinkHeader } from "@/lib/seo";
-import { getCanonicalDocsUrl } from "@/lib/site-config";
+} from "./markdown.server";
 
 describe("authored docs markdown", () => {
   test("builds docs index markdown with supplied linked pages", () => {

@@ -1,7 +1,7 @@
 import { useRouter } from "@tanstack/react-router";
 import { useEffect, useEffectEvent, useRef, useState } from "react";
 
-import { cn } from "@/lib/utils";
+import { cn } from "../../lib/utils";
 
 function clamp(value: number, min: number, max: number) {
   return Math.max(min, Math.min(max, value));

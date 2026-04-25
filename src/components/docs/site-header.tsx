@@ -2,15 +2,15 @@ import { IconBrandGithub, IconMenu2 } from "@tabler/icons-react";
 import { Link, useRouterState } from "@tanstack/react-router";
 import * as React from "react";
 
+import { DocsSidebar } from "@/components/docs/docs-sidebar";
+import { SearchDialog } from "@/components/docs/search-dialog";
+import { ThemeToggle } from "@/components/docs/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { getSiteNavigationSections, type SiteNavigationSection } from "@/lib/navigation";
-import { siteConfig } from "@/lib/site-config";
-import { cn } from "@/lib/utils";
 
-import { DocsSidebar } from "./docs-sidebar";
-import { SearchDialog } from "./search-dialog";
-import { ThemeToggle } from "./theme-toggle";
+import { getSiteNavigationSections, type SiteNavigationSection } from "../../lib/navigation";
+import { siteConfig } from "../../lib/site-config";
+import { cn } from "../../lib/utils";
 
 export function SiteHeader() {
   const pathname = useRouterState({

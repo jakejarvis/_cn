@@ -1,8 +1,10 @@
 import { IconChevronDown } from "@tabler/icons-react";
 import * as React from "react";
 
-import { Button } from "@/components/ui/button";
-import { CopyButton } from "@/components/ui/copy-button";
+import { getCanonicalRegistryItemUrl } from "../../lib/site-config";
+import { cn } from "../../lib/utils";
+import { Button } from "../ui/button";
+import { CopyButton } from "../ui/copy-button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,9 +12,7 @@ import {
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { getCanonicalRegistryItemUrl } from "@/lib/site-config";
-import { cn } from "@/lib/utils";
+} from "../ui/dropdown-menu";
 
 const PACKAGE_MANAGER_STORAGE_KEY = "preferred-pm";
 const PACKAGE_MANAGER_CHANGE_EVENT = "preferred-pm-change";
@@ -211,7 +211,7 @@ export function InstallCommand({ item, className }: InstallCommandProps) {
           size="icon-sm"
         />
       </div>
-      <pre className="overflow-x-auto p-4 text-sm leading-6 text-foreground/80">
+      <pre className="overflow-x-auto p-4 text-[13px] text-foreground/80">
         <code>{command}</code>
       </pre>
     </div>

@@ -15,6 +15,17 @@ import { shouldExcludeFromSitemap } from "./src/lib/seo.ts";
 import { siteConfig } from "./src/lib/site-config.ts";
 
 const config = defineConfig({
+  run: {
+    tasks: {
+      "registry:new": {
+        // TODO: fix TTY weirdness -- for now, run `./scripts/new.ts` from the command line directly.
+        command: "bun --bun ./scripts/new.ts",
+      },
+      "registry:doctor": {
+        command: "bun --bun ./scripts/doctor.ts",
+      },
+    },
+  },
   staged: {
     "*": "vp check --fix",
   },
@@ -97,6 +108,7 @@ const config = defineConfig({
     include: ["src/**/*.test.ts", "src/**/*.test.tsx"],
     globals: true,
   },
+  clearScreen: false,
   server: {
     watch: {
       ignored: [

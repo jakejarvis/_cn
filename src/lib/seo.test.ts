@@ -10,8 +10,8 @@ import {
   getTechArticleJsonLd,
   getWebSiteJsonLd,
   shouldExcludeFromSitemap,
-} from "@/lib/seo";
-import { getCanonicalSiteUrl, siteConfig } from "@/lib/site-config";
+} from "./seo";
+import { getCanonicalSiteUrl, siteConfig } from "./site-config";
 
 describe("seo helpers", () => {
   test("formats page titles without duplicating the site name", () => {

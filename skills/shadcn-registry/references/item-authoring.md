@@ -16,6 +16,33 @@ Use these rules when creating or changing `_cn` registry items.
 
 Use kebab-case folder and file names. Keep `_registry.mdx` private to authoring; never list it in `files`.
 
+## Scaffold New Items
+
+For new items, create the starter files with the non-interactive scaffold command before editing source, metadata, preview, and usage docs:
+
+```sh
+bun --bun ./scripts/new.ts --type registry:ui --name example-card --description "A compact card component."
+```
+
+Use these flags:
+
+- `--type`: one of the item types above. Defaults to `registry:ui` when omitted.
+- `--name`: required kebab-case item name.
+- `--title`: optional public title. Defaults from `--name`.
+- `--description`: required public description.
+- `--target`: required for `registry:page` and `registry:file`.
+- `--file-extension`: only for `registry:file`; defaults to `ts`.
+
+Examples:
+
+```sh
+bun --bun ./scripts/new.ts --type registry:block --name stats-panel --description "A metrics panel with reusable sample data."
+bun --bun ./scripts/new.ts --type registry:page --name dashboard-page --description "A starter dashboard page." --target app/dashboard/page.tsx
+bun --bun ./scripts/new.ts --type registry:file --name chart-theme --description "Shared chart theme tokens." --target styles/chart-theme.css --file-extension css
+```
+
+Run `bun --bun ./scripts/new.ts` with no flags only when an interactive prompt is appropriate.
+
 ## Frontmatter
 
 Every `_registry.mdx` needs:

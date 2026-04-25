@@ -6,8 +6,8 @@ import {
   parseMdxAst,
   parseYamlFrontmatter,
   type MdxAstNode,
-} from "@/lib/content/mdx";
-import { normalizeGlobFiles } from "@/lib/glob";
+} from "../content/mdx";
+import { normalizeGlobFiles } from "../glob";
 
 type DocsFrontmatter = {
   title?: string;

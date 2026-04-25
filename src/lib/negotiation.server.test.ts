@@ -28,7 +28,7 @@ describe("markdown negotiation", () => {
     const cases = [
       { path: "/docs", expected: "# Introduction" },
       { path: "/docs/", expected: "# Introduction" },
-      { path: "/docs/llms", expected: "# LLMs" },
+      { path: "/docs/agents", expected: "# Agents" },
       { path: "/components", expected: "# Components" },
       { path: "/components/example-card", expected: "# Example Card" },
       { path: "/blocks", expected: "# Blocks" },

@@ -1,6 +1,5 @@
-import { getCanonicalDocsUrl, getDocsMarkdownPath } from "@/lib/site-config";
-import { cn } from "@/lib/utils";
-
+import { getCanonicalDocsUrl, getDocsMarkdownPath } from "../../lib/site-config";
+import { cn } from "../../lib/utils";
 import { DocsPageActions } from "./docs-page-actions";
 
 type DocsPageHeaderProps = {

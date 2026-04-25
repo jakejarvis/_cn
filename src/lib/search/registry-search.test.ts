@@ -1,15 +1,15 @@
 import { describe, expect, test } from "vitest";
 
-import type { DocsPage } from "@/lib/docs/catalog";
-import { docsPages } from "@/lib/docs/catalog";
-import { getRegistrySectionsWithItems } from "@/lib/registry/section-items";
+import type { DocsPage } from "../docs/catalog";
+import { docsPages } from "../docs/catalog";
+import { getRegistrySectionsWithItems } from "../registry/section-items";
 import {
   createRegistrySearchRecords,
   getRegistrySearchRecords,
   searchRegistryItems,
   searchRegistryRecords,
   type RegistrySearchRecordsInput,
-} from "@/lib/search/registry-search";
+} from "./registry-search";
 
 const fixtureSearchInput = {
   docsPages: [

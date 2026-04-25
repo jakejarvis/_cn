@@ -1,8 +1,7 @@
 import { useRouterState } from "@tanstack/react-router";
 import type * as React from "react";
 
-import { getSiteNavigationSection, type SiteNavigationSectionId } from "@/lib/navigation";
-
+import { getSiteNavigationSection, type SiteNavigationSectionId } from "../../lib/navigation";
 import { DocsSidebar } from "./docs-sidebar";
 
 type DocsLayoutProps = {

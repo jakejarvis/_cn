@@ -5,9 +5,8 @@ import {
   getRequiredStringField,
   parseYamlFrontmatter,
   type MdxAstNode,
-} from "@/lib/content/mdx";
-import { getCanonicalRegistryItemUrl } from "@/lib/site-config";
-
+} from "../content/mdx";
+import { getCanonicalRegistryItemUrl } from "../site-config";
 import { getRegistryMdxSections, parseRegistryMdxAst } from "./mdx-ast";
 import type { RegistryItemAuthoringDefinition, RegistrySourceFileDefinition } from "./metadata";
 

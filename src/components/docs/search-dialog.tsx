@@ -23,9 +23,10 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Spinner } from "@/components/ui/spinner";
-import type { RegistrySearchResult } from "@/lib/search/registry-search";
-import { searchRegistryItemsFn } from "@/lib/search/registry-search.functions";
-import { cn } from "@/lib/utils";
+
+import type { RegistrySearchResult } from "../../lib/search/registry-search";
+import { searchRegistryItemsFn } from "../../lib/search/registry-search.functions";
+import { cn } from "../../lib/utils";
 
 type SearchState = "idle" | "loading" | "ready" | "error";
 

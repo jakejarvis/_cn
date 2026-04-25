@@ -1,7 +1,6 @@
 import { describe, expect, test } from "vitest";
 
-import { getCanonicalRegistryItemUrl } from "@/lib/site-config";
-
+import { getCanonicalRegistryItemUrl } from "../site-config";
 import { parseRegistryMdx } from "./mdx";
 
 describe("registry MDX parser", () => {

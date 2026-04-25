@@ -5,10 +5,11 @@ Use this workflow when a user asks to adapt UI from an app into an installable s
 ## Extract The Reusable Unit
 
 1. Identify whether the source is a component, block, hook, helper, page, or file.
-2. Copy only the reusable code into `registry/items/**`.
-3. Remove direct dependencies on app routing, auth, database clients, analytics, environment variables, and server-only helpers unless the item explicitly installs those integrations.
-4. Replace app data access with props, local sample data, or small exported fixtures.
-5. Keep visual behavior and interaction model intact unless the user asks for a redesign.
+2. For new items, scaffold the target registry folder first with `bun --bun ./scripts/new.ts --type <type> --name <kebab-name> --description "<description>"`; include `--target` for pages/files and `--file-extension` for non-`ts` file items.
+3. Copy only the reusable code into the scaffolded `registry/items/**` files.
+4. Remove direct dependencies on app routing, auth, database clients, analytics, environment variables, and server-only helpers unless the item explicitly installs those integrations.
+5. Replace app data access with props, local sample data, or small exported fixtures.
+6. Keep visual behavior and interaction model intact unless the user asks for a redesign.
 
 ## Normalize The Public API
 

@@ -1,8 +1,15 @@
+import { ScriptOnce } from "@tanstack/react-router";
 import * as React from "react";
 
 const THEME_STORAGE_KEY = "theme";
 
 type Theme = "light" | "dark" | "system";
+
+type ThemeProviderProps = {
+  children: React.ReactNode;
+  defaultTheme?: Theme;
+  storageKey?: string;
+};
 
 type ThemeContextValue = {
   theme: Theme;
@@ -24,40 +31,70 @@ function getSystemTheme() {
   return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
 }
 
-function getStoredTheme(): Theme {
+function getResolvedTheme(theme: Theme) {
+  return theme === "system" ? getSystemTheme() : theme;
+}
+
+function getStoredTheme(storageKey: string, defaultTheme: Theme): Theme {
   if (typeof window === "undefined") {
-    return "system";
+    return defaultTheme;
   }
 
-  const storedTheme = window.localStorage.getItem(THEME_STORAGE_KEY);
+  const storedTheme = window.localStorage.getItem(storageKey);
 
-  return isTheme(storedTheme) ? storedTheme : "system";
+  return isTheme(storedTheme) ? storedTheme : defaultTheme;
 }
 
 function applyTheme(theme: Theme) {
-  const resolvedTheme = theme === "system" ? getSystemTheme() : theme;
+  const resolvedTheme = getResolvedTheme(theme);
   const root = document.documentElement;
 
-  root.classList.toggle("dark", resolvedTheme === "dark");
+  root.classList.remove("light", "dark");
+  root.classList.add(resolvedTheme);
+  root.style.colorScheme = resolvedTheme;
   root.dataset.theme = theme;
 
   return resolvedTheme;
 }
 
-export const themeScript = `(()=>{try{const e="${THEME_STORAGE_KEY}",t=window.localStorage.getItem(e),a="light"===t||"dark"===t||"system"===t?t:"system",m=window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light",s="system"===a?m:a;document.documentElement.classList.toggle("dark","dark"===s),document.documentElement.dataset.theme=a}catch{}})();`;
+function getThemeScript(storageKey: string, defaultTheme: Theme) {
+  const key = JSON.stringify(storageKey);
+  const fallback = JSON.stringify(defaultTheme);
 
-export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = React.useState<Theme>(getStoredTheme);
-  const [resolvedTheme, setResolvedTheme] = React.useState<"light" | "dark">(() =>
-    theme === "system" ? getSystemTheme() : theme,
+  return `(function(){try{var t=localStorage.getItem(${key});if(t!=='light'&&t!=='dark'&&t!=='system'){t=${fallback}}var d=matchMedia('(prefers-color-scheme: dark)').matches;var r=t==='system'?(d?'dark':'light'):t;var e=document.documentElement;e.classList.remove('light','dark');e.classList.add(r);e.style.colorScheme=r;e.dataset.theme=t}catch(e){}})();`;
+}
+
+export function ThemeProvider({
+  children,
+  defaultTheme = "system",
+  storageKey = THEME_STORAGE_KEY,
+}: ThemeProviderProps) {
+  const [theme, setThemeState] = React.useState<Theme>(defaultTheme);
+  const [resolvedTheme, setResolvedTheme] = React.useState<"light" | "dark">(
+    defaultTheme === "dark" ? "dark" : "light",
+  );
+  const [mounted, setMounted] = React.useState(false);
+
+  const setTheme = React.useCallback(
+    (nextTheme: Theme) => {
+      window.localStorage.setItem(storageKey, nextTheme);
+      setThemeState(nextTheme);
+    },
+    [storageKey],
   );
 
-  const setTheme = React.useCallback((nextTheme: Theme) => {
-    window.localStorage.setItem(THEME_STORAGE_KEY, nextTheme);
-    setThemeState(nextTheme);
-  }, []);
+  React.useEffect(() => {
+    const storedTheme = getStoredTheme(storageKey, defaultTheme);
+    setThemeState(storedTheme);
+    setResolvedTheme(getResolvedTheme(storedTheme));
+    setMounted(true);
+  }, [defaultTheme, storageKey]);
 
   React.useEffect(() => {
+    if (!mounted) {
+      return undefined;
+    }
+
     setResolvedTheme(applyTheme(theme));
 
     let cleanup: (() => void) | undefined;
@@ -71,14 +108,19 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     }
 
     return cleanup;
-  }, [theme]);
+  }, [theme, mounted]);
 
   const value = React.useMemo(
     () => ({ theme, resolvedTheme, setTheme }),
     [theme, resolvedTheme, setTheme],
   );
 
-  return <ThemeContext value={value}>{children}</ThemeContext>;
+  return (
+    <ThemeContext value={value}>
+      <ScriptOnce>{getThemeScript(storageKey, defaultTheme)}</ScriptOnce>
+      {children}
+    </ThemeContext>
+  );
 }
 
 export function useTheme() {

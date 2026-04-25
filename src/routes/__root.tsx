@@ -6,7 +6,7 @@ import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 import { NavigationProgress } from "@/components/docs/navigation-progress";
 import { SiteFooter } from "@/components/docs/site-footer";
 import { SiteHeader } from "@/components/docs/site-header";
-import { ThemeProvider, themeScript } from "@/components/docs/theme-provider";
+import { ThemeProvider } from "@/components/docs/theme-provider";
 import { Button } from "@/components/ui/button";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
@@ -161,7 +161,6 @@ function RootDocument({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
         <HeadContent />
       </head>
       <body className="font-sans [overflow-wrap:anywhere] tabular-nums antialiased">

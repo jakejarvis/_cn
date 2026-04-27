@@ -1,30 +1,87 @@
 ---
 name: shadcn-registry
-description: Author and adapt installable shadcn-compatible registry items in _cn template repositories. Use when asked to add a component such as "add a button component to the registry", adapt app UI into a reusable registry component or block, add hooks, libs/helpers, pages/files, previews, usage docs, registry dependencies, local registry dependencies, or validate _cn registry item authoring.
+description: Add or adapt installable shadcn registry items in _cn template repos.
 ---
 
 # Shadcn Registry
 
-Use this skill to add, adapt, or maintain installable registry items in a `_cn` template repo for a [shadcn/ui registry](https://ui.shadcn.com/docs/registry).
+Use this skill for installable registry items: UI components, blocks, hooks, helpers, pages, files, previews, usage docs, and registry dependency metadata. Local `AGENTS.md` and `README.md` override this file.
 
 ## Workflow
 
-1. Inspect the local `AGENTS.md` and `README.md` first. Treat local repo instructions as the source of truth when they differ from this skill.
-2. Put published registry source under `registry/items/**`. Do not put installable registry item source under `src/components/ui`; that folder is for the docs app shell.
-3. Author each item with `_registry.mdx`: YAML frontmatter metadata, optional MDX Usage body, and a named `Preview` export.
-4. Choose the registry type and folder from the user's intent:
-   - component/ui: `registry:ui` in `registry/items/components/<kebab-name>/`
-   - non-UI component: `registry:component` in `registry/items/components/<kebab-name>/`
-   - block: `registry:block` in `registry/items/blocks/<kebab-name>/`
-   - hook: `registry:hook` in `registry/items/hooks/<kebab-name>/`
-   - lib/helper: `registry:lib` in `registry/items/lib/<kebab-name>/`
-   - page/file: explicit-file item under a clear `registry/items/<section>/<kebab-name>/` folder
-5. For new items, prefer the non-interactive scaffold command instead of hand-creating starter files: `bun --bun ./scripts/new.ts --type registry:ui --name <kebab-name> --description "<description>"`. Add `--target` for `registry:page` and `registry:file`; add `--file-extension` for `registry:file` when not using the default `ts`.
-6. For one-file `registry:ui` items, omit `files` only when the published source is `<item-name>.tsx` in the item folder. List `files` explicitly for hooks, libs, blocks, pages, target paths, and multi-file items.
-7. Use shadcn primitive names such as `button`, `card`, and `badge` in `registryDependencies`. Use `localRegistryDependencies` for other local registry items.
-8. Run focused checks on touched files. Run `vp build` when docs, routes, registry JSON, catalog loading, or source loading changed.
+1. Inspect the local repo instructions first.
+2. Put published item source under `registry/items/**`. Do not put installable item source under `src/components/ui`; that folder is only for the docs app shell.
+3. For new items, scaffold before editing:
 
-## References
+```sh
+bun --bun ./scripts/new.ts --type registry:ui --name example-card --description "A compact card component."
+```
 
-- Read [`references/item-authoring.md`](references/item-authoring.md) when creating or changing registry items, metadata, dependency fields, published files, or examples.
-- Read [`references/adaptation-workflow.md`](references/adaptation-workflow.md) when adapting UI from an app into reusable registry components, blocks, hooks, or helpers.
+Use `--target` for `registry:page` and `registry:file`; use `--file-extension` for non-`ts` file items.
+
+## Type Map
+
+| User intent               | Type                 | Folder                              |
+| ------------------------- | -------------------- | ----------------------------------- |
+| shadcn-style UI component | `registry:ui`        | `registry/items/components/<name>/` |
+| non-UI component          | `registry:component` | `registry/items/components/<name>/` |
+| composed UI pattern       | `registry:block`     | `registry/items/blocks/<name>/`     |
+| React hook                | `registry:hook`      | `registry/items/hooks/<name>/`      |
+| helper module             | `registry:lib`       | `registry/items/lib/<name>/`        |
+| app page                  | `registry:page`      | `registry/items/pages/<name>/`      |
+| explicit target file      | `registry:file`      | `registry/items/files/<name>/`      |
+
+Use kebab-case folder and file names.
+
+## `_registry.mdx`
+
+Each item uses `_registry.mdx` for YAML frontmatter, optional public MDX Usage, and a named `Preview` export. Never list `_registry.mdx` in `files`.
+
+Required frontmatter:
+
+```yaml
+---
+name: example-card
+type: registry:ui
+title: Example Card
+description: A compact card component.
+---
+```
+
+Dependency fields:
+
+- `registryDependencies`: shadcn primitive names such as `button`, `card`, `badge`, `dialog`, or `input`.
+- `localRegistryDependencies`: other local registry item names.
+- `files`: required for hooks, libs, blocks, pages, target paths, and multi-file items. One-file `registry:ui` items may omit it only when the published source is `<item-name>.tsx` in the item folder.
+
+Minimal usage and preview:
+
+````mdx
+import { ExampleCard } from "./example-card";
+
+```tsx
+import { ExampleCard } from "@/components/ui/example-card";
+```
+
+export function Preview() {
+  return <ExampleCard />;
+}
+````
+
+Keep previews client-safe: static data, local state, and events are fine; avoid network calls, auth, server functions, env reads, and app-only providers.
+
+## Adaptation Rules
+
+- Extract only the reusable unit into the scaffolded item folder.
+- Replace app data access with props, sample data, or small exported fixtures.
+- Remove dependencies on app routing, auth, database clients, analytics, env vars, and server-only helpers unless the item intentionally installs those integrations.
+- Preserve visual behavior unless the user asks for a redesign.
+- Keep relative imports inside the item folder relative.
+- Publish shared helpers as separate `registry:lib` files only when that improves install clarity.
+
+## Verification
+
+- Run `vp check --fix <touched-files>`.
+- Run `bun --bun ./scripts/doctor.ts` after registry item changes when Bun is available.
+- Run focused tests when catalog, JSON, source loading, or docs rendering changed.
+- Run `vp build` before handoff when docs, routes, registry JSON, catalog loading, or source loading changed.

@@ -1,12 +1,23 @@
+import Negotiator from "negotiator";
+import { match } from "path-to-regexp";
+
 import { getAuthoredDocsPageMarkdownResponse } from "./docs/markdown.server";
 import {
   getRegistryItemMarkdownResponse,
   getRegistrySectionMarkdownResponse,
 } from "./registry/markdown.server";
-import { registrySectionList, type RegistrySection } from "./registry/sections";
+import { registrySectionList } from "./registry/sections";
 
 const markdownMediaTypes = new Set(["text/plain", "text/markdown", "text/x-markdown"]);
 const fileExtensionPattern = /\/[^/]+\.[^/]+$/u;
+
+// Keep route matching compiled at module load; this middleware runs on every request.
+const pathMatcherOptions = { decode: decodePathSegment, sensitive: true } as const;
+const docsPathMatcher = match<{ slug?: string }>("/docs{/:slug}", pathMatcherOptions);
+const registryPathMatchers = registrySectionList.map((section) => ({
+  section: section.id,
+  matcher: match<{ name?: string }>(`${section.basePath}{/:name}`, pathMatcherOptions),
+}));
 
 export function getMarkdownNegotiationResponseForRequest(
   request: Request,
@@ -20,124 +31,47 @@ export function getMarkdownNegotiationResponseForRequest(
 }
 
 export function isMarkdownPreferred(request: Request): boolean {
-  const acceptHeader = request.headers.get("Accept");
+  const headers: Record<string, string> = {};
+  request.headers.forEach((value, key) => {
+    headers[key] = value;
+  });
 
-  if (!acceptHeader) {
-    return false;
-  }
-
-  return getAcceptedMediaTypes(acceptHeader).some((mediaType) => markdownMediaTypes.has(mediaType));
+  return new Negotiator({ headers })
+    .mediaTypes()
+    .some((mediaType) => markdownMediaTypes.has(mediaType.toLowerCase()));
 }
 
 export function getMarkdownNegotiationResponse(pathname: string): Response | undefined {
-  const path = getNegotiablePathname(pathname);
+  const path = normalizePathname(pathname);
 
-  if (!path) {
+  // Only human-facing HTML routes participate; machine endpoints and assets keep their own responses.
+  if (path === "/" || path.startsWith("/r/") || fileExtensionPattern.test(path)) {
     return undefined;
   }
 
-  const docsPath = getDocsPath(path);
+  const docsMatch = docsPathMatcher(path);
+  if (docsMatch) return getAuthoredDocsPageMarkdownResponse(docsMatch.params.slug ?? "");
 
-  if (docsPath !== undefined) {
-    return getAuthoredDocsPageMarkdownResponse(docsPath);
-  }
+  for (const { matcher, section } of registryPathMatchers) {
+    const registryMatch = matcher(path);
+    if (!registryMatch) continue;
 
-  const registryPath = getRegistryPath(path);
-
-  if (!registryPath) {
-    return undefined;
-  }
-
-  if (!registryPath.itemName) {
-    return getRegistrySectionMarkdownResponse(registryPath.section);
-  }
-
-  return getRegistryItemMarkdownResponse(registryPath.section, registryPath.itemName);
-}
-
-function getAcceptedMediaTypes(acceptHeader: string): string[] {
-  return acceptHeader.split(",").flatMap((entry) => {
-    const [mediaType, ...parameters] = entry.split(";").map((part) => part.trim().toLowerCase());
-
-    if (!mediaType || isExplicitlyRejected(parameters)) {
-      return [];
-    }
-
-    return [mediaType];
-  });
-}
-
-function isExplicitlyRejected(parameters: readonly string[]): boolean {
-  return parameters.some((parameter) => {
-    const [key, value] = parameter.split("=", 2).map((part) => part.trim());
-
-    return key === "q" && Number(value) === 0;
-  });
-}
-
-function getNegotiablePathname(pathname: string): string | undefined {
-  const normalizedPath = normalizePathname(pathname);
-
-  if (
-    normalizedPath === "/" ||
-    normalizedPath.startsWith("/r/") ||
-    fileExtensionPattern.test(normalizedPath)
-  ) {
-    return undefined;
-  }
-
-  return normalizedPath;
-}
-
-function getDocsPath(pathname: string): string | undefined {
-  if (pathname === "/docs") {
-    return "";
-  }
-
-  if (pathname.startsWith("/docs/")) {
-    return decodePathSegment(pathname.slice("/docs/".length));
-  }
-
-  return undefined;
-}
-
-function getRegistryPath(
-  pathname: string,
-): { section: RegistrySection; itemName?: string } | undefined {
-  for (const section of registrySectionList) {
-    if (pathname === section.basePath) {
-      return { section: section.id };
-    }
-
-    const itemPrefix = `${section.basePath}/`;
-
-    if (pathname.startsWith(itemPrefix)) {
-      return {
-        section: section.id,
-        itemName: decodePathSegment(pathname.slice(itemPrefix.length)),
-      };
-    }
+    const itemName = registryMatch.params.name;
+    return itemName
+      ? getRegistryItemMarkdownResponse(section, itemName)
+      : getRegistrySectionMarkdownResponse(section);
   }
 
   return undefined;
 }
 
 function normalizePathname(pathname: string): string {
-  const urlPathname = getUrlPathname(pathname);
-  const trimmedPathname = urlPathname.replace(/\/+$/u, "");
-
-  return trimmedPathname || "/";
-}
-
-function getUrlPathname(pathname: string): string {
-  try {
-    return new URL(pathname, "https://example.invalid").pathname;
-  } catch {
-    return pathname.split(/[?#]/u)[0] || "/";
-  }
+  // TanStack Start passes a pathname here, so avoid URL parsing and only normalize trailing slashes.
+  return pathname.replace(/\/+$/u, "") || "/";
 }
 
 function decodePathSegment(segment: string): string {
+  // Malformed percent-encoding should miss content normally instead of failing the request.
   try {
     return decodeURIComponent(segment);
   } catch {

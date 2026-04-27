@@ -12,9 +12,13 @@ describe("markdown negotiation", () => {
       expect(isMarkdownPreferred(createRequest(mediaType))).toBe(true);
     }
 
+    expect(isMarkdownPreferred(createRequest("TEXT/MARKDOWN"))).toBe(true);
     expect(isMarkdownPreferred(createRequest("text/html, text/plain"))).toBe(true);
     expect(isMarkdownPreferred(createRequest("text/markdown; q=0"))).toBe(false);
     expect(isMarkdownPreferred(createRequest("text/html, application/xhtml+xml"))).toBe(false);
+    expect(isMarkdownPreferred(createRequest("text/html, application/xhtml+xml, */*;q=0.8"))).toBe(
+      false,
+    );
     expect(isMarkdownPreferred(createRequest())).toBe(false);
   });
 
@@ -53,6 +57,7 @@ describe("markdown negotiation", () => {
     for (const path of [
       "/",
       "/components.md",
+      "/DOCS",
       "/components/example-card.md",
       "/llms.txt",
       "/registry.json",

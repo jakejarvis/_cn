@@ -1,15 +1,19 @@
 import { describe, expect, test } from "vitest";
 
-import { getRegistryItemsByTypes, registryMetadataItems, registryItems } from "./catalog";
+import {
+  getRegistryCatalogWithItems,
+  getRegistryItemsByTypes,
+  registryMetadataItems,
+  registryItems,
+} from "./catalog";
 import { getRegistryDisplaySource } from "./display-source.server";
+import { publicRegistryItemTypes } from "./item-types";
 import {
   getRegistryIndexJson,
   getRegistryItemJson,
   getRegistryValidationErrors,
 } from "./json.server";
 import { registryItemSchema } from "./metadata";
-import { getRegistrySectionsWithItems } from "./section-items";
-import { componentRegistryTypes, registrySectionList } from "./sections";
 import { isSupportedRegistrySourcePath } from "./source-types";
 import {
   getMissingRegistryPreviewPaths,
@@ -42,7 +46,10 @@ describe("registry catalog", () => {
       getAlphabetizedItemNames(registryIndexItems),
     );
 
-    for (const types of [componentRegistryTypes, ["registry:block"] as const]) {
+    for (const types of [
+      ["registry:ui", "registry:component"] as const,
+      ["registry:block"] as const,
+    ]) {
       const items = getRegistryItemsByTypes(types);
 
       expect(items.map((item) => item.name)).toEqual(getAlphabetizedItemNames(items));
@@ -69,8 +76,8 @@ describe("registry catalog", () => {
       expect(registryItemJson).not.toBeNull();
       expect(registryItemJson?.$schema).toBe(registryItemSchema);
       expect(registryItemJson?.name).toBe(item.name);
-      expect(registryItemJson?.files.map(toRegistryFileDefinition)).toEqual(item.files);
-      expect(registryItemJson?.files.every((file) => file.content.length > 0)).toBe(true);
+      expect(registryItemJson?.files?.map(toRegistryFileDefinition) ?? []).toEqual(item.files);
+      expect(registryItemJson?.files?.every((file) => file.content.length > 0) ?? true).toBe(true);
       expect(registryItemJson).not.toHaveProperty("hasUsage");
       expect(registryItemJson).not.toHaveProperty("usageSource");
       expect(registryItemJson).not.toHaveProperty("previewSourceFile");
@@ -85,19 +92,25 @@ describe("registry catalog", () => {
     expect(getRegistryValidationErrors()).toEqual([]);
   });
 
-  test("shows non-empty registry sections in the docs navigation", () => {
-    expect(getRegistrySectionsWithItems().map((section) => section.id)).toEqual(
-      registrySectionList
-        .filter((section) => getRegistryItemsByTypes(section.registryTypes).length > 0)
-        .map((section) => section.id),
+  test("builds one grouped registry catalog for docs navigation", () => {
+    const catalog = getRegistryCatalogWithItems();
+
+    expect(catalog.id).toBe("registry");
+    expect(catalog.items).toEqual(registryItems);
+    expect(catalog.groups.map((group) => group.type)).toEqual(
+      publicRegistryItemTypes.filter((type) => getRegistryItemsByTypes([type]).length > 0),
     );
   });
 
-  test("has preview snippets for every item", () => {
+  test("loads preview snippets when items define previews", () => {
     for (const item of registryItems) {
-      expect(getRegistryItemWithSources(item).previewSourceFile.source).toContain(
-        `export function Preview`,
-      );
+      const source = getRegistryItemWithSources(item).previewSourceFile.source;
+
+      if (item.hasPreview) {
+        expect(source).toContain(`export function Preview`);
+      } else {
+        expect(source).toBe("");
+      }
     }
   });
 
@@ -115,7 +128,8 @@ describe("registry catalog", () => {
     expect(getUnsupportedRegistrySourcePaths()).toEqual([]);
     expect(isSupportedRegistrySourcePath("registry/items/example/example.tsx")).toBe(true);
     expect(isSupportedRegistrySourcePath("registry/items/example/example.css")).toBe(true);
-    expect(isSupportedRegistrySourcePath("registry/items/example/example.md")).toBe(false);
+    expect(isSupportedRegistrySourcePath("registry/items/example/example.md")).toBe(true);
+    expect(isSupportedRegistrySourcePath("registry/items/example/.env")).toBe(true);
   });
 
   test("loads preview source for every item", () => {
@@ -132,7 +146,9 @@ describe("registry catalog", () => {
   test("loads metadata without evaluating client-only preview imports", () => {
     for (const item of registryItems) {
       expect(item.previewSourceFile.path).toMatch(/\/_registry\.mdx$/u);
-      expect(item.previewSourceFile.source).toContain("export function Preview");
+      if (item.hasPreview) {
+        expect(item.previewSourceFile.source).toContain("export function Preview");
+      }
     }
   });
 
@@ -143,7 +159,9 @@ describe("registry catalog", () => {
     for (const item of registryItems) {
       const itemWithSources = getRegistryItemWithSources(item);
 
-      expect(itemWithSources.previewSourceFile.source).not.toMatch(/\n[ \t]*$/u);
+      if (item.hasPreview) {
+        expect(itemWithSources.previewSourceFile.source).not.toMatch(/\n[ \t]*$/u);
+      }
 
       for (const file of itemWithSources.sourceFiles) {
         expect(file.source).not.toMatch(/\n[ \t]*$/u);
@@ -208,6 +226,10 @@ describe("registry catalog", () => {
     for (const item of registryItems) {
       const itemWithSources = getRegistryItemWithSources(item);
 
+      if (!item.hasPreview) {
+        continue;
+      }
+
       expect(itemWithSources.previewSourceFile.path.endsWith("_registry.mdx")).toBe(true);
       expect(itemWithSources.previewSourceFile.source).toContain("export function Preview");
       expect(itemWithSources.previewSourceFile.source).not.toContain("registryItem");
@@ -216,16 +238,17 @@ describe("registry catalog", () => {
   });
 });
 
-function getAlphabetizedItemNames(items: { name: string; title: string }[]): string[] {
+function getAlphabetizedItemNames(items: { name: string; title?: string }[]): string[] {
   return items.toSorted(compareRegistryItemNames).map((item) => item.name);
 }
 
 function compareRegistryItemNames(
-  a: { name: string; title: string },
-  b: { name: string; title: string },
+  a: { name: string; title?: string },
+  b: { name: string; title?: string },
 ): number {
   return (
-    registryItemCollator.compare(a.title, b.title) || registryItemCollator.compare(a.name, b.name)
+    registryItemCollator.compare(a.title ?? a.name, b.title ?? b.name) ||
+    registryItemCollator.compare(a.name, b.name)
   );
 }
 

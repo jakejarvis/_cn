@@ -3,7 +3,6 @@ import { Link, createFileRoute } from "@tanstack/react-router";
 
 import { Button } from "@/components/ui/button";
 
-import { getRegistrySectionsWithItems } from "../lib/registry/section-items";
 import { getSeoHead } from "../lib/seo";
 import { siteConfig } from "../lib/site-config";
 
@@ -18,8 +17,6 @@ export const Route = createFileRoute("/")({
 });
 
 function HomePage() {
-  const firstSection = getRegistrySectionsWithItems()[0];
-
   return (
     <div className="flex flex-1 flex-col items-center justify-center px-4 py-24 sm:py-32">
       <div className="mx-auto flex max-w-2xl flex-col items-center gap-6 text-center">
@@ -28,12 +25,10 @@ function HomePage() {
         </h1>
         <p className="max-w-lg text-base text-muted-foreground">{siteConfig.description}</p>
         <div className="flex items-center gap-3">
-          {firstSection ? (
-            <Button size="lg" nativeButton={false} render={<Link to={firstSection.basePath} />}>
-              <IconBlocks data-icon="inline-start" />
-              Browse
-            </Button>
-          ) : null}
+          <Button size="lg" nativeButton={false} render={<Link to="/registry" />}>
+            <IconBlocks data-icon="inline-start" />
+            Browse
+          </Button>
           <Button
             variant="outline"
             size="lg"

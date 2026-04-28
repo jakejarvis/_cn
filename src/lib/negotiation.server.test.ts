@@ -33,12 +33,10 @@ describe("markdown negotiation", () => {
       { path: "/docs", expected: "# Introduction" },
       { path: "/docs/", expected: "# Introduction" },
       { path: "/docs/agents", expected: "# Agents" },
-      { path: "/components", expected: "# Components" },
-      { path: "/components/example-card", expected: "# Example Card" },
-      { path: "/blocks", expected: "# Blocks" },
-      { path: "/blocks/stats-panel", expected: "# Stats Panel" },
-      { path: "/utilities", expected: "# Utilities" },
-      { path: "/utilities/use-copy-to-clipboard", expected: "# useCopyToClipboard" },
+      { path: "/registry", expected: "# Registry" },
+      { path: "/registry/example-card", expected: "# Example Card" },
+      { path: "/registry/stats-panel", expected: "# Stats Panel" },
+      { path: "/registry/use-copy-to-clipboard", expected: "# useCopyToClipboard" },
     ];
 
     await Promise.all(
@@ -56,15 +54,15 @@ describe("markdown negotiation", () => {
   test("does not intercept machine-readable or asset paths", () => {
     for (const path of [
       "/",
-      "/components.md",
+      "/registry.md",
       "/DOCS",
-      "/components/example-card.md",
+      "/registry/example-card.md",
       "/llms.txt",
       "/registry.json",
       "/r/registry.json",
       "/robots.txt",
       "/favicon.svg",
-      "/components/example-card.png",
+      "/registry/example-card.png",
     ]) {
       expect(getMarkdownNegotiationResponse(path)).toBeUndefined();
     }
@@ -72,7 +70,7 @@ describe("markdown negotiation", () => {
 
   test("returns markdown 404 responses for missing supported content", () => {
     const missingDocs = getMarkdownNegotiationResponse("/docs/missing");
-    const missingItem = getMarkdownNegotiationResponse("/components/missing");
+    const missingItem = getMarkdownNegotiationResponse("/registry/missing");
 
     expect(missingDocs?.status).toBe(404);
     expect(missingDocs?.headers.get("Content-Type")).toBe("text/markdown; charset=utf-8");

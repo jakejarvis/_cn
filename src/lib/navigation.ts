@@ -3,20 +3,16 @@ import {
   type DocsNavigationItem,
   type DocsNavigationSection,
 } from "./docs/catalog";
-import { getRegistrySectionItems } from "./registry/section-items";
-import {
-  registrySectionList,
-  registrySections,
-  type RegistrySection,
-  type RegistrySectionConfig,
-} from "./registry/sections";
+import { getRegistryCatalogWithItems } from "./registry/catalog";
+import { getRegistryTypeLabel } from "./registry/item-types";
 
 type RegistryNavigationItem = {
   kind: "registry";
-  section: RegistrySection;
   title: string;
   name: string;
   description: string;
+  group: string;
+  routePath: string;
 };
 
 type DocsNavigationEntry = DocsNavigationItem & {
@@ -26,16 +22,16 @@ type DocsNavigationEntry = DocsNavigationItem & {
 export type SiteNavigationItem = RegistryNavigationItem | DocsNavigationEntry;
 
 export type SiteNavigationSection = {
-  id: RegistrySection | DocsNavigationSection["id"];
-  title: RegistrySectionConfig["title"] | DocsNavigationSection["title"];
-  basePath: RegistrySectionConfig["basePath"] | DocsNavigationSection["basePath"];
+  id: "registry" | DocsNavigationSection["id"];
+  title: "Registry" | DocsNavigationSection["title"];
+  basePath: "/registry" | DocsNavigationSection["basePath"];
   items: SiteNavigationItem[];
 };
 
 export type SiteNavigationSectionId = SiteNavigationSection["id"];
 
 export function getSiteNavigationSections(): SiteNavigationSection[] {
-  return [getDocsSiteNavigationSection(), ...registrySectionList.map(toRegistryNavigationSection)]
+  return [getDocsSiteNavigationSection(), getRegistryNavigationSection()]
     .filter((section): section is SiteNavigationSection => section !== null)
     .filter((section) => section.items.length > 0);
 }
@@ -52,7 +48,7 @@ export function getSiteNavigationSection(id: SiteNavigationSectionId): SiteNavig
     );
   }
 
-  return toRegistryNavigationSection(registrySections[id]);
+  return getRegistryNavigationSection();
 }
 
 function getDocsSiteNavigationSection(): SiteNavigationSection | null {
@@ -69,28 +65,30 @@ function getDocsSiteNavigationSection(): SiteNavigationSection | null {
 }
 
 function toDocsNavigationEntry(item: DocsNavigationItem): DocsNavigationEntry {
-  const entry: DocsNavigationEntry = {
+  return {
     kind: "docs",
     title: item.title,
     description: item.description,
     slug: item.slug,
     routePath: item.routePath,
+    ...(item.group ? { group: item.group } : {}),
   };
-
-  return item.group ? Object.assign(entry, { group: item.group }) : entry;
 }
 
-function toRegistryNavigationSection(section: (typeof registrySectionList)[number]) {
+function getRegistryNavigationSection(): SiteNavigationSection {
+  const catalog = getRegistryCatalogWithItems();
+
   return {
-    id: section.id,
-    title: section.title,
-    basePath: section.basePath,
-    items: getRegistrySectionItems(section.id).map((item) => ({
+    id: catalog.id,
+    title: catalog.title,
+    basePath: catalog.basePath,
+    items: catalog.items.map((item) => ({
       kind: "registry" as const,
-      section: section.id,
       title: item.title,
       name: item.name,
       description: item.description,
+      group: getRegistryTypeLabel(item.type),
+      routePath: `${catalog.basePath}/${item.name}`,
     })),
   };
 }

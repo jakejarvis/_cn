@@ -10,8 +10,8 @@ import {
   getLlmsTextResponse,
   type LlmsTextInput,
 } from "./llms.server";
-import { getRegistrySectionItems } from "./registry/section-items";
-import { registrySectionList } from "./registry/sections";
+import { getRegistryCatalogWithItems } from "./registry/catalog";
+import { registryCatalog } from "./registry/item-types";
 import {
   getCanonicalRegistryIndexUrl,
   getCanonicalSiteUrl,
@@ -38,11 +38,11 @@ const fixtureLlmsInput = {
       ],
     },
     {
-      title: "Components",
+      title: "Registry",
       documents: [
         {
           title: "Alpha Card",
-          url: "https://example.com/components/alpha-card.md",
+          url: "https://example.com/registry/alpha-card.md",
           description: "A compact card.",
           renderMarkdown: () => "# Alpha Card\n\n## Installation",
         },
@@ -62,7 +62,7 @@ describe("llms text", () => {
       "- [Getting Started](https://example.com/docs/getting-started.md): Install the registry.",
     );
     expect(text).toContain(
-      "- [Alpha Card](https://example.com/components/alpha-card.md): A compact card.",
+      "- [Alpha Card](https://example.com/registry/alpha-card.md): A compact card.",
     );
     expect(text).toContain(
       "- [Registry JSON](https://example.com/registry.json): Machine-readable shadcn registry index.",
@@ -75,7 +75,7 @@ describe("llms text", () => {
     expect(text).toContain("# Fixture Registry Full Context");
     expect(text).toContain("URL: https://example.com/docs/getting-started.md");
     expect(text).toContain("# Getting Started");
-    expect(text).toContain("URL: https://example.com/components/alpha-card.md");
+    expect(text).toContain("URL: https://example.com/registry/alpha-card.md");
     expect(text).toContain("## Installation");
   });
 
@@ -91,14 +91,12 @@ describe("llms text", () => {
       expect(text).toContain(getCanonicalSiteUrl(getDocsMarkdownPath(page.routePath)));
     }
 
-    for (const section of registrySectionList) {
-      expect(text).toContain(getCanonicalSiteUrl(getDocsMarkdownPath(section.basePath)));
+    expect(text).toContain(getCanonicalSiteUrl(getDocsMarkdownPath(registryCatalog.basePath)));
 
-      for (const item of getRegistrySectionItems(section.id)) {
-        expect(text).toContain(
-          getCanonicalSiteUrl(getDocsMarkdownPath(`${section.basePath}/${item.name}`)),
-        );
-      }
+    for (const item of getRegistryCatalogWithItems().items) {
+      expect(text).toContain(
+        getCanonicalSiteUrl(getDocsMarkdownPath(`${registryCatalog.basePath}/${item.name}`)),
+      );
     }
   });
 

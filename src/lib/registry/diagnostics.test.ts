@@ -28,7 +28,7 @@ describe("registry diagnostics", () => {
     });
   });
 
-  test("reports unsupported published source files as errors", () => {
+  test("accepts arbitrary published text source files", () => {
     const diagnostics = getRegistryDiagnostics({
       files: {
         "registry/items/components/example-card/_registry.mdx": getRegistryMdx({
@@ -43,12 +43,7 @@ describe("registry diagnostics", () => {
       },
     });
 
-    expect(diagnostics.errors).toContainEqual({
-      level: "error",
-      path: "registry/items/components/example-card/README.md",
-      message:
-        'Registry item "example-card" references an unsupported source file type: registry/items/components/example-card/README.md',
-    });
+    expect(diagnostics.errors).toEqual([]);
   });
 
   test("warns about supported source files that the item does not publish", () => {
@@ -82,7 +77,7 @@ describe("registry diagnostics", () => {
     });
   });
 
-  test("warns about unsupported ignored files inside item folders", () => {
+  test("warns about unpublished files inside item folders", () => {
     const diagnostics = getRegistryDiagnostics({
       files: {
         ...getValidRegistryFiles(),
@@ -94,7 +89,7 @@ describe("registry diagnostics", () => {
     expect(diagnostics.warnings).toContainEqual({
       level: "warning",
       path: "registry/items/components/example-card/README.md",
-      message: 'Registry item "example-card" ignores unsupported file type.',
+      message: 'Registry item "example-card" does not publish this source file.',
     });
   });
 

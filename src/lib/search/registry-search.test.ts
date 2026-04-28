@@ -2,7 +2,8 @@ import { describe, expect, test } from "vitest";
 
 import type { DocsPage } from "../docs/catalog";
 import { docsPages } from "../docs/catalog";
-import { getRegistrySectionsWithItems } from "../registry/section-items";
+import { getRegistryCatalogWithItems } from "../registry/catalog";
+import { registryCatalog } from "../registry/item-types";
 import {
   createRegistrySearchRecords,
   getRegistrySearchRecords,
@@ -28,9 +29,9 @@ const fixtureSearchInput = {
   ],
   sections: [
     {
-      id: "components",
-      title: "Components",
-      basePath: "/components",
+      id: "registry",
+      title: "Registry",
+      basePath: "/registry",
       items: [
         {
           name: "alpha-card",
@@ -64,11 +65,18 @@ const fixtureSearchInput = {
 } satisfies RegistrySearchRecordsInput;
 
 describe("registry search", () => {
-  test("builds live search records from docs and visible registry sections", () => {
+  test("builds live search records from docs and the registry catalog", () => {
     expect(getRegistrySearchRecords()).toEqual(
       createRegistrySearchRecords({
         docsPages,
-        sections: getRegistrySectionsWithItems(),
+        sections: [
+          {
+            id: registryCatalog.id,
+            title: registryCatalog.title,
+            basePath: registryCatalog.basePath,
+            items: getRegistryCatalogWithItems().items,
+          },
+        ],
       }),
     );
   });
@@ -79,8 +87,8 @@ describe("registry search", () => {
     expect(records.map((record) => ({ name: record.name, section: record.section }))).toEqual([
       { name: "docs", section: "docs" },
       { name: "start", section: "docs" },
-      { name: "alpha-card", section: "components" },
-      { name: "usage-panel", section: "components" },
+      { name: "alpha-card", section: "registry" },
+      { name: "usage-panel", section: "registry" },
     ]);
   });
 
@@ -90,8 +98,9 @@ describe("registry search", () => {
     expect(records.find((record) => record.name === "alpha-card")).toMatchObject({
       name: "alpha-card",
       title: "Alpha Card",
-      section: "components",
-      sectionTitle: "Components",
+      section: "registry",
+      sectionTitle: "Registry",
+      routePath: "/registry/alpha-card",
       type: "registry:ui",
       registryDependencies: ["button"],
       fileNames: ["alpha-card.tsx"],
@@ -143,7 +152,7 @@ describe("registry search", () => {
       results: [
         {
           name: "alpha-card",
-          section: "components",
+          section: "registry",
         },
       ],
     });

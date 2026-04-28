@@ -3,10 +3,9 @@ import { match } from "path-to-regexp";
 
 import { getAuthoredDocsPageMarkdownResponse } from "./docs/markdown.server";
 import {
+  getRegistryCatalogMarkdownResponse,
   getRegistryItemMarkdownResponse,
-  getRegistrySectionMarkdownResponse,
 } from "./registry/markdown.server";
-import { registrySectionList } from "./registry/sections";
 
 const markdownMediaTypes = new Set(["text/plain", "text/markdown", "text/x-markdown"]);
 const fileExtensionPattern = /\/[^/]+\.[^/]+$/u;
@@ -14,10 +13,7 @@ const fileExtensionPattern = /\/[^/]+\.[^/]+$/u;
 // Keep route matching compiled at module load; this middleware runs on every request.
 const pathMatcherOptions = { decode: decodePathSegment, sensitive: true } as const;
 const docsPathMatcher = match<{ slug?: string }>("/docs{/:slug}", pathMatcherOptions);
-const registryPathMatchers = registrySectionList.map((section) => ({
-  section: section.id,
-  matcher: match<{ name?: string }>(`${section.basePath}{/:name}`, pathMatcherOptions),
-}));
+const registryPathMatcher = match<{ name?: string }>("/registry{/:name}", pathMatcherOptions);
 
 export function getMarkdownNegotiationResponseForRequest(
   request: Request,
@@ -52,14 +48,13 @@ export function getMarkdownNegotiationResponse(pathname: string): Response | und
   const docsMatch = docsPathMatcher(path);
   if (docsMatch) return getAuthoredDocsPageMarkdownResponse(docsMatch.params.slug ?? "");
 
-  for (const { matcher, section } of registryPathMatchers) {
-    const registryMatch = matcher(path);
-    if (!registryMatch) continue;
-
+  const registryMatch = registryPathMatcher(path);
+  if (registryMatch) {
     const itemName = registryMatch.params.name;
+
     return itemName
-      ? getRegistryItemMarkdownResponse(section, itemName)
-      : getRegistrySectionMarkdownResponse(section);
+      ? getRegistryItemMarkdownResponse(itemName)
+      : getRegistryCatalogMarkdownResponse();
   }
 
   return undefined;

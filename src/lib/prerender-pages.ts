@@ -4,8 +4,8 @@ import { fileURLToPath } from "node:url";
 
 import { parse as parseYaml } from "yaml";
 
+import { registryCatalog } from "./registry/item-types.ts";
 import { parseRegistryMdxAst } from "./registry/mdx-ast.ts";
-import { registrySectionList } from "./registry/sections.ts";
 import { shouldExcludeFromSitemap } from "./seo.ts";
 import {
   getAliasRegistryIndexPaths,
@@ -58,10 +58,8 @@ export function createPrerenderPages({
   addPath("/llms-full.txt");
   addPath("/robots.txt");
 
-  for (const section of registrySectionList) {
-    addPath(section.basePath);
-    addPath(getDocsMarkdownPath(section.basePath));
-  }
+  addPath(registryCatalog.basePath);
+  addPath(getDocsMarkdownPath(registryCatalog.basePath));
 
   for (const docsPath of docsPagePaths) {
     addPath(docsPath);
@@ -72,16 +70,10 @@ export function createPrerenderPages({
     addPath(getCanonicalRegistryItemPath(item.name));
     getAliasRegistryItemPaths(item.name).forEach(addPath);
 
-    const section = registrySectionList.find((candidate) =>
-      candidate.registryTypes.some((registryType) => registryType === item.type),
-    );
+    const itemPath = `${registryCatalog.basePath}/${item.name}`;
 
-    if (section) {
-      const itemPath = `${section.basePath}/${item.name}`;
-
-      addPath(itemPath);
-      addPath(getDocsMarkdownPath(itemPath));
-    }
+    addPath(itemPath);
+    addPath(getDocsMarkdownPath(itemPath));
   }
 
   return Array.from(paths, toPrerenderPage);

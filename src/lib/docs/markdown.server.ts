@@ -1,4 +1,4 @@
-import { escapeMarkdownLinkText, joinMarkdownBlocks } from "../content/markdown";
+import { formatMarkdownLinkList, joinMarkdownBlocks } from "../content/markdown";
 import {
   createLinkedMarkdownResponse,
   createMarkdownNotFoundResponse,
@@ -23,14 +23,13 @@ export function createAuthoredDocsIndexMarkdown(
     "description" | "routePath" | "title"
   >[],
 ): string {
-  const pageList = pages
-    .map(
-      (page) =>
-        `- [${escapeMarkdownLinkText(page.title)}](${getCanonicalDocsUrl(page.routePath)}): ${
-          page.description || "Documentation page."
-        }`,
-    )
-    .join("\n");
+  const pageList = formatMarkdownLinkList(
+    pages.map((page) => ({
+      title: page.title,
+      href: getCanonicalDocsUrl(page.routePath),
+      description: page.description || "Documentation page.",
+    })),
+  );
 
   return joinMarkdownBlocks(["# Docs", pageList || "No docs pages are published yet."]);
 }

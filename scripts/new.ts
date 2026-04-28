@@ -10,8 +10,10 @@ import {
   getRegistryScaffoldConflicts,
   registryScaffoldFileExtensions,
   registryScaffoldItemTypes,
+  validateRegistryScaffoldFileExtension,
   validateRegistryScaffoldName,
   type RegistryScaffoldFileExtension,
+  type RegistryScaffoldFontInput,
   type RegistryScaffoldInput,
   type RegistryScaffoldItemType,
   type RegistryScaffoldPlan,
@@ -93,6 +95,7 @@ async function promptRegistryScaffoldInput(): Promise<RegistryScaffoldInput> {
       validate: (value) => (value?.trim() ? undefined : "Enter a description."),
     }),
   );
+  const font = type === "registry:font" ? await promptRegistryScaffoldFontInput(name) : undefined;
   const fileExtension =
     type === "registry:file"
       ? await promptValue(
@@ -127,6 +130,41 @@ async function promptRegistryScaffoldInput(): Promise<RegistryScaffoldInput> {
     description,
     ...(target ? { target } : {}),
     ...(fileExtension ? { fileExtension } : {}),
+    ...(font ? { font } : {}),
+  };
+}
+
+async function promptRegistryScaffoldFontInput(name: string): Promise<RegistryScaffoldFontInput> {
+  const defaultImport = getDefaultRegistryScaffoldTitle(name.replace(/^font-/u, "")).replaceAll(
+    " ",
+    "_",
+  );
+  const family = await promptValue(
+    text({
+      message: "Font family",
+      placeholder: "'Inter Variable', sans-serif",
+      validate: (value) => (value?.trim() ? undefined : "Enter a font family."),
+    }),
+  );
+  const importName = await promptValue(
+    text({
+      message: "Google font import",
+      defaultValue: defaultImport,
+      validate: (value) => (value?.trim() ? undefined : "Enter a font import name."),
+    }),
+  );
+  const variable = await promptValue(
+    text({
+      message: "CSS variable",
+      defaultValue: "--font-sans",
+      validate: (value) => (value?.trim() ? undefined : "Enter a font CSS variable."),
+    }),
+  );
+
+  return {
+    family,
+    import: importName,
+    variable,
   };
 }
 
@@ -151,13 +189,22 @@ function parseRegistryScaffoldInput(rawArgs: string[]): RegistryScaffoldInput {
   const fileExtension = options.fileExtension;
   const hasTarget = target !== undefined;
   const hasFileExtension = fileExtension !== undefined;
+  const font = parseRegistryScaffoldFontInput(options);
 
-  if (hasTarget && type !== "registry:page" && type !== "registry:file") {
-    throw new Error("--target is only supported for registry:page and registry:file items.");
+  if (hasTarget && !supportsTargetOption(type)) {
+    throw new Error(
+      "--target is only supported for registry:page, registry:file, and registry:item items.",
+    );
   }
 
-  if (hasFileExtension && type !== "registry:file") {
-    throw new Error("--file-extension is only supported for registry:file items.");
+  if (hasFileExtension && !supportsFileExtensionOption(type, hasTarget)) {
+    throw new Error(
+      "--file-extension is only supported for registry:file items and targeted registry:item items.",
+    );
+  }
+
+  if (font && type !== "registry:font") {
+    throw new Error("Font options are only supported for registry:font items.");
   }
 
   return {
@@ -169,10 +216,24 @@ function parseRegistryScaffoldInput(rawArgs: string[]): RegistryScaffoldInput {
     ...(hasFileExtension
       ? { fileExtension: parseRegistryScaffoldFileExtension(fileExtension) }
       : {}),
+    ...(font ? { font } : {}),
   };
 }
 
-type CliOptionName = "description" | "fileExtension" | "name" | "target" | "title" | "type";
+type CliOptionName =
+  | "description"
+  | "fileExtension"
+  | "fontDependency"
+  | "fontFamily"
+  | "fontImport"
+  | "fontSelector"
+  | "fontSubsets"
+  | "fontVariable"
+  | "fontWeight"
+  | "name"
+  | "target"
+  | "title"
+  | "type";
 
 function parseOptions(rawArgs: string[]): Partial<Record<CliOptionName, string>> {
   const options: Partial<Record<CliOptionName, string>> = {};
@@ -217,6 +278,20 @@ function getCliOptionName(flag: string): CliOptionName | undefined {
       return "description";
     case "--file-extension":
       return "fileExtension";
+    case "--font-dependency":
+      return "fontDependency";
+    case "--font-family":
+      return "fontFamily";
+    case "--font-import":
+      return "fontImport";
+    case "--font-selector":
+      return "fontSelector";
+    case "--font-subsets":
+      return "fontSubsets";
+    case "--font-variable":
+      return "fontVariable";
+    case "--font-weight":
+      return "fontWeight";
     case "--name":
       return "name";
     case "--target":
@@ -228,6 +303,50 @@ function getCliOptionName(flag: string): CliOptionName | undefined {
     default:
       return undefined;
   }
+}
+
+function parseRegistryScaffoldFontInput(
+  options: Partial<Record<CliOptionName, string>>,
+): RegistryScaffoldFontInput | undefined {
+  const hasFontOptions = [
+    options.fontFamily,
+    options.fontImport,
+    options.fontVariable,
+    options.fontWeight,
+    options.fontSubsets,
+    options.fontSelector,
+    options.fontDependency,
+  ].some((value) => value !== undefined);
+
+  if (!hasFontOptions) {
+    return undefined;
+  }
+
+  const weight = parseCsvOption(options.fontWeight);
+  const subsets = parseCsvOption(options.fontSubsets);
+
+  return {
+    family: requireOption(options.fontFamily, "--font-family"),
+    import: requireOption(options.fontImport, "--font-import"),
+    variable: requireOption(options.fontVariable, "--font-variable"),
+    ...(weight ? { weight } : {}),
+    ...(subsets ? { subsets } : {}),
+    ...(options.fontSelector ? { selector: options.fontSelector } : {}),
+    ...(options.fontDependency ? { dependency: options.fontDependency } : {}),
+  };
+}
+
+function parseCsvOption(value: string | undefined): string[] | undefined {
+  if (!value) {
+    return undefined;
+  }
+
+  const values = value
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+
+  return values.length > 0 ? values : undefined;
 }
 
 function requireOption(value: string | undefined, flag: string): string {
@@ -249,13 +368,21 @@ function parseRegistryScaffoldItemType(value: string): RegistryScaffoldItemType 
 }
 
 function parseRegistryScaffoldFileExtension(value: string): RegistryScaffoldFileExtension {
-  for (const fileExtension of registryScaffoldFileExtensions) {
-    if (fileExtension === value) {
-      return fileExtension;
-    }
+  const error = validateRegistryScaffoldFileExtension(value);
+
+  if (error) {
+    throw new Error(error);
   }
 
-  throw new Error(`Unsupported file extension: ${value}`);
+  return value;
+}
+
+function supportsTargetOption(type: RegistryScaffoldItemType): boolean {
+  return type === "registry:page" || type === "registry:file" || type === "registry:item";
+}
+
+function supportsFileExtensionOption(type: RegistryScaffoldItemType, hasTarget: boolean): boolean {
+  return type === "registry:file" || (type === "registry:item" && hasTarget);
 }
 
 function isHelpArg(arg: string): boolean {
@@ -275,7 +402,15 @@ Options:
   --title <title>               Public title. Defaults from name.
   --description <description>   Public description.
   --target <path>               Install target. Required for registry:page and registry:file.
-  --file-extension <ext>        File extension for registry:file. Defaults to ts.
+                                Optional for registry:item universal files.
+  --file-extension <ext>        File extension for registry:file and targeted registry:item. Defaults to ts.
+  --font-family <family>        Font family for registry:font.
+  --font-import <name>          Google font import name for registry:font.
+  --font-variable <variable>    CSS variable for registry:font.
+  --font-weight <weights>       Optional comma-separated font weights.
+  --font-subsets <subsets>      Optional comma-separated font subsets.
+  --font-selector <selector>    Optional selector for applying the font.
+  --font-dependency <package>   Optional package for non-Next.js projects.
   -h, --help                    Show help.
 
 Types:

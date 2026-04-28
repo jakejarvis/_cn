@@ -68,21 +68,9 @@ function SidebarSectionLink({
           {section.title}
         </Link>
       );
-    case "components":
+    case "registry":
       return (
-        <Link to="/components" onClick={onNavigate} className={className}>
-          {section.title}
-        </Link>
-      );
-    case "blocks":
-      return (
-        <Link to="/blocks" onClick={onNavigate} className={className}>
-          {section.title}
-        </Link>
-      );
-    case "utilities":
-      return (
-        <Link to="/utilities" onClick={onNavigate} className={className}>
+        <Link to="/registry" onClick={onNavigate} className={className}>
           {section.title}
         </Link>
       );
@@ -105,7 +93,7 @@ function SidebarItems({
   return (
     <ul className="flex flex-col gap-0.5">
       {items.map((item) => {
-        const group = item.kind === "docs" ? item.group : undefined;
+        const group = item.group;
         const showGroup = group && group !== previousGroup;
         previousGroup = group;
 
@@ -163,48 +151,21 @@ function SidebarItemLink({
     );
   }
 
-  switch (item.section) {
-    case "components":
-      return (
-        <Link
-          to="/components/$name"
-          params={{ name: item.name }}
-          onClick={onNavigate}
-          className={className}
-        >
-          {item.title}
-        </Link>
-      );
-    case "blocks":
-      return (
-        <Link
-          to="/blocks/$name"
-          params={{ name: item.name }}
-          onClick={onNavigate}
-          className={className}
-        >
-          {item.title}
-        </Link>
-      );
-    case "utilities":
-      return (
-        <Link
-          to="/utilities/$name"
-          params={{ name: item.name }}
-          onClick={onNavigate}
-          className={className}
-        >
-          {item.title}
-        </Link>
-      );
-  }
-
-  return null;
+  return (
+    <Link
+      to="/registry/$name"
+      params={{ name: item.name }}
+      onClick={onNavigate}
+      className={className}
+    >
+      {item.title}
+    </Link>
+  );
 }
 
 function isRegistryItemActive(
   item: Extract<SiteNavigationItem, { kind: "registry" }>,
   pathname: string,
 ) {
-  return pathname === `/${item.section}/${item.name}`;
+  return pathname === item.routePath;
 }

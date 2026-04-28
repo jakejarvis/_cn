@@ -1,6 +1,7 @@
 import { getMdxNodesSource, parseMdxAst, type MdxAstNode } from "../content/mdx.ts";
 
 type RegistryMdxSections = {
+  hasPreview: boolean;
   previewSource: string;
   hasUsage: boolean;
   usageSource: string;
@@ -19,7 +20,20 @@ export function getRegistryMdxSections(
   const previewIndex = children.findIndex(isPreviewExportNode);
 
   if (previewIndex === -1) {
-    throw new Error(`Registry item ${path} must export a Preview function.`);
+    const usageNodes = children.filter((node) => node.type !== "yaml");
+
+    if (usageNodes.some(isEsmNode)) {
+      throw new Error(
+        `Registry item ${path} must not contain MDX imports or exports without a Preview export.`,
+      );
+    }
+
+    return {
+      hasPreview: false,
+      previewSource: "",
+      hasUsage: usageNodes.length > 0,
+      usageSource: getMdxNodesSource(usageNodes, source),
+    };
   }
 
   const leadingNodes = children.slice(0, previewIndex);
@@ -45,6 +59,7 @@ export function getRegistryMdxSections(
   }
 
   return {
+    hasPreview: true,
     previewSource: getEsmSource([...setupNodes, children[previewIndex]].filter(isEsmNode)),
     hasUsage: usageNodes.length > 0,
     usageSource: getMdxNodesSource(usageNodes, source),

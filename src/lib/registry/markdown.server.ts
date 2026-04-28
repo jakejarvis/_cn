@@ -1,5 +1,5 @@
 import {
-  escapeMarkdownLinkText,
+  formatMarkdownLinkList,
   formatCodeBlock,
   getMarkdownLanguage,
   joinMarkdownBlocks,
@@ -9,81 +9,74 @@ import {
   createMarkdownNotFoundResponse,
 } from "../content/responses.server";
 import { getCanonicalDocsUrl, getCanonicalRegistryItemUrl } from "../site-config";
-import { getRegistryItem } from "./catalog";
-import type { RegistryDetailType } from "./detail.types";
+import { getRegistryCatalogWithItems, getRegistryItem } from "./catalog";
+import type { RegistryCatalogItem } from "./catalog-builder";
 import { getRegistryDisplaySource } from "./display-source.server";
-import { getRegistrySectionItems } from "./section-items";
-import { registrySections, type RegistrySection, type RegistrySectionConfig } from "./sections";
+import { registryCatalog } from "./item-types";
 import { getRegistryItemWithSources, type RegistryCatalogItemWithSources } from "./source.server";
 
-type RegistrySectionMarkdownConfig = Pick<
-  RegistrySectionConfig,
-  "basePath" | "description" | "title"
->;
+type RegistryCatalogMarkdownConfig = {
+  basePath: string;
+  description: string;
+  title: string;
+};
 
-type RegistrySectionMarkdownItem = Pick<
-  RegistryCatalogItemWithSources,
-  "description" | "name" | "title"
->;
+type RegistryCatalogMarkdownItem = Pick<RegistryCatalogItem, "description" | "name" | "title">;
 
 type RegistryItemMarkdownItem = Pick<
   RegistryCatalogItemWithSources,
-  "description" | "name" | "previewSourceFile" | "sourceFiles" | "title" | "usageSource"
+  | "description"
+  | "hasPreview"
+  | "name"
+  | "previewSourceFile"
+  | "sourceFiles"
+  | "title"
+  | "usageSource"
 >;
 
-export function getRegistrySectionMarkdownResponse(section: RegistrySection): Response {
-  const sectionConfig = registrySections[section];
-
-  return createLinkedMarkdownResponse(getRegistrySectionMarkdown(section), sectionConfig.basePath);
+export function getRegistryCatalogMarkdownResponse(): Response {
+  return createLinkedMarkdownResponse(getRegistryCatalogMarkdown(), registryCatalog.basePath);
 }
 
-export function getRegistryItemMarkdownResponse(
-  section: RegistrySection,
-  itemName: string,
-): Response {
-  const markdown = getRegistryItemMarkdown(section, itemName);
+export function getRegistryItemMarkdownResponse(itemName: string): Response {
+  const markdown = getRegistryItemMarkdown(itemName);
 
   if (!markdown) {
     return createMarkdownNotFoundResponse();
   }
 
-  const sectionConfig = registrySections[section];
-
-  return createLinkedMarkdownResponse(markdown, `${sectionConfig.basePath}/${itemName}`);
+  return createLinkedMarkdownResponse(markdown, `${registryCatalog.basePath}/${itemName}`);
 }
 
-export function getRegistrySectionMarkdown(section: RegistrySection): string {
-  const sectionConfig = registrySections[section];
-  const items = getRegistrySectionItems(section);
+export function getRegistryCatalogMarkdown(): string {
+  const catalog = getRegistryCatalogWithItems();
 
-  return createRegistrySectionMarkdown(sectionConfig, items);
+  return createRegistryCatalogMarkdown(catalog, catalog.items);
 }
 
-export function createRegistrySectionMarkdown(
-  sectionConfig: RegistrySectionMarkdownConfig,
-  items: readonly RegistrySectionMarkdownItem[],
+export function createRegistryCatalogMarkdown(
+  catalog: RegistryCatalogMarkdownConfig,
+  items: readonly RegistryCatalogMarkdownItem[],
 ): string {
-  const itemList = items
-    .map(
-      (item) =>
-        `- [${escapeMarkdownLinkText(item.title)}](${getCanonicalDocsUrl(
-          `${sectionConfig.basePath}/${item.name}`,
-        )}): ${item.description}`,
-    )
-    .join("\n");
+  const itemList = formatMarkdownLinkList(
+    items.map((item) => ({
+      title: item.title,
+      href: getCanonicalDocsUrl(`${catalog.basePath}/${item.name}`),
+      description: item.description,
+    })),
+  );
 
   return joinMarkdownBlocks([
-    `# ${sectionConfig.title}`,
-    sectionConfig.description,
-    itemList || "No items are published in this section yet.",
+    `# ${catalog.title}`,
+    catalog.description,
+    itemList || "No items are published in the registry yet.",
   ]);
 }
 
-export function getRegistryItemMarkdown(section: RegistrySection, itemName: string): string | null {
-  const sectionConfig = registrySections[section];
+export function getRegistryItemMarkdown(itemName: string): string | null {
   const item = getRegistryItem(itemName);
 
-  if (!item || !isExpectedRegistryType(item.type, sectionConfig.registryTypes)) {
+  if (!item) {
     return null;
   }
 
@@ -91,10 +84,6 @@ export function getRegistryItemMarkdown(section: RegistrySection, itemName: stri
 }
 
 export function createRegistryItemMarkdown(itemWithSources: RegistryItemMarkdownItem): string {
-  const previewSource = getRegistryDisplaySource(
-    itemWithSources,
-    itemWithSources.previewSourceFile,
-  );
   const sourceBlocks = itemWithSources.sourceFiles.map((file) =>
     joinMarkdownBlocks([
       `### ${file.path}`,
@@ -105,6 +94,9 @@ export function createRegistryItemMarkdown(itemWithSources: RegistryItemMarkdown
     ]),
   );
   const usageSource = itemWithSources.usageSource.trim();
+  const previewSource = itemWithSources.hasPreview
+    ? getRegistryDisplaySource(itemWithSources, itemWithSources.previewSourceFile)
+    : "";
 
   return joinMarkdownBlocks([
     `# ${itemWithSources.title}`,
@@ -115,17 +107,8 @@ export function createRegistryItemMarkdown(itemWithSources: RegistryItemMarkdown
       "bash",
     ),
     `[Registry JSON](${getCanonicalRegistryItemUrl(itemWithSources.name)})`,
-    "## Preview",
-    formatCodeBlock(previewSource, "tsx"),
-    "## Source",
-    ...sourceBlocks,
+    previewSource ? joinMarkdownBlocks(["## Preview", formatCodeBlock(previewSource, "tsx")]) : "",
+    sourceBlocks.length > 0 ? joinMarkdownBlocks(["## Source", ...sourceBlocks]) : "",
     usageSource ? joinMarkdownBlocks(["## Usage", usageSource]) : "",
   ]);
-}
-
-function isExpectedRegistryType(
-  type: string,
-  expectedTypes: readonly RegistryDetailType[],
-): type is RegistryDetailType {
-  return expectedTypes.some((expectedType) => expectedType === type);
 }

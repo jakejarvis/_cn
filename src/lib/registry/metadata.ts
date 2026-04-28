@@ -5,6 +5,7 @@ import type {
 } from "shadcn/schema";
 
 import { siteConfig } from "../site-config";
+import type { PrivateRegistryItemType, RegistryItemType } from "./item-types";
 
 export const registryConfig = {
   $schema: "https://ui.shadcn.com/schema/registry.json",
@@ -15,12 +16,9 @@ export const registryConfig = {
 export const registryItemSchema = "https://ui.shadcn.com/schema/registry-item.json";
 
 type ShadcnRegistryFile = NonNullable<ShadcnRegistryItem["files"]>[number];
-type PrivateRegistryType = "registry:example" | "registry:internal";
 type PublicRegistryFileDefinition<T extends ShadcnRegistryFile> = T extends unknown
-  ? Omit<T, "content" | "type"> & { type: Exclude<T["type"], PrivateRegistryType> }
+  ? Omit<T, "content" | "type"> & { type: Exclude<T["type"], PrivateRegistryItemType> }
   : never;
-
-export type RegistryItemType = Exclude<ShadcnRegistryItem["type"], PrivateRegistryType>;
 
 export type RegistryFileDefinition = PublicRegistryFileDefinition<ShadcnRegistryFile>;
 
@@ -30,11 +28,14 @@ export type RegistrySourceFileDefinition = RegistryFileDefinition & {
 
 export type RegistryFileType = RegistryFileDefinition["type"];
 
-export type RegistryItemDefinition = Omit<ShadcnRegistryItem, "$schema" | "files" | "type"> & {
+export type RegistryItemDefinition = Omit<
+  ShadcnRegistryItem,
+  "$schema" | "files" | "type" | "title" | "description"
+> & {
   type: RegistryItemType;
-  title: string;
-  description: string;
-  files: RegistryFileDefinition[];
+  title?: string;
+  description?: string;
+  files?: RegistryFileDefinition[];
   config?: ShadcnRegistryBaseItem["config"];
   font?: ShadcnRegistryFontItem["font"];
 };

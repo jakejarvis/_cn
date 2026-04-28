@@ -33,7 +33,7 @@ Use **Vite+**: `vp install`, `vp dev`, `vp build`, `vp test`
 
 - Treat short prompts like "add a button component to the registry" as implementation requests.
 - For registry item authoring or adaptation, use the installable `shadcn-registry` [SKILL.md](skills/shadcn-registry/SKILL.md) when available.
-- For new registry items, scaffold the starter files non-interactively with `bun --bun ./scripts/new.ts --type <type> --name <kebab-name> --description "<description>"`; add `--target` for `registry:page` and `registry:file`, and `--file-extension` for non-`ts` `registry:file` items.
+- For new registry items, scaffold the starter files non-interactively with `bun --bun ./scripts/new.ts --type <type> --name <kebab-name> --description "<description>"`; add `--target` for `registry:page` and `registry:file`, `--file-extension` for non-`ts` file items, and font flags for `registry:font`.
 - Put published registry source under `registry/items/**`, never under `src/components/ui`.
 - `src/components/ui` is for the docs app shell shadcn components only.
 - Put public documentation pages directly under `registry/docs/`; they render at `/docs`.
@@ -46,7 +46,7 @@ Use **Vite+**: `vp install`, `vp dev`, `vp build`, `vp test`
 - Authored docs: direct `registry/docs/*.mdx` or `registry/docs/*.md` files with optional `title`, `description`, `order`, and `group` frontmatter. Nested docs pages are not supported yet.
 - Registry catalog: `src/lib/registry/catalog.ts`; JSON output: `src/lib/registry/json.server.ts`.
 - Registry JSON routes: `/registry.json` and `/r/registry.json` serve the index; item JSON routes live under `/r/<name>.json`.
-- Docs sections: components and blocks plus utilities for `registry:hook` and `registry:lib`.
+- Public registry catalog routes: `/registry` and `/registry/<name>`.
 - Docs chrome: `src/components/docs/`; theme/CSS: `src/styles.css`.
 - See the [SKILL.md](skills/shadcn-registry/SKILL.md) file for the registry authoring workflow.
 

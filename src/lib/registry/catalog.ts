@@ -4,8 +4,23 @@ import {
   createRegistryMetadataItems,
   type RegistryCatalogItem,
 } from "./catalog-builder";
+import {
+  getRegistryTypeLabel,
+  publicRegistryItemTypes,
+  registryCatalog,
+  type RegistryItemType,
+} from "./item-types";
 
-type RegistryType = RegistryCatalogItem["type"];
+type RegistryCatalogGroup = {
+  type: RegistryItemType;
+  title: string;
+  items: RegistryCatalogItem[];
+};
+
+export type RegistryCatalogWithItems = typeof registryCatalog & {
+  items: RegistryCatalogItem[];
+  groups: RegistryCatalogGroup[];
+};
 
 const registryItemSources = import.meta.glob<string>("../../../registry/items/**/_registry.mdx", {
   eager: true,
@@ -22,8 +37,22 @@ export function getRegistryItem(name: string): RegistryCatalogItem | undefined {
   return registryItems.find((item) => item.name === name);
 }
 
-export function getRegistryItemsByTypes(types: readonly RegistryType[]): RegistryCatalogItem[] {
+export function getRegistryItemsByTypes(
+  types: readonly RegistryCatalogItem["type"][],
+): RegistryCatalogItem[] {
   const typeSet = new Set(types);
 
   return registryItems.filter((item) => typeSet.has(item.type));
+}
+
+export function getRegistryCatalogWithItems(): RegistryCatalogWithItems {
+  return {
+    ...registryCatalog,
+    items: registryItems,
+    groups: publicRegistryItemTypes.flatMap((type) => {
+      const items = getRegistryItemsByTypes([type]);
+
+      return items.length > 0 ? [{ type, title: getRegistryTypeLabel(type), items }] : [];
+    }),
+  };
 }

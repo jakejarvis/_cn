@@ -3,7 +3,7 @@ import { describe, expect, test } from "vitest";
 import { docsPages } from "./docs/catalog";
 import { createPrerenderPages, getPrerenderPages } from "./prerender-pages";
 import { registryItems } from "./registry/catalog";
-import { registrySectionList } from "./registry/sections";
+import { registryCatalog } from "./registry/item-types";
 import { shouldExcludeFromSitemap } from "./seo";
 import {
   getAliasRegistryIndexPaths,
@@ -32,12 +32,14 @@ describe("prerender pages", () => {
         "/docs.md",
         "/docs/getting-started",
         "/docs/getting-started.md",
-        "/components/alpha-card",
-        "/components/alpha-card.md",
-        "/blocks/stats-grid",
-        "/blocks/stats-grid.md",
-        "/utilities/use-clipboard",
-        "/utilities/use-clipboard.md",
+        "/registry",
+        "/registry.md",
+        "/registry/alpha-card",
+        "/registry/alpha-card.md",
+        "/registry/stats-grid",
+        "/registry/stats-grid.md",
+        "/registry/use-clipboard",
+        "/registry/use-clipboard.md",
         "/r/alpha-card.json",
         "/r/stats-grid.json",
         "/r/use-clipboard.json",
@@ -64,10 +66,8 @@ describe("prerender pages", () => {
       ]),
     );
 
-    for (const section of registrySectionList) {
-      expect(paths).toContain(section.basePath);
-      expect(paths).toContain(getDocsMarkdownPath(section.basePath));
-    }
+    expect(paths).toContain(registryCatalog.basePath);
+    expect(paths).toContain(getDocsMarkdownPath(registryCatalog.basePath));
 
     for (const page of docsPages) {
       expect(paths).toContain(page.routePath);
@@ -81,16 +81,10 @@ describe("prerender pages", () => {
         expect(paths).toContain(aliasPath);
       }
 
-      const section = registrySectionList.find((candidate) =>
-        candidate.registryTypes.some((registryType) => registryType === item.type),
-      );
+      const itemPath = `${registryCatalog.basePath}/${item.name}`;
 
-      if (section) {
-        const itemPath = `${section.basePath}/${item.name}`;
-
-        expect(paths).toContain(itemPath);
-        expect(paths).toContain(getDocsMarkdownPath(itemPath));
-      }
+      expect(paths).toContain(itemPath);
+      expect(paths).toContain(getDocsMarkdownPath(itemPath));
     }
 
     expect(paths.filter((path) => path !== "/").every((path) => !path.endsWith("/"))).toBe(true);

@@ -103,7 +103,7 @@ function GlobalNotFoundRoute() {
               size="lg"
               variant="outline"
               nativeButton={false}
-              render={<Link to="/components" />}
+              render={<Link to="/registry" />}
             >
               <IconBlocks data-icon="inline-start" />
               Registry
@@ -120,13 +120,7 @@ function GlobalNotFoundRoute() {
           </div>
           <div className="divide-y">
             <NotFoundPathLink to="/docs" label="Docs" description="Install, theming, CLI" />
-            <NotFoundPathLink
-              to="/components"
-              label="Components"
-              description="Reusable UI primitives"
-            />
-            <NotFoundPathLink to="/blocks" label="Blocks" description="Composed patterns" />
-            <NotFoundPathLink to="/utilities" label="Utilities" description="Hooks and helpers" />
+            <NotFoundPathLink to="/registry" label="Registry" description="Installable items" />
           </div>
         </aside>
       </div>
@@ -139,7 +133,7 @@ function NotFoundPathLink({
   label,
   description,
 }: {
-  to: "/" | "/docs" | "/components" | "/blocks" | "/utilities";
+  to: "/" | "/docs" | "/registry";
   label: string;
   description: string;
 }) {

@@ -20,7 +20,7 @@ describe("seo helpers", () => {
   });
 
   test("builds canonical, social, markdown, and JSON-LD head entries", () => {
-    const pagePath = "/components/sample-item";
+    const pagePath = "/registry/sample-item";
     const head = getSeoHead({
       title: "Sample Item",
       description: "A compact registry item.",
@@ -32,7 +32,7 @@ describe("seo helpers", () => {
           title: "Sample Item",
           description: "A compact registry item.",
           path: pagePath,
-          section: "Components",
+          section: "Registry",
         }),
       ],
     });
@@ -71,14 +71,14 @@ describe("seo helpers", () => {
 
     expect(
       getCollectionPageJsonLd({
-        title: "Components",
-        description: "Reusable UI components.",
-        path: "/components",
+        title: "Registry",
+        description: "Installable registry items.",
+        path: "/registry",
         items: [
           {
             title: "Sample Item",
             description: "A compact registry item.",
-            path: "/components/sample-item",
+            path: "/registry/sample-item",
           },
         ],
       }),
@@ -89,7 +89,7 @@ describe("seo helpers", () => {
         itemListElement: [
           {
             position: 1,
-            url: getCanonicalSiteUrl("/components/sample-item"),
+            url: getCanonicalSiteUrl("/registry/sample-item"),
           },
         ],
       },
@@ -105,12 +105,12 @@ describe("seo helpers", () => {
   });
 
   test("marks machine-readable routes as sitemap-excluded", () => {
-    expect(shouldExcludeFromSitemap("/components/sample-item.md")).toBe(true);
+    expect(shouldExcludeFromSitemap("/registry/sample-item.md")).toBe(true);
     expect(shouldExcludeFromSitemap("/registry.json")).toBe(true);
     expect(shouldExcludeFromSitemap("/llms.txt?cache=1")).toBe(true);
     expect(shouldExcludeFromSitemap("/robots.txt")).toBe(true);
-    expect(shouldExcludeFromSitemap("/components/")).toBe(true);
-    expect(shouldExcludeFromSitemap("/components/sample-item")).toBe(false);
+    expect(shouldExcludeFromSitemap("/registry/")).toBe(true);
+    expect(shouldExcludeFromSitemap("/registry/sample-item")).toBe(false);
   });
 
   test("builds robots text from the canonical site URL", () => {

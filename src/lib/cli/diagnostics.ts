@@ -237,8 +237,12 @@ function getSuspiciousRegistryFileWarnings(
   for (const root of itemRoots) {
     const item = itemsByRoot.get(root);
     const rootFiles = Object.keys(files).filter((path) => path.startsWith(`${root}/`));
+    const hasRegistryMdx = rootFiles.some((path) => isRegistryMdx(path));
+    const hasPublishableLookingFile = rootFiles.some(
+      (path) => !isKnownAuthoringOrIgnoredFile(path),
+    );
 
-    if (!item && rootFiles.some((path) => path.trim().length > 0)) {
+    if (!item && !hasRegistryMdx && hasPublishableLookingFile) {
       warnings.push(
         createWarning(
           root,

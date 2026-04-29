@@ -1,3 +1,5 @@
+import { cac } from "cac";
+
 export type RegistryNewCliOptionName =
   | "description"
   | "fileExtension"
@@ -13,6 +15,41 @@ export type RegistryNewCliOptionName =
   | "title"
   | "type";
 
+/** Options as `--name <flag>` strings for cac (angled brackets = value required when flag is used). */
+const registryNewCliOptionSpecs = [
+  "--description <description>",
+  "--file-extension <fileExtension>",
+  "--font-dependency <fontDependency>",
+  "--font-family <fontFamily>",
+  "--font-import <fontImport>",
+  "--font-selector <fontSelector>",
+  "--font-subsets <fontSubsets>",
+  "--font-variable <fontVariable>",
+  "--font-weight <fontWeight>",
+  "--name <name>",
+  "--target <target>",
+  "--title <title>",
+  "--type <type>",
+] as const;
+
+const registryNewArgvPrefix = ["node", "registry-new"] as const;
+
+const registryNewCliOptionNames = [
+  "description",
+  "fileExtension",
+  "fontDependency",
+  "fontFamily",
+  "fontImport",
+  "fontSelector",
+  "fontSubsets",
+  "fontVariable",
+  "fontWeight",
+  "name",
+  "target",
+  "title",
+  "type",
+] as const satisfies readonly RegistryNewCliOptionName[];
+
 export function isRegistryNewScriptHelpArg(arg: string): boolean {
   return arg === "--help" || arg === "-h";
 }
@@ -20,52 +57,66 @@ export function isRegistryNewScriptHelpArg(arg: string): boolean {
 export function parseRegistryNewScriptCliArgs(
   rawArgs: string[],
 ): Partial<Record<RegistryNewCliOptionName, string>> {
-  const options: Partial<Record<RegistryNewCliOptionName, string>> = {};
+  assertNoDuplicateRegistryNewOptions(rawArgs);
 
-  for (let index = 0; index < rawArgs.length; index += 1) {
-    const arg = rawArgs[index];
-    const [flag, inlineValue] = arg.includes("=") ? arg.split(/=(.*)/su, 2) : [arg, undefined];
+  const cli = createRegistryNewCli();
+  cli.parse([...registryNewArgvPrefix, ...rawArgs], { run: false });
 
-    if (!flag.startsWith("-")) {
-      throw new Error(`Unexpected argument: ${arg}`);
+  cli.globalCommand.checkUnknownOptions();
+  cli.globalCommand.checkOptionValue();
+  cli.globalCommand.checkUnusedArgs();
+
+  return collectRegistryNewCliStringOptions(cli.options);
+}
+
+function createRegistryNewCli(): ReturnType<typeof cac> {
+  const cli = cac("registry-new");
+
+  for (const spec of registryNewCliOptionSpecs) {
+    cli.option(spec, "");
+  }
+
+  return cli;
+}
+
+function assertNoDuplicateRegistryNewOptions(argv: readonly string[]): void {
+  const seen = new Set<RegistryNewCliOptionName>();
+
+  for (const arg of argv) {
+    if (!arg.startsWith("-")) {
+      continue;
     }
 
-    const optionName = getRegistryNewCliOptionName(flag);
+    const eq = arg.indexOf("=");
+    const flagPart = eq === -1 ? arg : arg.slice(0, eq);
+    const optionName = getRegistryNewCliOptionName(flagPart);
 
     if (!optionName) {
-      throw new Error(`Unknown option: ${flag}`);
+      continue;
     }
 
-    if (optionName in options) {
-      throw new Error(`Duplicate option: ${flag}`);
+    if (seen.has(optionName)) {
+      throw new Error(`Duplicate option: ${flagPart}`);
     }
 
-    const value = inlineValue ?? rawArgs[index + 1];
+    seen.add(optionName);
+  }
+}
 
-    // Values may start with `--` (e.g. CSS variables like `--font-sans`). Only treat the next
-    // token as "another flag" when it is a known option or help, not when it is free-form text.
-    const nextTokenIsSeparateFlag =
-      inlineValue === undefined &&
-      value !== undefined &&
-      value.startsWith("-") &&
-      isCliFlagOrHelpToken(value);
+function collectRegistryNewCliStringOptions(
+  options: Record<string, unknown>,
+): Partial<Record<RegistryNewCliOptionName, string>> {
+  const result: Partial<Record<RegistryNewCliOptionName, string>> = {};
 
-    if (value === undefined || nextTokenIsSeparateFlag) {
-      throw new Error(`Missing value for ${flag}`);
-    }
+  for (const name of registryNewCliOptionNames) {
+    const value = options[name];
 
-    options[optionName] = value;
-
-    if (inlineValue === undefined) {
-      index += 1;
+    if (typeof value === "string") {
+      result[name] = value;
     }
   }
 
-  return options;
-}
-
-function isCliFlagOrHelpToken(token: string): boolean {
-  return isRegistryNewScriptHelpArg(token) || getRegistryNewCliOptionName(token) !== undefined;
+  return result;
 }
 
 function getRegistryNewCliOptionName(flag: string): RegistryNewCliOptionName | undefined {

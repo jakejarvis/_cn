@@ -322,7 +322,7 @@ Options:
   --file-extension <ext>        File extension for registry:file and targeted registry:item. Defaults to ts.
   --font-family <family>        Font family for registry:font.
   --font-import <name>          Google font import name for registry:font.
-  --font-variable <variable>    CSS variable for registry:font.
+  --font-variable <variable>    CSS variable for registry:font. Use --font-variable=--foo when the value starts with '-' (a leading hyphen).
   --font-weight <weights>       Optional comma-separated font weights.
   --font-subsets <subsets>      Optional comma-separated font subsets.
   --font-selector <selector>    Optional selector for applying the font.

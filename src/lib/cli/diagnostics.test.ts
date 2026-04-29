@@ -77,6 +77,17 @@ describe("registry diagnostics", () => {
     });
   });
 
+  test("does not warn about orphan folders that only contain ignored files", () => {
+    const diagnostics = getRegistryDiagnostics({
+      files: {
+        "registry/items/components/empty-ish/.DS_Store": "",
+      },
+    });
+
+    expect(diagnostics.errors).toEqual([]);
+    expect(diagnostics.warnings).toEqual([]);
+  });
+
   test("warns about unpublished files inside item folders", () => {
     const diagnostics = getRegistryDiagnostics({
       files: {

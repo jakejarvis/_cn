@@ -13,7 +13,6 @@ import {
   type RegistryItemDefinition,
 } from "./metadata";
 import { getFileName } from "./paths";
-import { isSupportedRegistrySourcePath } from "./source-types";
 import { getRegistryItemWithSources, type RegistryCatalogItemWithSources } from "./source.server";
 
 const registryJsonResponseHeaders = {
@@ -239,7 +238,7 @@ export function getRegistrySourceValidationErrors(item: RegistrySourceValidation
   const errors: string[] = [];
 
   for (const file of item.sourceFiles) {
-    if (!isSupportedRegistrySourcePath(file.sourcePath)) {
+    if (file.sourcePath.trim().length === 0) {
       errors.push(
         `Registry item "${item.name}" references an unsupported source file type: ${file.sourcePath}`,
       );
@@ -282,10 +281,10 @@ function toRegistryItemJson(
   itemWithSources = getRegistryItemWithSources(item),
 ): RegistryItemJson {
   const unsupportedFiles = itemWithSources.sourceFiles
-    .filter((file) => !isSupportedRegistrySourcePath(file.sourcePath))
+    .filter((file) => file.sourcePath.trim().length === 0)
     .map((file) => file.sourcePath);
   const missingFiles = itemWithSources.sourceFiles
-    .filter((file) => isSupportedRegistrySourcePath(file.sourcePath) && file.source.length === 0)
+    .filter((file) => file.sourcePath.trim().length > 0 && file.source.length === 0)
     .map((file) => file.sourcePath);
 
   if (unsupportedFiles.length > 0) {

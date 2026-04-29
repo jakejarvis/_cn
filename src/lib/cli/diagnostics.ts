@@ -1,6 +1,5 @@
-import { createRegistryCatalogItems, type RegistryCatalogItem } from "./catalog-builder";
-import { getFileName, getParentPath } from "./paths";
-import { isSupportedRegistrySourcePath } from "./source-types";
+import { createRegistryCatalogItems, type RegistryCatalogItem } from "../registry/catalog-builder";
+import { getFileName, getParentPath } from "../registry/paths";
 
 export type RegistryDiagnosticLevel = "error" | "warning";
 
@@ -182,7 +181,7 @@ function getRegistryPublishedFileErrors(
     );
   }
 
-  if (!isSupportedRegistrySourcePath(file.sourcePath)) {
+  if (file.sourcePath.trim().length === 0) {
     errors.push(
       createError(
         file.sourcePath,
@@ -239,7 +238,7 @@ function getSuspiciousRegistryFileWarnings(
     const item = itemsByRoot.get(root);
     const rootFiles = Object.keys(files).filter((path) => path.startsWith(`${root}/`));
 
-    if (!item && rootFiles.some(isSupportedRegistrySourcePath)) {
+    if (!item && rootFiles.some((path) => path.trim().length > 0)) {
       warnings.push(
         createWarning(
           root,
@@ -260,14 +259,14 @@ function getSuspiciousRegistryFileWarnings(
         continue;
       }
 
-      if (isSupportedRegistrySourcePath(path) && !publishedSourcePaths.has(path)) {
+      if (path.trim().length > 0 && !publishedSourcePaths.has(path)) {
         warnings.push(
           createWarning(path, `Registry item "${item.name}" does not publish this source file.`),
         );
         continue;
       }
 
-      if (!isSupportedRegistrySourcePath(path)) {
+      if (path.trim().length === 0) {
         warnings.push(
           createWarning(path, `Registry item "${item.name}" ignores unsupported file type.`),
         );

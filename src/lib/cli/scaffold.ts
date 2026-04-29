@@ -2,7 +2,7 @@ import {
   getRegistryTypeFolder,
   publicRegistryItemTypes,
   type RegistryItemType,
-} from "./item-types";
+} from "../registry/item-types";
 
 export type RegistryScaffoldItemType = RegistryItemType;
 

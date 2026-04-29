@@ -5,6 +5,11 @@ import { join } from "node:path";
 import { cancel, intro, isCancel, log, note, outro, select, text } from "@clack/prompts";
 
 import {
+  isRegistryNewScriptHelpArg,
+  parseRegistryNewScriptCliArgs,
+  type RegistryNewCliOptionName,
+} from "../src/lib/cli/parse";
+import {
   createRegistryScaffoldPlan,
   getDefaultRegistryScaffoldTitle,
   getRegistryScaffoldConflicts,
@@ -17,11 +22,11 @@ import {
   type RegistryScaffoldInput,
   type RegistryScaffoldItemType,
   type RegistryScaffoldPlan,
-} from "../src/lib/registry/scaffold";
+} from "../src/lib/cli/scaffold";
 
 const cliArgs = process.argv.slice(2);
 
-if (cliArgs.some(isHelpArg)) {
+if (cliArgs.some(isRegistryNewScriptHelpArg)) {
   printHelp();
   process.exit(0);
 }
@@ -180,7 +185,7 @@ async function promptValue<T>(prompt: Promise<T | symbol>): Promise<T> {
 }
 
 function parseRegistryScaffoldInput(rawArgs: string[]): RegistryScaffoldInput {
-  const options = parseOptions(rawArgs);
+  const options = parseRegistryNewScriptCliArgs(rawArgs);
   const type = parseRegistryScaffoldItemType(options.type ?? "registry:ui");
   const name = requireOption(options.name, "--name");
   const description = requireOption(options.description, "--description");
@@ -220,93 +225,8 @@ function parseRegistryScaffoldInput(rawArgs: string[]): RegistryScaffoldInput {
   };
 }
 
-type CliOptionName =
-  | "description"
-  | "fileExtension"
-  | "fontDependency"
-  | "fontFamily"
-  | "fontImport"
-  | "fontSelector"
-  | "fontSubsets"
-  | "fontVariable"
-  | "fontWeight"
-  | "name"
-  | "target"
-  | "title"
-  | "type";
-
-function parseOptions(rawArgs: string[]): Partial<Record<CliOptionName, string>> {
-  const options: Partial<Record<CliOptionName, string>> = {};
-
-  for (let index = 0; index < rawArgs.length; index += 1) {
-    const arg = rawArgs[index];
-    const [flag, inlineValue] = arg.includes("=") ? arg.split(/=(.*)/su, 2) : [arg, undefined];
-
-    if (!flag.startsWith("-")) {
-      throw new Error(`Unexpected argument: ${arg}`);
-    }
-
-    const optionName = getCliOptionName(flag);
-
-    if (!optionName) {
-      throw new Error(`Unknown option: ${flag}`);
-    }
-
-    if (optionName in options) {
-      throw new Error(`Duplicate option: ${flag}`);
-    }
-
-    const value = inlineValue ?? rawArgs[index + 1];
-
-    if (value === undefined || (inlineValue === undefined && value.startsWith("-"))) {
-      throw new Error(`Missing value for ${flag}`);
-    }
-
-    options[optionName] = value;
-
-    if (inlineValue === undefined) {
-      index += 1;
-    }
-  }
-
-  return options;
-}
-
-function getCliOptionName(flag: string): CliOptionName | undefined {
-  switch (flag) {
-    case "--description":
-      return "description";
-    case "--file-extension":
-      return "fileExtension";
-    case "--font-dependency":
-      return "fontDependency";
-    case "--font-family":
-      return "fontFamily";
-    case "--font-import":
-      return "fontImport";
-    case "--font-selector":
-      return "fontSelector";
-    case "--font-subsets":
-      return "fontSubsets";
-    case "--font-variable":
-      return "fontVariable";
-    case "--font-weight":
-      return "fontWeight";
-    case "--name":
-      return "name";
-    case "--target":
-      return "target";
-    case "--title":
-      return "title";
-    case "--type":
-      return "type";
-    default:
-      return undefined;
-  }
-}
-
 function parseRegistryScaffoldFontInput(
-  options: Partial<Record<CliOptionName, string>>,
+  options: Partial<Record<RegistryNewCliOptionName, string>>,
 ): RegistryScaffoldFontInput | undefined {
   const hasFontOptions = [
     options.fontFamily,
@@ -383,10 +303,6 @@ function supportsTargetOption(type: RegistryScaffoldItemType): boolean {
 
 function supportsFileExtensionOption(type: RegistryScaffoldItemType, hasTarget: boolean): boolean {
   return type === "registry:file" || (type === "registry:item" && hasTarget);
-}
-
-function isHelpArg(arg: string): boolean {
-  return arg === "--help" || arg === "-h";
 }
 
 function printHelp(): void {

@@ -1,7 +1,6 @@
 import { normalizeGlobFiles } from "../glob";
 import { registryItems } from "./catalog";
 import type { RegistryCatalogItem, RegistryPreviewSourceFile } from "./catalog-builder";
-import { isSupportedRegistrySourcePath } from "./source-types";
 
 const registrySources = import.meta.glob<string>("../../../registry/items/**/*", {
   eager: true,
@@ -64,7 +63,7 @@ export function getMissingRegistryPreviewPaths(): string[] {
 export function getUnsupportedRegistrySourcePaths(): string[] {
   return registryItems.flatMap((item) =>
     item.sourceFiles
-      .filter((file) => !isSupportedRegistrySourcePath(file.sourcePath))
+      .filter((file) => file.sourcePath.trim().length === 0)
       .map((file) => file.sourcePath),
   );
 }
@@ -80,7 +79,7 @@ export function trimBlankTrailingLines(source: string): string {
 }
 
 function getRegistrySource(path: string): string {
-  if (!isSupportedRegistrySourcePath(path)) {
+  if (path.trim().length === 0) {
     return "";
   }
 

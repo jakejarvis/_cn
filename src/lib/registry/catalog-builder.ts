@@ -95,7 +95,17 @@ function getRegistrySourceFileDefinitions(
   itemRoot: string,
   item: RegistryItemAuthoringDefinition,
 ): RegistrySourceFileDefinition[] {
-  if (item.files) {
+  if (item.type === "registry:page" || item.type === "registry:file") {
+    if (!item.files?.length) {
+      throw new Error(
+        `Registry item "${item.name}" (${item.type}) must declare a non-empty "files" array in frontmatter.`,
+      );
+    }
+
+    return item.files;
+  }
+
+  if (item.files?.length) {
     return item.files;
   }
 

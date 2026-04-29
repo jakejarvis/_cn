@@ -14,7 +14,6 @@ import {
   getRegistryValidationErrors,
 } from "./json.server";
 import { registryItemSchema } from "./metadata";
-import { isSupportedRegistrySourcePath } from "./source-types";
 import {
   getMissingRegistryPreviewPaths,
   getMissingRegistrySourcePaths,
@@ -126,10 +125,6 @@ describe("registry catalog", () => {
 
   test("supports the raw source file types used by registry items", () => {
     expect(getUnsupportedRegistrySourcePaths()).toEqual([]);
-    expect(isSupportedRegistrySourcePath("registry/items/example/example.tsx")).toBe(true);
-    expect(isSupportedRegistrySourcePath("registry/items/example/example.css")).toBe(true);
-    expect(isSupportedRegistrySourcePath("registry/items/example/example.md")).toBe(true);
-    expect(isSupportedRegistrySourcePath("registry/items/example/.env")).toBe(true);
   });
 
   test("loads preview source for every item", () => {

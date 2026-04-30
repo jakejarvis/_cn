@@ -119,19 +119,9 @@ export function getRegistryItemRoutePath(item: RegistryRouteItem): string {
 export function getRegistrySectionsWithItems<T extends RegistryRouteItem>(
   items: readonly T[],
 ): RegistrySectionWithItems<T>[] {
-  return registrySectionList.flatMap((section) => {
-    const sectionItems = getRegistryItemsForSection(items, section.id);
-
-    return sectionItems.length > 0
-      ? [
-          {
-            ...section,
-            items: sectionItems,
-            groups: getRegistryTypeGroups(sectionItems),
-          },
-        ]
-      : [];
-  });
+  return registrySectionList
+    .map((section) => toRegistrySectionWithItems(section, items))
+    .filter((section) => section.items.length > 0);
 }
 
 export function getRegistrySectionWithItems<T extends RegistryRouteItem>(
@@ -144,13 +134,7 @@ export function getRegistrySectionWithItems<T extends RegistryRouteItem>(
     return undefined;
   }
 
-  const sectionItems = getRegistryItemsForSection(items, section.id);
-
-  return {
-    ...section,
-    items: sectionItems,
-    groups: getRegistryTypeGroups(sectionItems),
-  };
+  return toRegistrySectionWithItems(section, items);
 }
 
 export function getRegistrySectionItem<T extends RegistryRouteItem>(
@@ -158,9 +142,28 @@ export function getRegistrySectionItem<T extends RegistryRouteItem>(
   itemName: string,
   items: readonly T[],
 ): T | undefined {
-  return getRegistrySectionWithItems(sectionId, items)?.items.find(
-    (item) => item.name === itemName,
+  const section = getRegistrySection(sectionId);
+
+  if (!section) {
+    return undefined;
+  }
+
+  return items.find(
+    (item) => item.name === itemName && getRegistrySectionIdForType(item.type) === section.id,
   );
+}
+
+function toRegistrySectionWithItems<T extends RegistryRouteItem>(
+  section: RegistrySectionConfig,
+  items: readonly T[],
+): RegistrySectionWithItems<T> {
+  const sectionItems = getRegistryItemsForSection(items, section.id);
+
+  return {
+    ...section,
+    items: sectionItems,
+    groups: getRegistryTypeGroups(sectionItems),
+  };
 }
 
 function getRegistryItemsForSection<T extends RegistryRouteItem>(
@@ -173,11 +176,24 @@ function getRegistryItemsForSection<T extends RegistryRouteItem>(
 function getRegistryTypeGroups<T extends RegistryRouteItem>(
   items: readonly T[],
 ): RegistrySectionItemGroup<T>[] {
-  return publicRegistryItemTypes.flatMap((type) => {
-    const groupItems = items.filter((item) => item.type === type);
+  return publicRegistryItemTypes
+    .map((type) => getRegistryTypeGroup(type, items))
+    .filter((group): group is RegistrySectionItemGroup<T> => group !== null);
+}
 
-    return groupItems.length > 0
-      ? [{ id: type, title: getRegistryTypeLabel(type), items: groupItems }]
-      : [];
-  });
+function getRegistryTypeGroup<T extends RegistryRouteItem>(
+  type: RegistryItemType,
+  items: readonly T[],
+): RegistrySectionItemGroup<T> | null {
+  const groupItems = items.filter((item) => item.type === type);
+
+  if (groupItems.length === 0) {
+    return null;
+  }
+
+  return {
+    id: type,
+    title: getRegistryTypeLabel(type),
+    items: groupItems,
+  };
 }

@@ -82,22 +82,7 @@ export function getSiteNavigationSection(id: SiteNavigationSectionId): SiteNavig
     return getRegistryNavigationSection();
   }
 
-  const section = getRegistryNavigationSectionById(id);
-
-  if (section) {
-    return section;
-  }
-
-  const config = getRegistrySection(id);
-
-  if (config) {
-    return {
-      ...config,
-      items: [],
-    };
-  }
-
-  return getRegistryNavigationSection();
+  return getRegistryNavigationSectionById(id) ?? getRegistryNavigationSection();
 }
 
 function getDocsSiteNavigationSection(): SiteNavigationSection | null {
@@ -131,41 +116,33 @@ function toDocsNavigationEntry(item: DocsNavigationItem): DocsNavigationEntry {
 function getRegistryNavigationSection(): SiteNavigationSection {
   const catalog = getRegistryCatalogWithItems();
 
-  return {
-    id: catalog.id,
-    title: catalog.title,
-    basePath: catalog.basePath,
-    items: catalog.items.map(toRegistryNavigationItem),
-  };
+  return toRegistrySiteNavigationSection(catalog);
 }
 
 function getRegistryNavigationSections(
   items: readonly RegistryNavigationSourceItem[],
 ): SiteNavigationSection[] {
-  return getRegistrySectionsWithItems(items).map((section) => ({
-    id: section.id,
-    title: section.title,
-    basePath: section.basePath,
-    items: section.items.map(toRegistryNavigationItem),
-  }));
+  return getRegistrySectionsWithItems(items).map(toRegistrySiteNavigationSection);
 }
 
-function getRegistryNavigationSectionById(
-  sectionId: RegistrySectionId,
-): SiteNavigationSection | null {
-  const section = getRegistrySectionsWithItems(registryItems).find(({ id }) => id === sectionId);
+function getRegistryNavigationSectionById(sectionId: string): SiteNavigationSection | null {
+  const config = getRegistrySection(sectionId);
 
-  if (!section) {
-    const config = getRegistrySection(sectionId);
-
-    return config
-      ? {
-          ...config,
-          items: [],
-        }
-      : null;
+  if (!config) {
+    return null;
   }
 
+  const section = getRegistrySectionsWithItems(registryItems).find(({ id }) => id === sectionId);
+
+  return toRegistrySiteNavigationSection(section ?? { ...config, items: [] });
+}
+
+function toRegistrySiteNavigationSection(section: {
+  id: "registry" | RegistrySectionId;
+  title: string;
+  basePath: string;
+  items: readonly RegistryNavigationSourceItem[];
+}): SiteNavigationSection {
   return {
     id: section.id,
     title: section.title,

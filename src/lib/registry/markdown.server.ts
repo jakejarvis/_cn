@@ -27,6 +27,10 @@ type RegistryCatalogMarkdownConfig = {
 };
 
 type RegistryCatalogMarkdownItem = Pick<RegistryCatalogItem, "description" | "name" | "title">;
+type LinkedRegistryCatalogSourceItem = Pick<
+  RegistryCatalogItem,
+  "description" | "name" | "title" | "type"
+>;
 type LinkedRegistryCatalogMarkdownItem = RegistryCatalogMarkdownItem & {
   routePath?: string;
 };
@@ -60,14 +64,16 @@ export function getRegistryItemMarkdownResponse(itemName: string): Response {
 }
 
 export function getRegistrySectionMarkdownResponse(sectionId: string): Response {
-  const markdown = getRegistrySectionMarkdown(sectionId);
   const section = getRegistrySectionWithItems(sectionId, registryItems);
 
-  if (!markdown || !section) {
+  if (!section) {
     return createMarkdownNotFoundResponse("Registry section not found.");
   }
 
-  return createLinkedMarkdownResponse(markdown, section.basePath);
+  return createLinkedMarkdownResponse(
+    createLinkedRegistryCatalogMarkdown(section),
+    section.basePath,
+  );
 }
 
 export function getRegistrySectionItemMarkdownResponse(
@@ -89,15 +95,7 @@ export function getRegistrySectionItemMarkdownResponse(
 export function getRegistryCatalogMarkdown(): string {
   const catalog = getRegistryCatalogWithItems();
 
-  return createRegistryCatalogMarkdown(
-    catalog,
-    catalog.items.map((item) => ({
-      name: item.name,
-      title: item.title,
-      description: item.description,
-      routePath: getRegistryItemRoutePath(item),
-    })),
-  );
+  return createLinkedRegistryCatalogMarkdown(catalog);
 }
 
 export function getRegistrySectionMarkdown(sectionId: string): string | null {
@@ -107,15 +105,7 @@ export function getRegistrySectionMarkdown(sectionId: string): string | null {
     return null;
   }
 
-  return createRegistryCatalogMarkdown(
-    section,
-    section.items.map((item) => ({
-      name: item.name,
-      title: item.title,
-      description: item.description,
-      routePath: getRegistryItemRoutePath(item),
-    })),
-  );
+  return createLinkedRegistryCatalogMarkdown(section);
 }
 
 export function createRegistryCatalogMarkdown(
@@ -175,4 +165,27 @@ export function createRegistryItemMarkdown(itemWithSources: RegistryItemMarkdown
     sourceBlocks.length > 0 ? joinMarkdownBlocks(["## Source", ...sourceBlocks]) : "",
     usageSource ? joinMarkdownBlocks(["## Usage", usageSource]) : "",
   ]);
+}
+
+function createLinkedRegistryCatalogMarkdown(catalog: {
+  basePath: string;
+  description: string;
+  title: string;
+  items: readonly LinkedRegistryCatalogSourceItem[];
+}): string {
+  return createRegistryCatalogMarkdown(
+    catalog,
+    toLinkedRegistryCatalogMarkdownItems(catalog.items),
+  );
+}
+
+function toLinkedRegistryCatalogMarkdownItems(
+  items: readonly LinkedRegistryCatalogSourceItem[],
+): LinkedRegistryCatalogMarkdownItem[] {
+  return items.map((item) => ({
+    name: item.name,
+    title: item.title,
+    description: item.description,
+    routePath: getRegistryItemRoutePath(item),
+  }));
 }

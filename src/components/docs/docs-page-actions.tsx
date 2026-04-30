@@ -18,6 +18,8 @@ import {
 
 type DocsPageActionsProps = {
   markdownPath: string;
+  pageDescription: string;
+  pageTitle: string;
   pageUrl: string;
   registryItemJsonUrl?: string;
   className?: string;
@@ -25,7 +27,7 @@ type DocsPageActionsProps = {
 
 type DocsPageActionUrls = Pick<
   DocsPageActionsProps,
-  "markdownPath" | "pageUrl" | "registryItemJsonUrl"
+  "markdownPath" | "pageDescription" | "pageTitle" | "pageUrl" | "registryItemJsonUrl"
 >;
 
 type DocsPageActionLink = {
@@ -47,8 +49,14 @@ const menuItems: readonly MenuItem[] = [
   },
   {
     label: "Open in v0",
-    href: ({ registryItemJsonUrl }) =>
-      registryItemJsonUrl ? getV0RegistryItemUrl(registryItemJsonUrl) : null,
+    href: ({ pageDescription, pageTitle, registryItemJsonUrl }) =>
+      registryItemJsonUrl
+        ? getV0RegistryItemUrl({
+            prompt: pageDescription,
+            registryItemJsonUrl,
+            title: pageTitle,
+          })
+        : null,
     icon: V0Icon,
   },
   {
@@ -70,6 +78,8 @@ const menuItems: readonly MenuItem[] = [
 
 export function DocsPageActions({
   markdownPath,
+  pageDescription,
+  pageTitle,
   pageUrl,
   registryItemJsonUrl,
   className,
@@ -101,6 +111,8 @@ export function DocsPageActions({
               const Icon = item.icon;
               const href = item.href({
                 markdownPath,
+                pageDescription,
+                pageTitle,
                 pageUrl,
                 registryItemJsonUrl,
               });
@@ -160,10 +172,20 @@ Study it and let me know when you're ready to answer my questions.`;
   return promptUrl.toString();
 }
 
-function getV0RegistryItemUrl(registryItemJsonUrl: string): string {
+function getV0RegistryItemUrl({
+  prompt,
+  registryItemJsonUrl,
+  title,
+}: {
+  prompt: string;
+  registryItemJsonUrl: string;
+  title: string;
+}): string {
   const openUrl = new URL("https://v0.dev/chat/api/open");
 
   openUrl.searchParams.set("url", registryItemJsonUrl);
+  openUrl.searchParams.set("title", title.trim());
+  openUrl.searchParams.set("prompt", prompt.trim());
 
   return openUrl.toString();
 }

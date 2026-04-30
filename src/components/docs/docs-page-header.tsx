@@ -27,6 +27,8 @@ export function DocsPageHeader({
         <h1 className="min-w-0 font-heading text-3xl font-semibold tracking-tight">{title}</h1>
         <DocsPageActions
           markdownPath={getDocsMarkdownPath(pagePath)}
+          pageDescription={description}
+          pageTitle={title}
           pageUrl={getCanonicalDocsUrl(pagePath)}
           registryItemJsonUrl={
             registryItemName ? getCanonicalRegistryItemUrl(registryItemName) : undefined

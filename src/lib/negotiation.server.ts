@@ -117,7 +117,7 @@ export function isMarkdownPreferred(request: Request): boolean {
 export function getMarkdownNegotiationResponse(pathname: string): Response | undefined {
   const path = normalizePathname(pathname);
 
-  if (!hasMarkdownNegotiationTarget(path)) {
+  if (path === "/" || isMachineEndpointOrAssetPath(path)) {
     return undefined;
   }
 
@@ -137,6 +137,10 @@ export function getMarkdownNegotiationResponse(pathname: string): Response | und
   if (registrySectionMatch) {
     const { section, name } = registrySectionMatch.params;
 
+    if (!getRegistrySection(section)) {
+      return undefined;
+    }
+
     return name
       ? getRegistrySectionItemMarkdownResponse(section, name)
       : getRegistrySectionMarkdownResponse(section);
@@ -146,7 +150,7 @@ export function getMarkdownNegotiationResponse(pathname: string): Response | und
 }
 
 function getRegistryJsonNegotiationTarget(path: string): RegistryJsonNegotiationTarget | undefined {
-  if (path.startsWith("/r/") || fileExtensionPattern.test(path)) {
+  if (isMachineEndpointOrAssetPath(path)) {
     return undefined;
   }
 
@@ -173,24 +177,8 @@ function getRegistryJsonNegotiationTarget(path: string): RegistryJsonNegotiation
   return undefined;
 }
 
-function hasMarkdownNegotiationTarget(path: string): boolean {
-  // Only human-facing HTML routes participate; machine endpoints and assets keep their own responses.
-  if (path === "/" || path.startsWith("/r/") || fileExtensionPattern.test(path)) {
-    return false;
-  }
-
-  const docsMatch = docsPathMatcher(path);
-  if (docsMatch) return true;
-
-  const registryMatch = registryPathMatcher(path);
-  if (registryMatch) return true;
-
-  const registrySectionMatch = registrySectionPathMatcher(path);
-  if (registrySectionMatch) {
-    return Boolean(getRegistrySection(registrySectionMatch.params.section));
-  }
-
-  return false;
+function isMachineEndpointOrAssetPath(path: string): boolean {
+  return path.startsWith("/r/") || fileExtensionPattern.test(path);
 }
 
 function getAcceptedMediaTypes(request: Request): string[] {

@@ -12,8 +12,7 @@ import {
   type RegistryFileDefinition,
   type RegistryItemDefinition,
 } from "./metadata";
-import { getFileName } from "./paths";
-import { isSupportedRegistrySourcePath } from "./source-types";
+import { getFileName, isInvalidRegistryRelativePath } from "./paths";
 import { getRegistryItemWithSources, type RegistryCatalogItemWithSources } from "./source.server";
 
 const registryJsonResponseHeaders = {
@@ -30,7 +29,7 @@ type RegistryItemFileJson = RegistryFileDefinition & {
 
 type RegistryItemJson = Omit<RegistryItemDefinition, "files"> & {
   $schema: typeof registryItemSchema;
-  files: RegistryItemFileJson[];
+  files?: RegistryItemFileJson[];
 };
 
 type RegistryItemOptionalFields = Pick<
@@ -166,12 +165,8 @@ function getRegistryItemMetadataErrors(
 
   names.set(item.name, item.name);
 
-  if (!item.name || !item.title || !item.description || !item.type) {
+  if (!item.name || !item.type) {
     errors.push(`Registry item "${item.name}" has incomplete metadata.`);
-  }
-
-  if (item.files.length === 0) {
-    errors.push(`Registry item "${item.name}" must list at least one registry file.`);
   }
 
   if (item.type === "registry:font" && !item.font) {
@@ -206,23 +201,28 @@ function getRegistryFileValidationErrors(item: RegistryCatalogItem): string[] {
   const errors: string[] = [];
 
   for (const file of item.sourceFiles) {
-    if (!file.path.startsWith("registry/")) {
+    const fileName = getFileName(file.path);
+    const sourceFileName = getFileName(file.sourcePath);
+
+    if (isInvalidRegistryRelativePath(file.path)) {
+      errors.push(`Registry item "${item.name}" contains an invalid install path: ${file.path}`);
+    }
+
+    if (isInvalidRegistryRelativePath(file.sourcePath)) {
       errors.push(
-        `Registry item "${item.name}" contains a file path outside registry/: ${file.path}`,
+        `Registry item "${item.name}" contains an invalid source path: ${file.sourcePath}`,
+      );
+    } else if (!file.sourcePath.startsWith("registry/items/")) {
+      errors.push(
+        `Registry item "${item.name}" must publish files from registry/items/: ${file.sourcePath}`,
       );
     }
 
-    if (!file.path.startsWith("registry/items/")) {
-      errors.push(
-        `Registry item "${item.name}" must publish files from registry/items/: ${file.path}`,
-      );
-    }
-
-    if (getFileName(file.path).startsWith("_")) {
+    if (fileName.startsWith("_")) {
       errors.push(`Registry item "${item.name}" must not publish registry authoring files.`);
     }
 
-    if (getFileName(file.sourcePath).startsWith("_")) {
+    if (sourceFileName.startsWith("_")) {
       errors.push(
         `Registry item "${item.name}" must not publish from registry authoring source files: ${file.sourcePath}`,
       );
@@ -240,7 +240,7 @@ export function getRegistrySourceValidationErrors(item: RegistrySourceValidation
   const errors: string[] = [];
 
   for (const file of item.sourceFiles) {
-    if (!isSupportedRegistrySourcePath(file.sourcePath)) {
+    if (file.sourcePath.trim().length === 0) {
       errors.push(
         `Registry item "${item.name}" references an unsupported source file type: ${file.sourcePath}`,
       );
@@ -283,10 +283,10 @@ function toRegistryItemJson(
   itemWithSources = getRegistryItemWithSources(item),
 ): RegistryItemJson {
   const unsupportedFiles = itemWithSources.sourceFiles
-    .filter((file) => !isSupportedRegistrySourcePath(file.sourcePath))
+    .filter((file) => file.sourcePath.trim().length === 0)
     .map((file) => file.sourcePath);
   const missingFiles = itemWithSources.sourceFiles
-    .filter((file) => isSupportedRegistrySourcePath(file.sourcePath) && file.source.length === 0)
+    .filter((file) => file.sourcePath.trim().length > 0 && file.source.length === 0)
     .map((file) => file.sourcePath);
 
   if (unsupportedFiles.length > 0) {
@@ -297,12 +297,16 @@ function toRegistryItemJson(
     throw new Error(`Missing registry source file(s): ${missingFiles.join(", ")}`);
   }
 
+  const files = itemWithSources.sourceFiles.map((file) =>
+    toRegistryItemFileJson(itemWithSources, file),
+  );
+
   return {
     $schema: registryItemSchema,
     name: item.name,
     title: item.title,
     description: item.description,
-    files: itemWithSources.sourceFiles.map((file) => toRegistryItemFileJson(itemWithSources, file)),
+    ...(files.length > 0 ? { files } : {}),
     type: item.type,
     ...getRegistryItemOptionalFields(item),
   };
@@ -314,7 +318,7 @@ function toRegistryItemDefinition(item: RegistryCatalogItem): RegistryItemDefini
     type: item.type,
     title: item.title,
     description: item.description,
-    files: item.files,
+    ...(item.files.length > 0 ? { files: item.files } : {}),
     ...getRegistryItemOptionalFields(item),
   };
 }
@@ -354,14 +358,17 @@ function toRegistryItemFileJson(
     };
   }
 
-  const registryFile: RegistryItemFileJson = {
+  const registryFile = {
     path: file.path,
     type: file.type,
     content,
   };
 
   if (file.target) {
-    registryFile.target = file.target;
+    return {
+      ...registryFile,
+      target: file.target,
+    };
   }
 
   return registryFile;

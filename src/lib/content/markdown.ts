@@ -10,12 +10,24 @@ export const plainTextResponseHeaders = {
   "Content-Type": "text/plain; charset=utf-8",
 } as const;
 
+export type MarkdownLinkListItem = {
+  title: string;
+  href: string;
+  description: string;
+};
+
 export function joinMarkdownBlocks(blocks: readonly string[]): string {
   return `${blocks.filter((block) => block.trim().length > 0).join("\n\n")}\n`;
 }
 
 export function escapeMarkdownLinkText(value: string): string {
   return value.replace(/[[\]\\]/gu, "\\$&");
+}
+
+export function formatMarkdownLinkList(items: readonly MarkdownLinkListItem[]): string {
+  return items
+    .map((item) => `- [${escapeMarkdownLinkText(item.title)}](${item.href}): ${item.description}`)
+    .join("\n");
 }
 
 export function formatCodeBlock(code: string, language: string): string {

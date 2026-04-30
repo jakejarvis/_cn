@@ -82,6 +82,12 @@ The public registry index is available at both the root and `/r` paths, while in
 - `/r/<name>.json` serves an item JSON file.
 - `/llms.txt` and `/llms-full.txt` are generated from the same Markdown docs and registry item pages used by the site.
 
+Human-facing registry URLs support shadcn CLI content negotiation. CLI requests with `Accept: application/vnd.shadcn.v1+json` or `User-Agent: shadcn` receive JSON from the same URL a browser uses for HTML:
+
+- `/registry` returns the registry index JSON.
+- `/registry/<name>` and section item pages like `/components/<name>` return item JSON.
+- `/` returns the `index` registry item when your registry publishes one.
+
 Docs pages, registry section pages, and registry item pages also support Markdown content negotiation (inspired by [Fumadocs](https://www.fumadocs.dev/docs/headless/utils/negotiation)). AI clients that request `text/markdown`, `text/x-markdown`, or `text/plain` in the `Accept` header receive the Markdown version of the current page directly, while normal browser requests still receive HTML.
 
 Install command URLs and local registry dependency URLs are generated from the registry path config in `src/lib/site-config.ts`.
@@ -167,9 +173,9 @@ export function Preview() {
 }
 ````
 
-For a one-file component, the catalog infers the published file path from the item root and `name`. List `files` explicitly in frontmatter for hooks, libs, blocks, pages, target paths, or any item with multiple published files. Do not publish `_registry.mdx` or other authoring-only files.
+For a one-file component, the catalog infers the published file path from the item root and `name`. List `files` explicitly in frontmatter for hooks, libs, blocks, pages, target paths, or any item with multiple published files; file paths are relative to the item `_registry.mdx` file. Metadata-only styles, themes, fonts, bases, and universal items can omit `files`. Do not publish `_registry.mdx` or other authoring-only files.
 
-The MDX body renders as the optional Usage section on the docs page. Fenced code blocks are syntax highlighted and keep the docs site's copy button. The `Preview` export is compiled as a client-only virtual module, so hooks and event handlers are fine there, but server-only logic should stay out of previews. Use `localRegistryDependencies` for dependencies on other local registry items; they are converted into canonical registry URLs in the public JSON.
+The MDX body renders as the optional Usage section on the docs page. Fenced code blocks are syntax highlighted and keep the docs site's copy button. The optional `Preview` export is compiled as a client-only virtual module, so hooks and event handlers are fine there, but server-only logic should stay out of previews. Use `localRegistryDependencies` for dependencies on other local registry items; they are converted into canonical registry URLs in the public JSON.
 
 ## Starter Content
 
@@ -182,7 +188,7 @@ The template ships three plain examples:
 
 Replace them with your own registry items before publishing.
 
-The docs site renders non-empty `Components`, `Blocks`, and `Utilities` sections. Utility items cover `registry:hook` and `registry:lib` entries so non-component registry items remain discoverable before installation.
+The docs site renders one `/registry` all-items catalog, while user-facing item pages live under `/components/<name>`, `/blocks/<name>`, or `/utilities/<name>` based on item type.
 
 ## Checklist
 

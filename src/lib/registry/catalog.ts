@@ -4,8 +4,11 @@ import {
   createRegistryMetadataItems,
   type RegistryCatalogItem,
 } from "./catalog-builder";
+import { registryCatalog } from "./item-types";
 
-type RegistryType = RegistryCatalogItem["type"];
+export type RegistryCatalogWithItems = typeof registryCatalog & {
+  items: RegistryCatalogItem[];
+};
 
 const registryItemSources = import.meta.glob<string>("../../../registry/items/**/_registry.mdx", {
   eager: true,
@@ -22,8 +25,17 @@ export function getRegistryItem(name: string): RegistryCatalogItem | undefined {
   return registryItems.find((item) => item.name === name);
 }
 
-export function getRegistryItemsByTypes(types: readonly RegistryType[]): RegistryCatalogItem[] {
+export function getRegistryItemsByTypes(
+  types: readonly RegistryCatalogItem["type"][],
+): RegistryCatalogItem[] {
   const typeSet = new Set(types);
 
   return registryItems.filter((item) => typeSet.has(item.type));
+}
+
+export function getRegistryCatalogWithItems(): RegistryCatalogWithItems {
+  return {
+    ...registryCatalog,
+    items: registryItems,
+  };
 }

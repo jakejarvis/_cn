@@ -1,9 +1,9 @@
 import { createMiddleware, createStart } from "@tanstack/react-start";
 
-import { getMarkdownNegotiationResponseForRequest } from "./lib/negotiation.server";
+import { getContentNegotiationResponseForRequest } from "./lib/negotiation.server";
 
-const markdownNegotiationMiddleware = createMiddleware().server(({ next, pathname, request }) => {
-  const response = getMarkdownNegotiationResponseForRequest(request, pathname);
+const contentNegotiationMiddleware = createMiddleware().server(({ next, pathname, request }) => {
+  const response = getContentNegotiationResponseForRequest(request, pathname);
 
   if (response) {
     return response;
@@ -13,5 +13,5 @@ const markdownNegotiationMiddleware = createMiddleware().server(({ next, pathnam
 });
 
 export const startInstance = createStart(() => ({
-  requestMiddleware: [markdownNegotiationMiddleware],
+  requestMiddleware: [contentNegotiationMiddleware],
 }));

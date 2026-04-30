@@ -1,6 +1,5 @@
-import { createRegistryCatalogItems, type RegistryCatalogItem } from "./catalog-builder";
-import { getFileName, getParentPath } from "./paths";
-import { isSupportedRegistrySourcePath } from "./source-types";
+import { createRegistryCatalogItems, type RegistryCatalogItem } from "../registry/catalog-builder";
+import { getFileName, getParentPath, isInvalidRegistryRelativePath } from "../registry/paths";
 
 export type RegistryDiagnosticLevel = "error" | "warning";
 
@@ -140,20 +139,27 @@ function getRegistryPublishedFileErrors(
 ): RegistryDiagnostic[] {
   const errors: RegistryDiagnostic[] = [];
 
-  if (!file.path.startsWith("registry/")) {
+  if (isInvalidRegistryRelativePath(file.path)) {
     errors.push(
       createError(
         file.path,
-        `Registry item "${item.name}" contains a file path outside registry/: ${file.path}`,
+        `Registry item "${item.name}" contains an invalid install path: ${file.path}`,
       ),
     );
   }
 
-  if (!file.path.startsWith("registry/items/")) {
+  if (isInvalidRegistryRelativePath(file.sourcePath)) {
     errors.push(
       createError(
-        file.path,
-        `Registry item "${item.name}" must publish files from registry/items/: ${file.path}`,
+        file.sourcePath,
+        `Registry item "${item.name}" contains an invalid source path: ${file.sourcePath}`,
+      ),
+    );
+  } else if (!file.sourcePath.startsWith("registry/items/")) {
+    errors.push(
+      createError(
+        file.sourcePath,
+        `Registry item "${item.name}" must publish files from registry/items/: ${file.sourcePath}`,
       ),
     );
   }
@@ -182,7 +188,7 @@ function getRegistryPublishedFileErrors(
     );
   }
 
-  if (!isSupportedRegistrySourcePath(file.sourcePath)) {
+  if (file.sourcePath.trim().length === 0) {
     errors.push(
       createError(
         file.sourcePath,
@@ -238,8 +244,12 @@ function getSuspiciousRegistryFileWarnings(
   for (const root of itemRoots) {
     const item = itemsByRoot.get(root);
     const rootFiles = Object.keys(files).filter((path) => path.startsWith(`${root}/`));
+    const hasRegistryMdx = rootFiles.some((path) => isRegistryMdx(path));
+    const hasPublishableLookingFile = rootFiles.some(
+      (path) => !isKnownAuthoringOrIgnoredFile(path),
+    );
 
-    if (!item && rootFiles.some(isSupportedRegistrySourcePath)) {
+    if (!item && !hasRegistryMdx && hasPublishableLookingFile) {
       warnings.push(
         createWarning(
           root,
@@ -260,14 +270,14 @@ function getSuspiciousRegistryFileWarnings(
         continue;
       }
 
-      if (isSupportedRegistrySourcePath(path) && !publishedSourcePaths.has(path)) {
+      if (path.trim().length > 0 && !publishedSourcePaths.has(path)) {
         warnings.push(
           createWarning(path, `Registry item "${item.name}" does not publish this source file.`),
         );
         continue;
       }
 
-      if (!isSupportedRegistrySourcePath(path)) {
+      if (path.trim().length === 0) {
         warnings.push(
           createWarning(path, `Registry item "${item.name}" ignores unsupported file type.`),
         );

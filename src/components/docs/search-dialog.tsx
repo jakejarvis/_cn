@@ -122,13 +122,12 @@ export function SearchDialog() {
         void navigate({ to: "/docs/$slug", params: { slug: result.name } });
         return;
       case "components":
-        void navigate({ to: "/components/$name", params: { name: result.name } });
-        return;
       case "blocks":
-        void navigate({ to: "/blocks/$name", params: { name: result.name } });
-        return;
       case "utilities":
-        void navigate({ to: "/utilities/$name", params: { name: result.name } });
+        void navigate({
+          to: "/$section/$name",
+          params: { section: result.section, name: result.name },
+        });
         return;
     }
   }
@@ -165,9 +164,7 @@ export function SearchDialog() {
         <SearchDialogContent>
           <DialogHeader className="sr-only">
             <DialogTitle>Search Docs</DialogTitle>
-            <DialogDescription>
-              Search docs, components, blocks, hooks, and utilities.
-            </DialogDescription>
+            <DialogDescription>Search docs and registry items.</DialogDescription>
           </DialogHeader>
           <Command
             shouldFilter={false}

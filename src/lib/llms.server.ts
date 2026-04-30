@@ -5,9 +5,9 @@ import {
 } from "./content/markdown";
 import { docsPages } from "./docs/catalog";
 import { getAuthoredDocsPageMarkdown } from "./docs/markdown.server";
+import { registryItems } from "./registry/catalog";
 import { getRegistryItemMarkdown, getRegistrySectionMarkdown } from "./registry/markdown.server";
-import { getRegistrySectionItems } from "./registry/section-items";
-import { registrySectionList } from "./registry/sections";
+import { getRegistryItemRoutePath, getRegistrySectionsWithItems } from "./registry/sections";
 import {
   getCanonicalRegistryIndexUrl,
   getCanonicalSiteUrl,
@@ -115,20 +115,20 @@ function getLlmsSections(): LlmsSection[] {
         renderMarkdown: () => getAuthoredDocsPageMarkdown(page.slug) ?? "",
       })),
     },
-    ...registrySectionList.map((section) => ({
+    ...getRegistrySectionsWithItems(registryItems).map((section) => ({
       title: section.title,
       documents: [
         {
           title: `${section.title} index`,
           url: getCanonicalSiteUrl(getDocsMarkdownPath(section.basePath)),
           description: section.description,
-          renderMarkdown: () => getRegistrySectionMarkdown(section.id),
+          renderMarkdown: () => getRegistrySectionMarkdown(section.id) ?? "",
         },
-        ...getRegistrySectionItems(section.id).map((item) => ({
+        ...section.items.map((item) => ({
           title: item.title,
-          url: getCanonicalSiteUrl(getDocsMarkdownPath(`${section.basePath}/${item.name}`)),
+          url: getCanonicalSiteUrl(getDocsMarkdownPath(getRegistryItemRoutePath(item))),
           description: item.description,
-          renderMarkdown: () => getRegistryItemMarkdown(section.id, item.name) ?? "",
+          renderMarkdown: () => getRegistryItemMarkdown(item.name) ?? "",
         })),
       ],
     })),

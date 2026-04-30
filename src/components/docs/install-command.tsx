@@ -191,7 +191,12 @@ export function InstallCommand({ item, className }: InstallCommandProps) {
                   const Logo = option.logo;
 
                   return (
-                    <DropdownMenuRadioItem key={option.value} value={option.value} closeOnClick>
+                    <DropdownMenuRadioItem
+                      key={option.value}
+                      value={option.value}
+                      closeOnClick
+                      className="cursor-pointer"
+                    >
                       <Logo data-icon="inline-start" aria-hidden="true" />
                       {option.label}
                     </DropdownMenuRadioItem>

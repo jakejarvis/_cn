@@ -72,7 +72,7 @@ describe("seo helpers", () => {
     expect(
       getCollectionPageJsonLd({
         title: "Components",
-        description: "Reusable UI components.",
+        description: "Installable registry items.",
         path: "/components",
         items: [
           {
@@ -109,7 +109,7 @@ describe("seo helpers", () => {
     expect(shouldExcludeFromSitemap("/registry.json")).toBe(true);
     expect(shouldExcludeFromSitemap("/llms.txt?cache=1")).toBe(true);
     expect(shouldExcludeFromSitemap("/robots.txt")).toBe(true);
-    expect(shouldExcludeFromSitemap("/components/")).toBe(true);
+    expect(shouldExcludeFromSitemap("/registry/")).toBe(true);
     expect(shouldExcludeFromSitemap("/components/sample-item")).toBe(false);
   });
 

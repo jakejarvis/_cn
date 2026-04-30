@@ -17,7 +17,7 @@ registryDependencies:
 localRegistryDependencies:
   - alpha-card
 files:
-  - path: registry/items/components/toast/toast.tsx
+  - path: toast.tsx
     type: registry:ui
 ---
 
@@ -49,7 +49,7 @@ export function Preview() {
       registryDependencies: ["button", getCanonicalRegistryItemUrl("alpha-card")],
       files: [
         {
-          path: "registry/items/components/toast/toast.tsx",
+          path: "toast.tsx",
           type: "registry:ui",
         },
       ],
@@ -101,6 +101,23 @@ export function Preview() {
     expect(parsed.previewSource).toContain("      <p>Ready</p>");
   });
 
+  test("rejects sourcePath frontmatter file entries", () => {
+    expect(() =>
+      parseRegistryMdx(
+        "registry/items/components/toast/_registry.mdx",
+        `---
+name: toast
+type: registry:ui
+files:
+  - path: toast.tsx
+    sourcePath: registry/items/components/toast/toast.tsx
+    type: registry:ui
+---
+`,
+      ),
+    ).toThrow(/contains an invalid file entry/u);
+  });
+
   test("preserves shadcn docs metadata separately from mdx body usage", () => {
     const parsed = parseRegistryMdx(
       "registry/items/components/toast/_registry.mdx",
@@ -146,23 +163,49 @@ export function Preview() {
     expect(parsed.usageSource).toBe("");
   });
 
-  test("rejects registry MDX without a preview export", () => {
-    expect(() =>
-      parseRegistryMdx(
-        "registry/items/components/toast/_registry.mdx",
-        `---
+  test("treats the body as usage when no preview export is present", () => {
+    const parsed = parseRegistryMdx(
+      "registry/items/components/toast/_registry.mdx",
+      `---
 name: toast
 type: registry:ui
 title: Toast
 description: A toast manager.
 ---
 
-import { Toast } from "./toast";
-
 Use the toast component.
 `,
-      ),
-    ).toThrow(/must export a Preview function/u);
+    );
+
+    expect(parsed.hasPreview).toBe(false);
+    expect(parsed.previewSource).toBe("");
+    expect(parsed.hasUsage).toBe(true);
+    expect(parsed.usageSource).toBe("Use the toast component.");
+  });
+
+  test("allows optional title, description, and files", () => {
+    const parsed = parseRegistryMdx(
+      "registry/items/themes/brand-theme/_registry.mdx",
+      `---
+name: brand-theme
+type: registry:theme
+cssVars:
+  theme:
+    font-heading: Inter, sans-serif
+---
+`,
+    );
+
+    expect(parsed.registryItem).toMatchObject({
+      name: "brand-theme",
+      type: "registry:theme",
+      cssVars: {
+        theme: {
+          "font-heading": "Inter, sans-serif",
+        },
+      },
+    });
+    expect(parsed.registryItem).not.toHaveProperty("files");
   });
 
   test("rejects content after the preview export", () => {
@@ -213,6 +256,99 @@ export function Preview() {
 `,
       ),
     ).toThrow(/must not contain MDX imports or exports inside the Usage section/u);
+  });
+
+  test("rejects MDX imports or exports when preview is omitted", () => {
+    expect(() =>
+      parseRegistryMdx(
+        "registry/items/components/toast/_registry.mdx",
+        `---
+name: toast
+type: registry:ui
+---
+
+import { Toast } from "./toast";
+
+Use the toast component.
+`,
+      ),
+    ).toThrow(/must not contain MDX imports or exports without a Preview export/u);
+  });
+
+  test("accepts every public registry item type", () => {
+    const fixtures = [
+      ["registry:base", "config:\n  style: custom-base\n  tailwind:\n    baseColor: neutral"],
+      ["registry:block", ""],
+      ["registry:component", ""],
+      [
+        "registry:font",
+        "font:\n  family: \"'Inter Variable', sans-serif\"\n  provider: google\n  import: Inter\n  variable: --font-sans",
+      ],
+      ["registry:lib", ""],
+      ["registry:hook", ""],
+      ["registry:ui", ""],
+      ["registry:page", ""],
+      ["registry:file", ""],
+      ["registry:style", 'css:\n  "@layer base":\n    h1:\n      font-size: var(--text-2xl)'],
+      ["registry:theme", "cssVars:\n  theme:\n    font-heading: Inter, sans-serif"],
+      ["registry:item", "envVars:\n  NEXT_PUBLIC_APP_URL: http://localhost:4000"],
+    ] as const;
+
+    for (const [type, extraFrontmatter] of fixtures) {
+      const parsed = parseRegistryMdx(
+        `registry/items/items/${type.replace("registry:", "")}/_registry.mdx`,
+        `---
+name: ${type.replace("registry:", "")}-fixture
+type: ${type}
+${extraFrontmatter}
+---
+`,
+      );
+
+      expect(parsed.registryItem.type).toBe(type);
+    }
+  });
+
+  test("rejects private registry item types", () => {
+    expect(() =>
+      parseRegistryMdx(
+        "registry/items/internal/example/_registry.mdx",
+        `---
+name: example
+type: registry:internal
+---
+`,
+      ),
+    ).toThrow(/unsupported type "registry:internal"/u);
+  });
+
+  test("requires font metadata only for registry font items", () => {
+    expect(() =>
+      parseRegistryMdx(
+        "registry/items/fonts/inter/_registry.mdx",
+        `---
+name: inter
+type: registry:font
+---
+`,
+      ),
+    ).toThrow(/must include font metadata/u);
+
+    expect(() =>
+      parseRegistryMdx(
+        "registry/items/themes/theme/_registry.mdx",
+        `---
+name: theme
+type: registry:theme
+font:
+  family: Inter
+  provider: google
+  import: Inter
+  variable: --font-sans
+---
+`,
+      ),
+    ).toThrow(/must not include font metadata/u);
   });
 
   test("rejects missing frontmatter", () => {

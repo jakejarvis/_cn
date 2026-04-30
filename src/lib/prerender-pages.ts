@@ -4,8 +4,13 @@ import { fileURLToPath } from "node:url";
 
 import { parse as parseYaml } from "yaml";
 
+import {
+  isPublicRegistryItemType,
+  registryCatalog,
+  type RegistryItemType,
+} from "./registry/item-types.ts";
 import { parseRegistryMdxAst } from "./registry/mdx-ast.ts";
-import { registrySectionList } from "./registry/sections.ts";
+import { getRegistryItemRoutePath, getRegistrySectionsWithItems } from "./registry/sections.ts";
 import { shouldExcludeFromSitemap } from "./seo.ts";
 import {
   getAliasRegistryIndexPaths,
@@ -24,7 +29,7 @@ type PrerenderPage = {
 
 type RegistryPrerenderItem = {
   name: string;
-  type: string;
+  type: RegistryItemType;
 };
 
 type PrerenderPagesInput = {
@@ -58,7 +63,10 @@ export function createPrerenderPages({
   addPath("/llms-full.txt");
   addPath("/robots.txt");
 
-  for (const section of registrySectionList) {
+  addPath(registryCatalog.basePath);
+  addPath(getDocsMarkdownPath(registryCatalog.basePath));
+
+  for (const section of getRegistrySectionsWithItems(registryItems)) {
     addPath(section.basePath);
     addPath(getDocsMarkdownPath(section.basePath));
   }
@@ -72,16 +80,10 @@ export function createPrerenderPages({
     addPath(getCanonicalRegistryItemPath(item.name));
     getAliasRegistryItemPaths(item.name).forEach(addPath);
 
-    const section = registrySectionList.find((candidate) =>
-      candidate.registryTypes.some((registryType) => registryType === item.type),
-    );
+    const itemPath = getRegistryItemRoutePath(item);
 
-    if (section) {
-      const itemPath = `${section.basePath}/${item.name}`;
-
-      addPath(itemPath);
-      addPath(getDocsMarkdownPath(itemPath));
-    }
+    addPath(itemPath);
+    addPath(getDocsMarkdownPath(itemPath));
   }
 
   return Array.from(paths, toPrerenderPage);
@@ -158,7 +160,7 @@ function isRegistryPrerenderItem(value: unknown): value is RegistryPrerenderItem
     "name" in value &&
     "type" in value &&
     typeof value.name === "string" &&
-    typeof value.type === "string"
+    isPublicRegistryItemType(value.type)
   );
 }
 

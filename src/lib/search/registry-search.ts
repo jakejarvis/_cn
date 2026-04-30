@@ -2,12 +2,13 @@ import { create, insertMultiple, search as searchOrama } from "@orama/orama";
 import type { Orama } from "@orama/orama";
 
 import { docsPages, type DocsPage } from "../docs/catalog";
+import { registryItems } from "../registry/catalog";
 import type { RegistryCatalogItem } from "../registry/catalog-builder";
-import { getRegistrySectionItems } from "../registry/section-items";
+import { getRegistryTypeLabel } from "../registry/item-types";
 import {
-  registrySectionList,
-  type RegistrySection,
-  type RegistrySectionConfig,
+  getRegistryItemRoutePath,
+  getRegistrySectionsWithItems,
+  type RegistrySectionId,
 } from "../registry/sections";
 
 const DEFAULT_SEARCH_LIMIT = 20;
@@ -55,7 +56,7 @@ const registrySearchBoost = {
 } satisfies Partial<Record<(typeof registrySearchProperties)[number], number>>;
 
 type RegistrySearchDatabase = Orama<typeof registrySearchSchema>;
-type SearchSection = RegistrySection | "docs";
+type SearchSection = "docs" | RegistrySectionId;
 
 export type RegistrySearchItem = Pick<
   RegistryCatalogItem,
@@ -63,10 +64,10 @@ export type RegistrySearchItem = Pick<
 > &
   Partial<Pick<RegistryCatalogItem, "categories" | "registryDependencies">>;
 
-export type RegistrySearchSectionInput = Pick<
-  RegistrySectionConfig,
-  "basePath" | "id" | "title"
-> & {
+export type RegistrySearchSectionInput = {
+  id: RegistrySectionId;
+  title: string;
+  basePath: string;
   items: readonly RegistrySearchItem[];
 };
 
@@ -81,7 +82,7 @@ export type RegistrySearchRecord = {
   title: string;
   description: string;
   section: SearchSection;
-  sectionTitle: RegistrySectionConfig["title"] | "Docs";
+  sectionTitle: string;
   routePath: string;
   type: RegistryCatalogItem["type"] | "docs";
   categories: string[];
@@ -238,6 +239,7 @@ function toRegistrySearchRecord(
   const categories = item.categories?.map(String) ?? [];
   const registryDependencies = item.registryDependencies?.map(String) ?? [];
   const fileNames = item.files.map((file) => getFileName(file.path));
+  const typeLabel = getRegistryTypeLabel(item.type);
 
   return {
     id: item.name,
@@ -246,7 +248,7 @@ function toRegistrySearchRecord(
     description: item.description,
     section: section.id,
     sectionTitle: section.title,
-    routePath: `${section.basePath}/${item.name}`,
+    routePath: getRegistryItemRoutePath(item),
     type: item.type,
     categories,
     registryDependencies,
@@ -254,6 +256,7 @@ function toRegistrySearchRecord(
     keywords: getRegistrySearchKeywords({
       item,
       section,
+      typeLabel,
       categories,
       registryDependencies,
       fileNames,
@@ -292,12 +295,14 @@ function toRegistrySearchResult(record: RegistrySearchRecord, score: number): Re
 function getRegistrySearchKeywords({
   item,
   section,
+  typeLabel,
   categories,
   registryDependencies,
   fileNames,
 }: {
   item: RegistrySearchItem;
   section: RegistrySearchSectionInput;
+  typeLabel: string;
   categories: string[];
   registryDependencies: string[];
   fileNames: string[];
@@ -305,6 +310,7 @@ function getRegistrySearchKeywords({
   return [
     item.name.replaceAll("-", " "),
     item.type.replace("registry:", ""),
+    typeLabel,
     section.id,
     section.title,
     ...categories,
@@ -316,11 +322,7 @@ function getRegistrySearchKeywords({
 function getDefaultRegistrySearchRecordsInput(): RegistrySearchRecordsInput {
   return {
     docsPages,
-    sections: registrySectionList.map((section) =>
-      Object.assign({}, section, {
-        items: getRegistrySectionItems(section.id),
-      }),
-    ),
+    sections: getRegistrySectionsWithItems(registryItems),
   };
 }
 

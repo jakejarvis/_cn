@@ -10,12 +10,16 @@ import { ThemeProvider } from "@/components/docs/theme-provider";
 import { Button } from "@/components/ui/button";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
+import type { RegistrySectionId } from "../lib/registry/sections";
 import { getJsonLdScripts, getWebSiteJsonLd } from "../lib/seo";
 import { siteConfig } from "../lib/site-config";
 
 import appCss from "../styles.css?url";
 
 export const Route = createRootRoute({
+  headers: () => ({
+    Vary: "Accept, User-Agent",
+  }),
   head: () => ({
     meta: [
       {
@@ -103,10 +107,10 @@ function GlobalNotFoundRoute() {
               size="lg"
               variant="outline"
               nativeButton={false}
-              render={<Link to="/components" />}
+              render={<Link to="/$section" params={{ section: "components" }} />}
             >
               <IconBlocks data-icon="inline-start" />
-              Registry
+              Components
             </Button>
           </div>
         </section>
@@ -120,13 +124,21 @@ function GlobalNotFoundRoute() {
           </div>
           <div className="divide-y">
             <NotFoundPathLink to="/docs" label="Docs" description="Install, theming, CLI" />
-            <NotFoundPathLink
-              to="/components"
+            <NotFoundSectionLink
+              section="components"
               label="Components"
-              description="Reusable UI primitives"
+              description="UI primitives and components"
             />
-            <NotFoundPathLink to="/blocks" label="Blocks" description="Composed patterns" />
-            <NotFoundPathLink to="/utilities" label="Utilities" description="Hooks and helpers" />
+            <NotFoundSectionLink
+              section="blocks"
+              label="Blocks"
+              description="Composed templates and sections"
+            />
+            <NotFoundSectionLink
+              section="utilities"
+              label="Utilities"
+              description="Hooks, libraries, themes, and files"
+            />
           </div>
         </aside>
       </div>
@@ -139,13 +151,37 @@ function NotFoundPathLink({
   label,
   description,
 }: {
-  to: "/" | "/docs" | "/components" | "/blocks" | "/utilities";
+  to: "/" | "/docs";
   label: string;
   description: string;
 }) {
   return (
     <Link
       to={to}
+      className="group flex items-center justify-between gap-4 px-4 py-3 transition-colors hover:bg-muted/50"
+    >
+      <span className="flex min-w-0 flex-col">
+        <span className="text-sm font-medium">{label}</span>
+        <span className="truncate text-sm text-muted-foreground">{description}</span>
+      </span>
+      <IconArrowRight className="size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-foreground" />
+    </Link>
+  );
+}
+
+function NotFoundSectionLink({
+  section,
+  label,
+  description,
+}: {
+  section: RegistrySectionId;
+  label: string;
+  description: string;
+}) {
+  return (
+    <Link
+      to="/$section"
+      params={{ section }}
       className="group flex items-center justify-between gap-4 px-4 py-3 transition-colors hover:bg-muted/50"
     >
       <span className="flex min-w-0 flex-col">

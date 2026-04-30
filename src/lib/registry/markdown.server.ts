@@ -1,5 +1,5 @@
 import {
-  escapeMarkdownLinkText,
+  formatMarkdownLinkList,
   formatCodeBlock,
   getMarkdownLanguage,
   joinMarkdownBlocks,
@@ -9,81 +9,128 @@ import {
   createMarkdownNotFoundResponse,
 } from "../content/responses.server";
 import { getCanonicalDocsUrl, getCanonicalRegistryItemUrl } from "../site-config";
-import { getRegistryItem } from "./catalog";
-import type { RegistryDetailType } from "./detail.types";
+import { getRegistryCatalogWithItems, getRegistryItem, registryItems } from "./catalog";
+import type { RegistryCatalogItem } from "./catalog-builder";
 import { getRegistryDisplaySource } from "./display-source.server";
-import { getRegistrySectionItems } from "./section-items";
-import { registrySections, type RegistrySection, type RegistrySectionConfig } from "./sections";
+import { registryCatalog } from "./item-types";
+import {
+  getRegistryItemRoutePath,
+  getRegistrySectionItem,
+  getRegistrySectionWithItems,
+} from "./sections";
 import { getRegistryItemWithSources, type RegistryCatalogItemWithSources } from "./source.server";
 
-type RegistrySectionMarkdownConfig = Pick<
-  RegistrySectionConfig,
-  "basePath" | "description" | "title"
->;
+type RegistryCatalogMarkdownConfig = {
+  basePath: string;
+  description: string;
+  title: string;
+};
 
-type RegistrySectionMarkdownItem = Pick<
-  RegistryCatalogItemWithSources,
-  "description" | "name" | "title"
+type RegistryCatalogMarkdownItem = Pick<RegistryCatalogItem, "description" | "name" | "title">;
+type LinkedRegistryCatalogSourceItem = Pick<
+  RegistryCatalogItem,
+  "description" | "name" | "title" | "type"
 >;
+type LinkedRegistryCatalogMarkdownItem = RegistryCatalogMarkdownItem & {
+  routePath?: string;
+};
 
 type RegistryItemMarkdownItem = Pick<
   RegistryCatalogItemWithSources,
-  "description" | "name" | "previewSourceFile" | "sourceFiles" | "title" | "usageSource"
+  | "description"
+  | "hasPreview"
+  | "name"
+  | "previewSourceFile"
+  | "sourceFiles"
+  | "title"
+  | "usageSource"
 >;
 
-export function getRegistrySectionMarkdownResponse(section: RegistrySection): Response {
-  const sectionConfig = registrySections[section];
-
-  return createLinkedMarkdownResponse(getRegistrySectionMarkdown(section), sectionConfig.basePath);
+export function getRegistryCatalogMarkdownResponse(): Response {
+  return createLinkedMarkdownResponse(getRegistryCatalogMarkdown(), registryCatalog.basePath);
 }
 
-export function getRegistryItemMarkdownResponse(
-  section: RegistrySection,
-  itemName: string,
-): Response {
-  const markdown = getRegistryItemMarkdown(section, itemName);
+export function getRegistryItemMarkdownResponse(itemName: string): Response {
+  const item = getRegistryItem(itemName);
 
-  if (!markdown) {
+  if (!item) {
     return createMarkdownNotFoundResponse();
   }
 
-  const sectionConfig = registrySections[section];
-
-  return createLinkedMarkdownResponse(markdown, `${sectionConfig.basePath}/${itemName}`);
+  return createLinkedMarkdownResponse(
+    createRegistryItemMarkdown(getRegistryItemWithSources(item)),
+    getRegistryItemRoutePath(item),
+  );
 }
 
-export function getRegistrySectionMarkdown(section: RegistrySection): string {
-  const sectionConfig = registrySections[section];
-  const items = getRegistrySectionItems(section);
+export function getRegistrySectionMarkdownResponse(sectionId: string): Response {
+  const section = getRegistrySectionWithItems(sectionId, registryItems);
 
-  return createRegistrySectionMarkdown(sectionConfig, items);
+  if (!section) {
+    return createMarkdownNotFoundResponse("Registry section not found.");
+  }
+
+  return createLinkedMarkdownResponse(
+    createLinkedRegistryCatalogMarkdown(section),
+    section.basePath,
+  );
 }
 
-export function createRegistrySectionMarkdown(
-  sectionConfig: RegistrySectionMarkdownConfig,
-  items: readonly RegistrySectionMarkdownItem[],
+export function getRegistrySectionItemMarkdownResponse(
+  sectionId: string,
+  itemName: string,
+): Response {
+  const item = getRegistrySectionItem(sectionId, itemName, registryItems);
+
+  if (!item) {
+    return createMarkdownNotFoundResponse();
+  }
+
+  return createLinkedMarkdownResponse(
+    createRegistryItemMarkdown(getRegistryItemWithSources(item)),
+    getRegistryItemRoutePath(item),
+  );
+}
+
+export function getRegistryCatalogMarkdown(): string {
+  const catalog = getRegistryCatalogWithItems();
+
+  return createLinkedRegistryCatalogMarkdown(catalog);
+}
+
+export function getRegistrySectionMarkdown(sectionId: string): string | null {
+  const section = getRegistrySectionWithItems(sectionId, registryItems);
+
+  if (!section) {
+    return null;
+  }
+
+  return createLinkedRegistryCatalogMarkdown(section);
+}
+
+export function createRegistryCatalogMarkdown(
+  catalog: RegistryCatalogMarkdownConfig,
+  items: readonly LinkedRegistryCatalogMarkdownItem[],
 ): string {
-  const itemList = items
-    .map(
-      (item) =>
-        `- [${escapeMarkdownLinkText(item.title)}](${getCanonicalDocsUrl(
-          `${sectionConfig.basePath}/${item.name}`,
-        )}): ${item.description}`,
-    )
-    .join("\n");
+  const itemList = formatMarkdownLinkList(
+    items.map((item) => ({
+      title: item.title,
+      href: getCanonicalDocsUrl(item.routePath ?? `${catalog.basePath}/${item.name}`),
+      description: item.description,
+    })),
+  );
 
   return joinMarkdownBlocks([
-    `# ${sectionConfig.title}`,
-    sectionConfig.description,
-    itemList || "No items are published in this section yet.",
+    `# ${catalog.title}`,
+    catalog.description,
+    itemList || "No items are published in the registry yet.",
   ]);
 }
 
-export function getRegistryItemMarkdown(section: RegistrySection, itemName: string): string | null {
-  const sectionConfig = registrySections[section];
+export function getRegistryItemMarkdown(itemName: string): string | null {
   const item = getRegistryItem(itemName);
 
-  if (!item || !isExpectedRegistryType(item.type, sectionConfig.registryTypes)) {
+  if (!item) {
     return null;
   }
 
@@ -91,10 +138,6 @@ export function getRegistryItemMarkdown(section: RegistrySection, itemName: stri
 }
 
 export function createRegistryItemMarkdown(itemWithSources: RegistryItemMarkdownItem): string {
-  const previewSource = getRegistryDisplaySource(
-    itemWithSources,
-    itemWithSources.previewSourceFile,
-  );
   const sourceBlocks = itemWithSources.sourceFiles.map((file) =>
     joinMarkdownBlocks([
       `### ${file.path}`,
@@ -105,6 +148,9 @@ export function createRegistryItemMarkdown(itemWithSources: RegistryItemMarkdown
     ]),
   );
   const usageSource = itemWithSources.usageSource.trim();
+  const previewSource = itemWithSources.hasPreview
+    ? getRegistryDisplaySource(itemWithSources, itemWithSources.previewSourceFile)
+    : "";
 
   return joinMarkdownBlocks([
     `# ${itemWithSources.title}`,
@@ -115,17 +161,31 @@ export function createRegistryItemMarkdown(itemWithSources: RegistryItemMarkdown
       "bash",
     ),
     `[Registry JSON](${getCanonicalRegistryItemUrl(itemWithSources.name)})`,
-    "## Preview",
-    formatCodeBlock(previewSource, "tsx"),
-    "## Source",
-    ...sourceBlocks,
+    previewSource ? joinMarkdownBlocks(["## Preview", formatCodeBlock(previewSource, "tsx")]) : "",
+    sourceBlocks.length > 0 ? joinMarkdownBlocks(["## Source", ...sourceBlocks]) : "",
     usageSource ? joinMarkdownBlocks(["## Usage", usageSource]) : "",
   ]);
 }
 
-function isExpectedRegistryType(
-  type: string,
-  expectedTypes: readonly RegistryDetailType[],
-): type is RegistryDetailType {
-  return expectedTypes.some((expectedType) => expectedType === type);
+function createLinkedRegistryCatalogMarkdown(catalog: {
+  basePath: string;
+  description: string;
+  title: string;
+  items: readonly LinkedRegistryCatalogSourceItem[];
+}): string {
+  return createRegistryCatalogMarkdown(
+    catalog,
+    toLinkedRegistryCatalogMarkdownItems(catalog.items),
+  );
+}
+
+function toLinkedRegistryCatalogMarkdownItems(
+  items: readonly LinkedRegistryCatalogSourceItem[],
+): LinkedRegistryCatalogMarkdownItem[] {
+  return items.map((item) => ({
+    name: item.name,
+    title: item.title,
+    description: item.description,
+    routePath: getRegistryItemRoutePath(item),
+  }));
 }

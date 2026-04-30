@@ -11,6 +11,9 @@ export type MdxContentModule = {
   }>;
 };
 
+type MdxContentLoader = () => Promise<MdxContentModule>;
+export type RenderedMdxContent = Awaited<ReturnType<typeof renderMdxContent>>;
+
 const baseMdxComponents = {
   a: MarkdownLink,
   code: MarkdownInlineCode,
@@ -25,6 +28,19 @@ export async function renderMdxContent({
   components?: Record<string, unknown>;
 }) {
   return renderServerComponent(<MdxContent Content={Content} components={components} />);
+}
+
+export async function renderMdxContentModule(
+  loadContent: MdxContentLoader | undefined,
+  options: { components?: Record<string, unknown> } = {},
+): Promise<RenderedMdxContent | null> {
+  if (!loadContent) {
+    return null;
+  }
+
+  const Content = (await loadContent()).default;
+
+  return Content ? renderMdxContent({ Content, components: options.components }) : null;
 }
 
 function MdxContent({

@@ -2,13 +2,15 @@ import {
   assertOptionalStringArrayField,
   assertOptionalStringField,
   getFirstYamlFrontmatterNode,
+  getOptionalStringField,
   getRequiredStringField,
   parseYamlFrontmatter,
   type MdxAstNode,
 } from "../content/mdx";
 import { getCanonicalRegistryItemUrl } from "../site-config";
+import { isPublicRegistryItemType } from "./item-types";
 import { getRegistryMdxSections, parseRegistryMdxAst } from "./mdx-ast";
-import type { RegistryItemAuthoringDefinition, RegistrySourceFileDefinition } from "./metadata";
+import type { RegistryFileAuthoringDefinition, RegistryItemAuthoringDefinition } from "./metadata";
 
 type RegistryMdxFrontmatter = RegistryItemAuthoringDefinition & {
   localRegistryDependencies?: string[];
@@ -16,25 +18,11 @@ type RegistryMdxFrontmatter = RegistryItemAuthoringDefinition & {
 
 type ParsedRegistryMdx = {
   registryItem: RegistryItemAuthoringDefinition;
+  hasPreview: boolean;
   previewSource: string;
   hasUsage: boolean;
   usageSource: string;
 };
-
-const registryItemTypes = new Set([
-  "registry:lib",
-  "registry:block",
-  "registry:component",
-  "registry:ui",
-  "registry:hook",
-  "registry:page",
-  "registry:file",
-  "registry:theme",
-  "registry:style",
-  "registry:item",
-  "registry:base",
-  "registry:font",
-]);
 
 const knownFrontmatterFields = new Set([
   "$schema",
@@ -77,6 +65,7 @@ export function parseRegistryMdx(path: string, source: string): ParsedRegistryMd
 
   return {
     registryItem: toRegistryItemAuthoringDefinition(metadata),
+    hasPreview: sections.hasPreview,
     previewSource: sections.previewSource,
     hasUsage: sections.hasUsage,
     usageSource: sections.usageSource,
@@ -124,10 +113,10 @@ function assertRegistryMdxFrontmatter(
 
   getRequiredStringField(diagnostic, value, "name");
   const type = getRequiredStringField(diagnostic, value, "type");
-  getRequiredStringField(diagnostic, value, "title");
-  getRequiredStringField(diagnostic, value, "description");
+  getOptionalStringField(diagnostic, value, "title");
+  getOptionalStringField(diagnostic, value, "description");
 
-  if (!registryItemTypes.has(type)) {
+  if (!isPublicRegistryItemType(type)) {
     throw new Error(`Registry item ${path} has unsupported type "${type}".`);
   }
 
@@ -139,7 +128,29 @@ function assertRegistryMdxFrontmatter(
     assertOptionalStringArrayField(diagnostic, value, field);
   }
 
+  assertBaseConfigField(path, value, type);
+  assertFontField(path, value, type);
   assertOptionalRegistryFiles(path, value);
+}
+
+function assertBaseConfigField(path: string, value: Record<string, unknown>, type: string): void {
+  if (value.config !== undefined && type !== "registry:base") {
+    throw new Error(
+      `Registry item ${path} field "config" is only supported for registry:base items.`,
+    );
+  }
+}
+
+function assertFontField(path: string, value: Record<string, unknown>, type: string): void {
+  if (type === "registry:font" && value.font === undefined) {
+    throw new Error(`Registry item ${path} of type registry:font must include font metadata.`);
+  }
+
+  if (type !== "registry:font" && value.font !== undefined) {
+    throw new Error(
+      `Registry item ${path} must not include font metadata unless type is registry:font.`,
+    );
+  }
 }
 
 function toRegistryItemAuthoringDefinition(
@@ -179,7 +190,7 @@ function assertOptionalRegistryFiles(path: string, value: Record<string, unknown
   }
 }
 
-function isRegistrySourceFileDefinition(value: unknown): value is RegistrySourceFileDefinition {
+function isRegistrySourceFileDefinition(value: unknown): value is RegistryFileAuthoringDefinition {
   if (!isRecord(value)) {
     return false;
   }
@@ -188,12 +199,12 @@ function isRegistrySourceFileDefinition(value: unknown): value is RegistrySource
     return false;
   }
 
-  if (!registryItemTypes.has(value.type)) {
+  if (!isPublicRegistryItemType(value.type)) {
     return false;
   }
 
   return (
-    (value.sourcePath === undefined || typeof value.sourcePath === "string") &&
+    value.sourcePath === undefined &&
     (value.target === undefined || typeof value.target === "string")
   );
 }

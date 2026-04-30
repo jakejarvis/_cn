@@ -4,7 +4,7 @@ description: Scaffold and author installable registry items under registry/items
 order: 2
 ---
 
-Registry items live under `registry/items/**` and can be installed by shadcn-compatible CLIs. Start new items with the scaffold command so the folder, `_registry.mdx`, source file, metadata, and install paths follow the template conventions.
+Registry items live under `registry/items/**` and can be installed by shadcn-compatible CLIs. Start new items with the scaffold command so the folder, `_registry.mdx`, source file, metadata, and generated registry JSON paths follow the template conventions.
 
 ```sh
 bun --bun ./scripts/new.ts --type registry:ui --name example-card --description "A compact card component."
@@ -33,6 +33,11 @@ Choose the registry type from what the item installs:
 | `registry:lib`       | Utility or helper modules                 | `registry/items/lib/**`        |
 | `registry:page`      | App page files with explicit targets      | `registry/items/pages/**`      |
 | `registry:file`      | Other files with explicit install targets | `registry/items/files/**`      |
+| `registry:style`     | Style-level CSS and dependency metadata   | `registry/items/styles/**`     |
+| `registry:theme`     | Theme CSS variables                       | `registry/items/themes/**`     |
+| `registry:font`      | Font metadata                             | `registry/items/fonts/**`      |
+| `registry:base`      | Design system base configuration          | `registry/items/bases/**`      |
+| `registry:item`      | Universal or metadata-only items          | `registry/items/items/**`      |
 
 The scaffold creates each item in its own folder:
 
@@ -50,6 +55,7 @@ Use flags for agent-friendly and CI-friendly scaffolding:
 bun --bun ./scripts/new.ts --type registry:block --name stats-panel --description "A metrics panel with reusable sample data."
 bun --bun ./scripts/new.ts --type registry:page --name dashboard-page --description "A starter dashboard page." --target app/dashboard/page.tsx
 bun --bun ./scripts/new.ts --type registry:file --name chart-theme --description "Shared chart theme tokens." --target styles/chart-theme.css --file-extension css
+bun --bun ./scripts/new.ts --type registry:font --name font-inter --description "Inter font metadata." --font-family "'Inter Variable', sans-serif" --font-import Inter --font-variable=--font-sans
 ```
 
 Supported flags:
@@ -58,16 +64,19 @@ Supported flags:
 - `--name`: required kebab-case item name.
 - `--title`: optional public title. Defaults from the name.
 - `--description`: required public description.
-- `--target`: required for `registry:page` and `registry:file`.
-- `--file-extension`: only for `registry:file`; defaults to `ts`.
+- `--target`: required for `registry:page` and `registry:file`; optional for targeted universal `registry:item` files.
+- `--file-extension`: for `registry:file` and targeted `registry:item`; defaults to `ts`.
+- `--font-family`, `--font-import`, `--font-variable`: required for noninteractive `registry:font` scaffolds.
 
 Use `bun --bun ./scripts/new.ts --help` to print the full usage.
 
 ## Authoring
 
-Use `_registry.mdx` for public metadata, usage docs, and the named `Preview` export. Keep `_registry.mdx` private to authoring; never list it in `files`.
+Use `_registry.mdx` for public metadata, usage docs, and the optional named `Preview` export. Keep `_registry.mdx` private to authoring; never list it in `files`.
 
-For one-file `registry:ui` items, the catalog infers `<item-name>.tsx`. Hooks, libs, blocks, pages, target paths, and multi-file items should list `files` explicitly.
+For one-file `registry:ui` items, the catalog infers `<item-name>.tsx`. Hooks, libs, blocks, pages, target paths, and multi-file items should list `files` explicitly. Metadata-only styles, themes, fonts, bases, and universal items can omit `files`.
+
+List authored source files with paths relative to the item `_registry.mdx` file. The catalog automatically emits shadcn-facing JSON paths such as `ui/<name>.tsx`, `components/<name>.tsx`, `hooks/<name>.ts`, and `lib/<name>.ts` for the file types that install through `components.json` aliases. Use `target` for `registry:page` and `registry:file`; do not add `registry/items/**` prefixes or a separate `sourcePath` field.
 
 Use `localRegistryDependencies` for dependencies on other local registry items.
 

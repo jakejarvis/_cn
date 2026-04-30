@@ -267,14 +267,13 @@ function getFallbackGroup(slug: string): string | undefined {
 }
 
 function toDocsNavigationItem(page: DocsPage): DocsNavigationItem {
-  const item: DocsNavigationItem = {
+  return {
     title: page.title,
     description: page.description,
     slug: page.slug,
     routePath: page.routePath,
+    ...(page.group ? { group: page.group } : {}),
   };
-
-  return page.group ? Object.assign(item, { group: page.group }) : item;
 }
 
 function getFirstPathSegment(path: string): string | undefined {

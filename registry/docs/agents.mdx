@@ -27,22 +27,22 @@ After installing the skill, ask for registry work directly:
 - "add a reusable hook to the registry"
 - "turn this dashboard section into a registry block"
 
-The skill covers components, blocks, hooks, libs, pages, files, previews, usage docs, dependency metadata, and the scaffold command for creating new items non-interactively.
+The skill covers all public registry item types, previews, usage docs, dependency metadata, and the scaffold command for creating new items non-interactively.
 
 ## Point Agents At Markdown
 
-The generated [`/llms.txt`](/llms.txt) route gives AI tools a compact map of the docs, registry sections, and item pages.
+The generated [`/llms.txt`](/llms.txt) route gives AI tools a compact map of the docs, registry catalog, and item pages.
 
 Use [`/llms-full.txt`](/llms-full.txt) when a tool needs expanded context with generated Markdown content inlined.
 
-Every docs page, registry section, and registry item also has a Markdown route:
+Every docs page, the registry catalog, and each registry item also has a Markdown route:
 
 - [`/docs.md`](/docs.md)
 - [`/docs/agents.md`](/docs/agents.md)
-- [`/components.md`](/components.md)
-- [`/components/example-card.md`](/components/example-card.md)
+- [`/registry.md`](/registry.md)
+- [`/registry/example-card.md`](/registry/example-card.md)
 
-Inspired by [Fumadocs](https://www.fumadocs.dev/docs/headless/utils/negotiation), "human" permalinks support Markdown content negotiation too. AI clients can request `text/markdown`, `text/x-markdown`, or `text/plain` in the `Accept` header on pages like [`/docs`](/docs) or [`/components/example-card`](/components/example-card) and receive Markdown without changing URLs.
+Inspired by [Fumadocs](https://www.fumadocs.dev/docs/headless/utils/negotiation), "human" permalinks support Markdown content negotiation too. AI clients can request `text/markdown`, `text/x-markdown`, or `text/plain` in the `Accept` header on pages like [`/docs`](/docs) or [`/registry/example-card`](/registry/example-card) and receive Markdown without changing URLs.
 
 ## Recommended Agent Workflow
 
@@ -51,6 +51,6 @@ For registry authoring tasks, agents should:
 1. Read `AGENTS.md`, this docs section, and `/llms.txt` or `/llms-full.txt` for project context.
 2. Use the `shadcn-registry` skill when available.
 3. Scaffold new items with `bun --bun ./scripts/new.ts --type <type> --name <kebab-name> --description "<description>"`.
-4. Add `--target` for `registry:page` and `registry:file`, and `--file-extension` for non-`ts` file items.
+4. Add `--target` for `registry:page` and `registry:file`, and `--file-extension` for non-`ts` file or targeted universal items.
 5. Edit the generated source and `_registry.mdx` with previews, usage docs, and dependency metadata.
 6. Run focused checks and `bun --bun ./scripts/doctor.ts` before handoff.

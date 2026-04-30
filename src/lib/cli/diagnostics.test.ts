@@ -28,13 +28,13 @@ describe("registry diagnostics", () => {
     });
   });
 
-  test("reports unsupported published source files as errors", () => {
+  test("accepts arbitrary published text source files", () => {
     const diagnostics = getRegistryDiagnostics({
       files: {
         "registry/items/components/example-card/_registry.mdx": getRegistryMdx({
           files: [
             {
-              path: "registry/items/components/example-card/README.md",
+              path: "README.md",
               type: "registry:ui",
             },
           ],
@@ -43,12 +43,7 @@ describe("registry diagnostics", () => {
       },
     });
 
-    expect(diagnostics.errors).toContainEqual({
-      level: "error",
-      path: "registry/items/components/example-card/README.md",
-      message:
-        'Registry item "example-card" references an unsupported source file type: registry/items/components/example-card/README.md',
-    });
+    expect(diagnostics.errors).toEqual([]);
   });
 
   test("warns about supported source files that the item does not publish", () => {
@@ -82,7 +77,18 @@ describe("registry diagnostics", () => {
     });
   });
 
-  test("warns about unsupported ignored files inside item folders", () => {
+  test("does not warn about orphan folders that only contain ignored files", () => {
+    const diagnostics = getRegistryDiagnostics({
+      files: {
+        "registry/items/components/empty-ish/.DS_Store": "",
+      },
+    });
+
+    expect(diagnostics.errors).toEqual([]);
+    expect(diagnostics.warnings).toEqual([]);
+  });
+
+  test("warns about unpublished files inside item folders", () => {
     const diagnostics = getRegistryDiagnostics({
       files: {
         ...getValidRegistryFiles(),
@@ -94,7 +100,7 @@ describe("registry diagnostics", () => {
     expect(diagnostics.warnings).toContainEqual({
       level: "warning",
       path: "registry/items/components/example-card/README.md",
-      message: 'Registry item "example-card" ignores unsupported file type.',
+      message: 'Registry item "example-card" does not publish this source file.',
     });
   });
 
@@ -112,6 +118,31 @@ describe("registry diagnostics", () => {
       message:
         "Nested docs pages are not supported yet. Move registry/docs/guides/install.mdx directly under registry/docs.",
     });
+  });
+
+  test("reports unsafe registry file paths before they are normalized away", () => {
+    for (const path of ["../example-card.tsx", "/example-card.tsx", "~/example-card.tsx"]) {
+      const diagnostics = getRegistryDiagnostics({
+        files: {
+          "registry/items/components/example-card/_registry.mdx": getRegistryMdx({
+            files: [
+              {
+                path,
+                type: "registry:ui",
+              },
+            ],
+          }),
+          "registry/items/components/example-card/example-card.tsx":
+            "export function ExampleCard() {}",
+        },
+      });
+
+      expect(diagnostics.errors).toContainEqual({
+        level: "error",
+        path,
+        message: `Registry item "example-card" contains an invalid install path: ${path}`,
+      });
+    }
   });
 
   test("does not fail the doctor command for warnings only", () => {

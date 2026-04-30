@@ -1,11 +1,14 @@
 import { createCompositeComponent, type AnyCompositeComponent } from "@tanstack/react-start/rsc";
 import * as React from "react";
 
-import { renderMdxContent, type MdxContentModule } from "@/components/docs/mdx-content.server";
+import {
+  renderMdxContentModule,
+  type MdxContentModule,
+} from "@/components/docs/mdx-content.server";
 
 import { normalizeGlobFiles } from "../glob";
 import { getRegistryItem } from "./catalog";
-import { isRegistryDetailType, type RegistryItemDetailInput } from "./detail.types";
+import type { RegistryItemDetailInput } from "./detail.types";
 import { getRegistryDisplaySource } from "./display-source.server";
 import { highlightCodeToHtml } from "./highlight.server";
 import {
@@ -48,7 +51,7 @@ export type RegistryItemDetail = Omit<
   RegistryCatalogItemWithSources,
   "hasUsage" | "usageSource" | "previewSourceFile" | "sourceFiles"
 > & {
-  preview: RenderedPreview;
+  preview?: RenderedPreview;
   previewSourceFile: HighlightedRegistryPreviewSourceFile;
   sourceFiles: HighlightedRegistrySourceFile[];
   usage?: RenderedUsage;
@@ -57,7 +60,7 @@ export type RegistryItemDetail = Omit<
 export async function getRegistryItemDetailData(data: RegistryItemDetailInput) {
   const item = getRegistryItem(data.name);
 
-  if (!item || !isRegistryDetailType(item.type) || !data.expectedTypes.includes(item.type)) {
+  if (!item) {
     return {
       name: data.name,
       item: null,
@@ -73,9 +76,9 @@ export async function getRegistryItemDetailData(data: RegistryItemDetailInput) {
 async function highlightRegistryItem(
   item: RegistryCatalogItemWithSources,
 ): Promise<RegistryItemDetail> {
-  const { hasUsage, usageSource: _usageSource, ...itemWithoutUsageFlag } = item;
+  const { hasPreview, hasUsage, usageSource: _usageSource, ...itemWithoutUsageFlag } = item;
   const [preview, previewSourceFile, sourceFiles, usage] = await Promise.all([
-    renderPreview(item.previewSourceFile.path),
+    hasPreview ? renderPreview(item.previewSourceFile.path) : null,
     highlightPreviewSourceFile(item, item.previewSourceFile),
     Promise.all(item.sourceFiles.map((file) => highlightSourceFile(item, file))),
     renderUsage(item.previewSourceFile.path, hasUsage),
@@ -83,7 +86,8 @@ async function highlightRegistryItem(
 
   return {
     ...itemWithoutUsageFlag,
-    preview,
+    hasPreview,
+    ...(preview ? { preview } : {}),
     previewSourceFile,
     sourceFiles,
     ...(usage ? { usage } : {}),
@@ -121,15 +125,7 @@ async function renderUsage(path: string, hasUsage: boolean) {
     return null;
   }
 
-  const loadUsage = registryUsageModulesByPath[path];
-
-  if (!loadUsage) {
-    return null;
-  }
-
-  const Content = (await loadUsage()).default;
-
-  return Content ? renderMdxContent({ Content }) : null;
+  return renderMdxContentModule(registryUsageModulesByPath[path]);
 }
 
 async function renderPreview(path: string): Promise<AnyCompositeComponent | null> {

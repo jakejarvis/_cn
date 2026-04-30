@@ -41,6 +41,8 @@ describe("docs page actions", () => {
     const pageUrl = "https://example.com/docs/getting-started";
     const links = getDocsPageActionLinks({
       markdownPath: "/docs/getting-started.md",
+      pageDescription: "Install and run the registry.",
+      pageTitle: "Getting Started",
       pageUrl,
     });
 
@@ -60,6 +62,8 @@ describe("docs page actions", () => {
     const registryItemJsonUrl = "https://example.com/r/alpha-card.json";
     const links = getDocsPageActionLinks({
       markdownPath: "/components/alpha-card.md",
+      pageDescription: "A compact card component.",
+      pageTitle: "Alpha Card",
       pageUrl: "https://example.com/components/alpha-card",
       registryItemJsonUrl,
     });
@@ -68,6 +72,8 @@ describe("docs page actions", () => {
     expect(v0Url.origin).toBe("https://v0.dev");
     expect(v0Url.pathname).toBe("/chat/api/open");
     expect(v0Url.searchParams.get("url")).toBe(registryItemJsonUrl);
+    expect(v0Url.searchParams.get("title")).toBe("Alpha Card");
+    expect(v0Url.searchParams.get("prompt")).toBe("A compact card component.");
   });
 });
 

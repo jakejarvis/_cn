@@ -7,7 +7,7 @@ import {
   getRegistryDoctorExitCode,
   type RegistryDiagnostic,
   type RegistryDiagnostics,
-} from "../src/lib/registry/diagnostics";
+} from "../src/lib/cli/diagnostics";
 
 const registryRoot = join(process.cwd(), "registry");
 

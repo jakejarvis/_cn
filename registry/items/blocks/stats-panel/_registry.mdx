@@ -9,9 +9,9 @@ registryDependencies:
 localRegistryDependencies:
   - example-card
 files:
-  - path: registry/items/blocks/stats-panel/stats-panel.tsx
+  - path: stats-panel.tsx
     type: registry:block
-  - path: registry/items/blocks/stats-panel/stats-data.ts
+  - path: stats-data.ts
     type: registry:lib
 ---
 
@@ -19,6 +19,12 @@ import { StatsPanel } from "./stats-panel";
 
 Use the panel as a dashboard summary block. It installs the component and the local data helper
 together, plus its local `example-card` dependency.
+
+```tsx
+import { StatsPanel } from "@/components/stats-panel";
+
+<StatsPanel />
+```
 
 export function Preview() {
   return <StatsPanel />;

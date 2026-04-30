@@ -1,3 +1,4 @@
+import { registryItemSchema as shadcnRegistryItemSchema } from "shadcn/schema";
 import { describe, expect, test } from "vitest";
 
 import { registryItems } from "./catalog";
@@ -45,9 +46,21 @@ describe("registry JSON route responses", () => {
 
   test("keeps authored docs out of registry JSON", () => {
     const registry = getRegistryIndexJson();
-    const itemFilePaths = registry.items.flatMap((item) => item.files.map((file) => file.path));
+    const itemFilePaths = registry.items.flatMap((item) =>
+      (item.files ?? []).map((file) => file.path),
+    );
 
     expect(itemFilePaths.some((path) => path.startsWith("registry/docs/"))).toBe(false);
+  });
+
+  test("emits install paths instead of registry authoring source paths", async () => {
+    const exampleCard = await readJson(getRegistryItemJsonResponse("example-card"));
+    const copyHook = await readJson(getRegistryItemJsonResponse("use-copy-to-clipboard"));
+    const statsPanel = await readJson(getRegistryItemJsonResponse("stats-panel"));
+
+    expect(getFilePaths(exampleCard)).toEqual(["ui/example-card.tsx"]);
+    expect(getFilePaths(copyHook)).toEqual(["hooks/use-copy-to-clipboard.ts"]);
+    expect(getFilePaths(statsPanel)).toEqual(["components/stats-panel.tsx", "lib/stats-data.ts"]);
   });
 
   test("returns JSON 404 responses for unknown items", async () => {
@@ -60,7 +73,7 @@ describe("registry JSON route responses", () => {
     expect(await readJson(alias)).toEqual({ error: "Registry item not found." });
   });
 
-  test("reports missing and unsupported registry source files before JSON is served", () => {
+  test("reports missing registry source files before JSON is served", () => {
     expect(
       getRegistrySourceValidationErrors({
         name: "broken-item",
@@ -77,8 +90,79 @@ describe("registry JSON route responses", () => {
       }),
     ).toEqual([
       `Registry item "broken-item" references a missing file: registry/items/broken/missing.tsx`,
-      `Registry item "broken-item" references an unsupported source file type: registry/items/broken/usage.md`,
+      `Registry item "broken-item" references a missing file: registry/items/broken/usage.md`,
     ]);
+  });
+
+  test("validates representative public registry item examples against shadcn schema", () => {
+    const examples = [
+      {
+        name: "custom-theme",
+        type: "registry:theme",
+        cssVars: {
+          theme: {
+            "font-heading": "Inter, sans-serif",
+          },
+        },
+      },
+      {
+        name: "custom-style",
+        type: "registry:style",
+        css: {
+          "@layer base": {
+            h1: {
+              "font-size": "var(--text-2xl)",
+            },
+          },
+        },
+      },
+      {
+        name: "font-inter",
+        type: "registry:font",
+        font: {
+          family: "'Inter Variable', sans-serif",
+          provider: "google",
+          import: "Inter",
+          variable: "--font-sans",
+          subsets: ["latin"],
+          dependency: "@fontsource-variable/inter",
+        },
+      },
+      {
+        name: "python-rules",
+        type: "registry:item",
+        files: [
+          {
+            path: "registry/items/items/python-rules/custom-python.mdc",
+            type: "registry:file",
+            target: "~/.cursor/rules/custom-python.mdc",
+            content: "Use Python 3.14.",
+          },
+        ],
+      },
+    ];
+
+    for (const example of examples) {
+      expect(shadcnRegistryItemSchema.safeParse(example).success).toBe(true);
+    }
+  });
+
+  test("requires targets for page and file payload entries", () => {
+    for (const type of ["registry:page", "registry:file"] as const) {
+      const result = shadcnRegistryItemSchema.safeParse({
+        name: "missing-target",
+        type: "registry:item",
+        files: [
+          {
+            path: "registry/items/items/missing-target/source.ts",
+            type,
+            content: "export {};",
+          },
+        ],
+      });
+
+      expect(result.success).toBe(false);
+    }
   });
 });
 

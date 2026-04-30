@@ -2,7 +2,8 @@ import { describe, expect, test } from "vitest";
 
 import type { DocsPage } from "../docs/catalog";
 import { docsPages } from "../docs/catalog";
-import { getRegistrySectionsWithItems } from "../registry/section-items";
+import { registryItems } from "../registry/catalog";
+import { getRegistrySectionsWithItems } from "../registry/sections";
 import {
   createRegistrySearchRecords,
   getRegistrySearchRecords,
@@ -40,7 +41,7 @@ const fixtureSearchInput = {
           registryDependencies: ["button"],
           files: [
             {
-              path: "registry/items/components/alpha-card/alpha-card.tsx",
+              path: "ui/alpha-card.tsx",
               type: "registry:ui",
             },
           ],
@@ -53,7 +54,7 @@ const fixtureSearchInput = {
           registryDependencies: ["alpha-card"],
           files: [
             {
-              path: "registry/items/components/usage-panel/usage-panel.tsx",
+              path: "ui/usage-panel.tsx",
               type: "registry:ui",
             },
           ],
@@ -64,11 +65,11 @@ const fixtureSearchInput = {
 } satisfies RegistrySearchRecordsInput;
 
 describe("registry search", () => {
-  test("builds live search records from docs and visible registry sections", () => {
+  test("builds live search records from docs and the registry catalog", () => {
     expect(getRegistrySearchRecords()).toEqual(
       createRegistrySearchRecords({
         docsPages,
-        sections: getRegistrySectionsWithItems(),
+        sections: getRegistrySectionsWithItems(registryItems),
       }),
     );
   });
@@ -92,6 +93,7 @@ describe("registry search", () => {
       title: "Alpha Card",
       section: "components",
       sectionTitle: "Components",
+      routePath: "/components/alpha-card",
       type: "registry:ui",
       registryDependencies: ["button"],
       fileNames: ["alpha-card.tsx"],

@@ -69,20 +69,21 @@ function SidebarSectionLink({
         </Link>
       );
     case "components":
-      return (
-        <Link to="/components" onClick={onNavigate} className={className}>
-          {section.title}
-        </Link>
-      );
     case "blocks":
-      return (
-        <Link to="/blocks" onClick={onNavigate} className={className}>
-          {section.title}
-        </Link>
-      );
     case "utilities":
       return (
-        <Link to="/utilities" onClick={onNavigate} className={className}>
+        <Link
+          to="/$section"
+          params={{ section: section.id }}
+          onClick={onNavigate}
+          className={className}
+        >
+          {section.title}
+        </Link>
+      );
+    case "registry":
+      return (
+        <Link to="/registry" onClick={onNavigate} className={className}>
           {section.title}
         </Link>
       );
@@ -163,48 +164,21 @@ function SidebarItemLink({
     );
   }
 
-  switch (item.section) {
-    case "components":
-      return (
-        <Link
-          to="/components/$name"
-          params={{ name: item.name }}
-          onClick={onNavigate}
-          className={className}
-        >
-          {item.title}
-        </Link>
-      );
-    case "blocks":
-      return (
-        <Link
-          to="/blocks/$name"
-          params={{ name: item.name }}
-          onClick={onNavigate}
-          className={className}
-        >
-          {item.title}
-        </Link>
-      );
-    case "utilities":
-      return (
-        <Link
-          to="/utilities/$name"
-          params={{ name: item.name }}
-          onClick={onNavigate}
-          className={className}
-        >
-          {item.title}
-        </Link>
-      );
-  }
-
-  return null;
+  return (
+    <Link
+      to="/$section/$name"
+      params={{ section: item.sectionId, name: item.name }}
+      onClick={onNavigate}
+      className={className}
+    >
+      {item.title}
+    </Link>
+  );
 }
 
 function isRegistryItemActive(
   item: Extract<SiteNavigationItem, { kind: "registry" }>,
   pathname: string,
 ) {
-  return pathname === `/${item.section}/${item.name}`;
+  return pathname === item.routePath;
 }

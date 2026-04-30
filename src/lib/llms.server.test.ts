@@ -10,8 +10,8 @@ import {
   getLlmsTextResponse,
   type LlmsTextInput,
 } from "./llms.server";
-import { getRegistrySectionItems } from "./registry/section-items";
-import { registrySectionList } from "./registry/sections";
+import { registryItems } from "./registry/catalog";
+import { getRegistryItemRoutePath, getRegistrySectionsWithItems } from "./registry/sections";
 import {
   getCanonicalRegistryIndexUrl,
   getCanonicalSiteUrl,
@@ -91,14 +91,14 @@ describe("llms text", () => {
       expect(text).toContain(getCanonicalSiteUrl(getDocsMarkdownPath(page.routePath)));
     }
 
-    for (const section of registrySectionList) {
+    for (const section of getRegistrySectionsWithItems(registryItems)) {
       expect(text).toContain(getCanonicalSiteUrl(getDocsMarkdownPath(section.basePath)));
+    }
 
-      for (const item of getRegistrySectionItems(section.id)) {
-        expect(text).toContain(
-          getCanonicalSiteUrl(getDocsMarkdownPath(`${section.basePath}/${item.name}`)),
-        );
-      }
+    for (const item of registryItems) {
+      expect(text).toContain(
+        getCanonicalSiteUrl(getDocsMarkdownPath(getRegistryItemRoutePath(item))),
+      );
     }
   });
 

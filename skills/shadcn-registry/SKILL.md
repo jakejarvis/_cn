@@ -5,7 +5,7 @@ description: Add or adapt installable shadcn registry items in _cn template repo
 
 # Shadcn Registry
 
-Use this skill for installable registry items: UI components, blocks, hooks, helpers, pages, files, previews, usage docs, and registry dependency metadata. Local `AGENTS.md` and `README.md` override this file.
+Use this skill for installable registry items across all public shadcn registry types, previews, usage docs, and registry dependency metadata. Local `AGENTS.md` and `README.md` override this file.
 
 ## Workflow
 
@@ -17,7 +17,7 @@ Use this skill for installable registry items: UI components, blocks, hooks, hel
 bun --bun ./scripts/new.ts --type registry:ui --name example-card --description "A compact card component."
 ```
 
-Use `--target` for `registry:page` and `registry:file`; use `--file-extension` for non-`ts` file items.
+Use `--target` for `registry:page` and `registry:file`; use `--file-extension` for non-`ts` file items; provide font flags for `registry:font` in noninteractive mode.
 
 ## Type Map
 
@@ -30,14 +30,19 @@ Use `--target` for `registry:page` and `registry:file`; use `--file-extension` f
 | helper module             | `registry:lib`       | `registry/items/lib/<name>/`        |
 | app page                  | `registry:page`      | `registry/items/pages/<name>/`      |
 | explicit target file      | `registry:file`      | `registry/items/files/<name>/`      |
+| style metadata            | `registry:style`     | `registry/items/styles/<name>/`     |
+| theme metadata            | `registry:theme`     | `registry/items/themes/<name>/`     |
+| font metadata             | `registry:font`      | `registry/items/fonts/<name>/`      |
+| design system base        | `registry:base`      | `registry/items/bases/<name>/`      |
+| universal item            | `registry:item`      | `registry/items/items/<name>/`      |
 
 Use kebab-case folder and file names.
 
 ## `_registry.mdx`
 
-Each item uses `_registry.mdx` for YAML frontmatter, optional public MDX Usage, and a named `Preview` export. Never list `_registry.mdx` in `files`.
+Each item uses `_registry.mdx` for YAML frontmatter, optional public MDX Usage, and an optional named `Preview` export. Never list `_registry.mdx` in `files`.
 
-Required frontmatter:
+Common frontmatter:
 
 ```yaml
 ---
@@ -52,7 +57,9 @@ Dependency fields:
 
 - `registryDependencies`: shadcn primitive names such as `button`, `card`, `badge`, `dialog`, or `input`.
 - `localRegistryDependencies`: other local registry item names.
-- `files`: required for hooks, libs, blocks, pages, target paths, and multi-file items. One-file `registry:ui` items may omit it only when the published source is `<item-name>.tsx` in the item folder.
+- `files`: required for hooks, libs, blocks, pages, target paths, and multi-file items. Use source paths relative to the item `_registry.mdx` file, for example `path: stats-panel.tsx`; the catalog emits shadcn-facing JSON paths automatically. One-file `registry:ui` items may omit it only when the published source is `<item-name>.tsx` in the item folder. Metadata-only style, theme, font, base, and universal items may omit it.
+
+Do not add `registry/items/**` prefixes or `sourcePath` frontmatter. The catalog derives the source path from the item folder and authored `files[].path`.
 
 Minimal usage and preview:
 

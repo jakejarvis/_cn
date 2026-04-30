@@ -1,17 +1,16 @@
 import {
   DocsCallout,
-  renderMdxContent,
+  renderMdxContentModule,
   type MdxContentModule,
+  type RenderedMdxContent,
 } from "@/components/docs/mdx-content.server";
 
 import { normalizeGlobFiles } from "../glob";
 import { getDocsPage, type DocsPage } from "./catalog";
 import type { DocsPageDetailInput } from "./detail.types";
 
-type RenderedDocsContent = Awaited<ReturnType<typeof renderDocsContent>>;
-
 export type DocsPageDetail = Omit<DocsPage, "contentSource" | "keywords" | "sourcePath"> & {
-  content: RenderedDocsContent;
+  content: RenderedMdxContent | null;
 };
 
 const docsContentModules = import.meta.glob<MdxContentModule>("../../../registry/docs/*.{md,mdx}");
@@ -42,21 +41,12 @@ async function renderDocsPage(page: DocsPage): Promise<DocsPageDetail> {
   };
 }
 
-async function renderDocsContent(path: string) {
+async function renderDocsContent(path: string): Promise<RenderedMdxContent | null> {
   const loadContent = docsContentModulesByPath[path];
 
-  if (!loadContent) {
-    return null;
-  }
-
-  const Content = (await loadContent()).default;
-
-  return Content
-    ? renderMdxContent({
-        Content,
-        components: {
-          Callout: DocsCallout,
-        },
-      })
-    : null;
+  return renderMdxContentModule(loadContent, {
+    components: {
+      Callout: DocsCallout,
+    },
+  });
 }

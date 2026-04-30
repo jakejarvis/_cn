@@ -82,6 +82,12 @@ The public registry index is available at both the root and `/r` paths, while in
 - `/r/<name>.json` serves an item JSON file.
 - `/llms.txt` and `/llms-full.txt` are generated from the same Markdown docs and registry item pages used by the site.
 
+Human-facing registry URLs support shadcn CLI content negotiation. CLI requests with `Accept: application/vnd.shadcn.v1+json` or `User-Agent: shadcn` receive JSON from the same URL a browser uses for HTML:
+
+- `/registry` returns the registry index JSON.
+- `/registry/<name>` and section item pages like `/components/<name>` return item JSON.
+- `/` returns the `index` registry item when your registry publishes one.
+
 Docs pages, registry section pages, and registry item pages also support Markdown content negotiation (inspired by [Fumadocs](https://www.fumadocs.dev/docs/headless/utils/negotiation)). AI clients that request `text/markdown`, `text/x-markdown`, or `text/plain` in the `Accept` header receive the Markdown version of the current page directly, while normal browser requests still receive HTML.
 
 Install command URLs and local registry dependency URLs are generated from the registry path config in `src/lib/site-config.ts`.

@@ -17,6 +17,9 @@ import { siteConfig } from "../lib/site-config";
 import appCss from "../styles.css?url";
 
 export const Route = createRootRoute({
+  headers: () => ({
+    Vary: "Accept, User-Agent",
+  }),
   head: () => ({
     meta: [
       {

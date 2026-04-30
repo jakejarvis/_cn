@@ -12,4 +12,10 @@ npx shadcn@latest add https://underscore-cn.vercel.app/r/example-card.json
 
 The command that's displayed uses the `homepage` value from `registry/config.ts` for the base URL.
 
+Human-facing item pages also work with the shadcn CLI through content negotiation. For example, a browser can view [`/components/example-card`](/components/example-card), while the CLI receives the installable item JSON from the same URL:
+
+```sh
+npx shadcn@latest add https://underscore-cn.vercel.app/components/example-card
+```
+
 Use the package manager selector on item pages to switch between npm, pnpm, yarn, and bun commands.

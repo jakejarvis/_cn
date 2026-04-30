@@ -121,10 +121,10 @@ files:
   test("derives public install paths from nested item-relative file names", () => {
     const items = createRegistryCatalogItems({
       "registry/items/components/example/_registry.mdx": `---
-name: example-card
+name: fixture-card
 type: registry:ui
 files:
-  - path: src/example-card.tsx
+  - path: src/fixture-card.tsx
     type: registry:ui
 ---
 `,
@@ -132,26 +132,26 @@ files:
 
     expect(items[0]?.files).toEqual([
       {
-        path: "ui/example-card.tsx",
+        path: "ui/fixture-card.tsx",
         type: "registry:ui",
       },
     ]);
     expect(items[0]?.sourceFiles[0]?.sourcePath).toBe(
-      "registry/items/components/example/src/example-card.tsx",
+      "registry/items/components/example/src/fixture-card.tsx",
     );
   });
 
   test("does not normalize unsafe file paths before validation can report them", () => {
     const items = createRegistryCatalogItems({
       "registry/items/components/example/_registry.mdx": `---
-name: example-card
+name: fixture-card
 type: registry:ui
 files:
-  - path: ../example-card.tsx
+  - path: ../fixture-card.tsx
     type: registry:ui
-  - path: /example-card.tsx
+  - path: /fixture-card.tsx
     type: registry:ui
-  - path: ~/example-card.tsx
+  - path: ~/fixture-card.tsx
     type: registry:ui
 ---
 `,
@@ -159,15 +159,15 @@ files:
 
     expect(items[0]?.files).toEqual([
       {
-        path: "../example-card.tsx",
+        path: "../fixture-card.tsx",
         type: "registry:ui",
       },
       {
-        path: "/example-card.tsx",
+        path: "/fixture-card.tsx",
         type: "registry:ui",
       },
       {
-        path: "~/example-card.tsx",
+        path: "~/fixture-card.tsx",
         type: "registry:ui",
       },
     ]);

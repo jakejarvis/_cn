@@ -231,7 +231,7 @@ describe("shadcn registry JSON negotiation", () => {
     const request = createRequest(shadcnAcceptHeader, "POST");
 
     expect(
-      getRegistryJsonNegotiationResponseForRequest(request, "/registry/example-card"),
+      getRegistryJsonNegotiationResponseForRequest(request, "/registry/sample-component"),
     ).toBeUndefined();
   });
 

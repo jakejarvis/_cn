@@ -119,16 +119,73 @@ describe("registry markdown", () => {
     }
   });
 
-  test("uses public install import paths in starter usage examples", () => {
-    expect(getRegistryItemMarkdown("example-card")).toContain(
-      `import { ExampleCard } from "@/components/ui/example-card";`,
-    );
-    expect(getRegistryItemMarkdown("stats-panel")).toContain(
-      `import { StatsPanel } from "@/components/stats-panel";`,
-    );
-    expect(getRegistryItemMarkdown("use-copy-to-clipboard")).toContain(
-      `import { useCopyToClipboard } from "@/hooks/use-copy-to-clipboard";`,
-    );
+  test("uses public install import paths in supplied usage examples", () => {
+    const usageFixtures = [
+      {
+        item: fixtureItem,
+        expectedImport: `import { AlphaCard } from "@/components/ui/alpha-card";`,
+      },
+      {
+        item: {
+          name: "metrics-panel",
+          title: "Metrics Panel",
+          description: "A dashboard metrics block.",
+          hasPreview: false,
+          previewSourceFile: {
+            path: "registry/items/blocks/metrics-panel/_registry.mdx",
+            fileName: "_registry.mdx",
+            source: "",
+          },
+          sourceFiles: [
+            {
+              path: "components/metrics-panel.tsx",
+              sourcePath: "registry/items/blocks/metrics-panel/metrics-panel.tsx",
+              fileName: "metrics-panel.tsx",
+              type: "registry:component" as const,
+              source: `export function MetricsPanel() {
+  return <div>Metrics</div>;
+}`,
+            },
+          ],
+          usageSource: `\`\`\`tsx
+import { MetricsPanel } from "@/components/metrics-panel";
+\`\`\``,
+        },
+        expectedImport: `import { MetricsPanel } from "@/components/metrics-panel";`,
+      },
+      {
+        item: {
+          name: "use-alpha-state",
+          title: "useAlphaState",
+          description: "A small state hook.",
+          hasPreview: false,
+          previewSourceFile: {
+            path: "registry/items/hooks/use-alpha-state/_registry.mdx",
+            fileName: "_registry.mdx",
+            source: "",
+          },
+          sourceFiles: [
+            {
+              path: "hooks/use-alpha-state.ts",
+              sourcePath: "registry/items/hooks/use-alpha-state/use-alpha-state.ts",
+              fileName: "use-alpha-state.ts",
+              type: "registry:hook" as const,
+              source: `export function useAlphaState() {
+  return "alpha";
+}`,
+            },
+          ],
+          usageSource: `\`\`\`tsx
+import { useAlphaState } from "@/hooks/use-alpha-state";
+\`\`\``,
+        },
+        expectedImport: `import { useAlphaState } from "@/hooks/use-alpha-state";`,
+      },
+    ];
+
+    for (const { item, expectedImport } of usageFixtures) {
+      expect(createRegistryItemMarkdown(item)).toContain(expectedImport);
+    }
   });
 
   test("returns null when an item is missing", () => {

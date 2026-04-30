@@ -1,7 +1,8 @@
 import { registryItemSchema as shadcnRegistryItemSchema } from "shadcn/schema";
-import { describe, expect, test } from "vitest";
+import { describe, expect, test, vi } from "vitest";
 
 import { registryItems } from "./catalog";
+import type { RegistryCatalogItem } from "./catalog-builder";
 import {
   getRegistryIndexJson,
   getRegistryIndexJsonResponse,
@@ -9,6 +10,122 @@ import {
   getRegistrySourceValidationErrors,
 } from "./json.server";
 import { registryItemSchema } from "./metadata";
+
+const { fixtureRegistryItems, fixtureRegistrySourceByPath } = vi.hoisted(() => {
+  const mockedRegistryItems: RegistryCatalogItem[] = [
+    {
+      name: "alpha-card",
+      title: "Alpha Card",
+      description: "A compact card component.",
+      type: "registry:ui",
+      files: [{ path: "ui/alpha-card.tsx", type: "registry:ui" }],
+      sourceFiles: [
+        {
+          path: "ui/alpha-card.tsx",
+          sourcePath: "registry/items/components/alpha-card/alpha-card.tsx",
+          fileName: "alpha-card.tsx",
+          type: "registry:ui",
+        },
+      ],
+      previewSourceFile: {
+        path: "registry/items/components/alpha-card/_registry.mdx",
+        fileName: "_registry.mdx",
+        source: "",
+      },
+      hasPreview: false,
+      hasUsage: false,
+      usageSource: "",
+    },
+    {
+      name: "metrics-panel",
+      title: "Metrics Panel",
+      description: "A dashboard metrics block.",
+      type: "registry:block",
+      files: [
+        { path: "components/metrics-panel.tsx", type: "registry:component" },
+        { path: "lib/metrics-data.ts", type: "registry:lib" },
+      ],
+      sourceFiles: [
+        {
+          path: "components/metrics-panel.tsx",
+          sourcePath: "registry/items/blocks/metrics-panel/metrics-panel.tsx",
+          fileName: "metrics-panel.tsx",
+          type: "registry:component",
+        },
+        {
+          path: "lib/metrics-data.ts",
+          sourcePath: "registry/items/blocks/metrics-panel/metrics-data.ts",
+          fileName: "metrics-data.ts",
+          type: "registry:lib",
+        },
+      ],
+      previewSourceFile: {
+        path: "registry/items/blocks/metrics-panel/_registry.mdx",
+        fileName: "_registry.mdx",
+        source: "",
+      },
+      hasPreview: false,
+      hasUsage: false,
+      usageSource: "",
+    },
+    {
+      name: "use-alpha-state",
+      title: "useAlphaState",
+      description: "A small state hook.",
+      type: "registry:hook",
+      files: [{ path: "hooks/use-alpha-state.ts", type: "registry:hook" }],
+      sourceFiles: [
+        {
+          path: "hooks/use-alpha-state.ts",
+          sourcePath: "registry/items/hooks/use-alpha-state/use-alpha-state.ts",
+          fileName: "use-alpha-state.ts",
+          type: "registry:hook",
+        },
+      ],
+      previewSourceFile: {
+        path: "registry/items/hooks/use-alpha-state/_registry.mdx",
+        fileName: "_registry.mdx",
+        source: "",
+      },
+      hasPreview: false,
+      hasUsage: false,
+      usageSource: "",
+    },
+  ];
+  const mockedRegistrySourceByPath: Record<string, string> = {
+    "registry/items/components/alpha-card/alpha-card.tsx":
+      "export function AlphaCard() {\n  return <div>Alpha</div>;\n}",
+    "registry/items/blocks/metrics-panel/metrics-panel.tsx":
+      'import { metrics } from "./metrics-data";\n\nexport function MetricsPanel() {\n  return <div>{metrics.total}</div>;\n}',
+    "registry/items/blocks/metrics-panel/metrics-data.ts": "export const metrics = { total: 42 };",
+    "registry/items/hooks/use-alpha-state/use-alpha-state.ts":
+      'import { useState } from "react";\n\nexport function useAlphaState() {\n  return useState("alpha");\n}',
+  };
+
+  return {
+    fixtureRegistryItems: mockedRegistryItems,
+    fixtureRegistrySourceByPath: mockedRegistrySourceByPath,
+  };
+});
+
+vi.mock("./catalog", () => ({
+  getRegistryItem: (name: string) => fixtureRegistryItems.find((item) => item.name === name),
+  registryItems: fixtureRegistryItems,
+}));
+
+vi.mock("./source.server", () => ({
+  getRegistryItemWithSources: (item: RegistryCatalogItem) => ({
+    ...item,
+    sourceFiles: item.sourceFiles.map((file) => ({
+      ...file,
+      source: fixtureRegistrySourceByPath[file.sourcePath] ?? "",
+    })),
+    previewSourceFile: {
+      ...item.previewSourceFile,
+      source: item.previewSourceFile.source.trimEnd(),
+    },
+  }),
+}));
 
 describe("registry JSON route responses", () => {
   test("serves the same registry index payload for canonical and alias routes", async () => {
@@ -23,7 +140,7 @@ describe("registry JSON route responses", () => {
     expect(canonical).toEqual(getRegistryIndexJson());
   });
 
-  test("serves registry item payloads for every live item", async () => {
+  test("serves registry item payloads for every mocked item", async () => {
     const itemResponses = await Promise.all(
       registryItems.map(async (item) => {
         const response = getRegistryItemJsonResponse(item.name);
@@ -54,13 +171,16 @@ describe("registry JSON route responses", () => {
   });
 
   test("emits install paths instead of registry authoring source paths", async () => {
-    const exampleCard = await readJson(getRegistryItemJsonResponse("example-card"));
-    const copyHook = await readJson(getRegistryItemJsonResponse("use-copy-to-clipboard"));
-    const statsPanel = await readJson(getRegistryItemJsonResponse("stats-panel"));
+    const alphaCard = await readJson(getRegistryItemJsonResponse("alpha-card"));
+    const metricsPanel = await readJson(getRegistryItemJsonResponse("metrics-panel"));
+    const alphaStateHook = await readJson(getRegistryItemJsonResponse("use-alpha-state"));
 
-    expect(getFilePaths(exampleCard)).toEqual(["ui/example-card.tsx"]);
-    expect(getFilePaths(copyHook)).toEqual(["hooks/use-copy-to-clipboard.ts"]);
-    expect(getFilePaths(statsPanel)).toEqual(["components/stats-panel.tsx", "lib/stats-data.ts"]);
+    expect(getFilePaths(alphaCard)).toEqual(["ui/alpha-card.tsx"]);
+    expect(getFilePaths(metricsPanel)).toEqual([
+      "components/metrics-panel.tsx",
+      "lib/metrics-data.ts",
+    ]);
+    expect(getFilePaths(alphaStateHook)).toEqual(["hooks/use-alpha-state.ts"]);
   });
 
   test("returns JSON 404 responses for unknown items", async () => {

@@ -48,11 +48,26 @@ describe("docs page actions", () => {
       label: "View as Markdown",
       href: "/docs/getting-started.md",
     });
+    expect(links.find((link) => link.label === "Open in v0")).toBeUndefined();
 
     const chatGptUrl = new URL(assertLink(links, "Open in ChatGPT").href);
 
     expect(chatGptUrl.origin).toBe("https://chatgpt.com");
     expect(chatGptUrl.searchParams.get("q")).toContain(pageUrl);
+  });
+
+  test("builds open in v0 links from registry item JSON URLs", () => {
+    const registryItemJsonUrl = "https://example.com/r/alpha-card.json";
+    const links = getDocsPageActionLinks({
+      markdownPath: "/components/alpha-card.md",
+      pageUrl: "https://example.com/components/alpha-card",
+      registryItemJsonUrl,
+    });
+    const v0Url = new URL(assertLink(links, "Open in v0").href);
+
+    expect(v0Url.origin).toBe("https://v0.dev");
+    expect(v0Url.pathname).toBe("/chat/api/open");
+    expect(v0Url.searchParams.get("url")).toBe(registryItemJsonUrl);
   });
 });
 

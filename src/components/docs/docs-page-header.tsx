@@ -1,4 +1,8 @@
-import { getCanonicalDocsUrl, getDocsMarkdownPath } from "../../lib/site-config";
+import {
+  getCanonicalDocsUrl,
+  getCanonicalRegistryItemUrl,
+  getDocsMarkdownPath,
+} from "../../lib/site-config";
 import { cn } from "../../lib/utils";
 import { DocsPageActions } from "./docs-page-actions";
 
@@ -6,10 +10,17 @@ type DocsPageHeaderProps = {
   title: string;
   description: string;
   pagePath: string;
+  registryItemName?: string;
   className?: string;
 };
 
-export function DocsPageHeader({ title, description, pagePath, className }: DocsPageHeaderProps) {
+export function DocsPageHeader({
+  title,
+  description,
+  pagePath,
+  registryItemName,
+  className,
+}: DocsPageHeaderProps) {
   return (
     <header className={cn("flex max-w-3xl flex-col gap-2", className)}>
       <div className="flex flex-row flex-wrap items-start justify-between gap-3">
@@ -17,6 +28,9 @@ export function DocsPageHeader({ title, description, pagePath, className }: Docs
         <DocsPageActions
           markdownPath={getDocsMarkdownPath(pagePath)}
           pageUrl={getCanonicalDocsUrl(pagePath)}
+          registryItemJsonUrl={
+            registryItemName ? getCanonicalRegistryItemUrl(registryItemName) : undefined
+          }
           className="shrink-0"
         />
       </div>

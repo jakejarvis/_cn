@@ -43,6 +43,7 @@ export function RegistryItemDoc({ item, section, sectionPath }: RegistryItemDocP
         title={item.title}
         description={item.description}
         pagePath={`${sectionPath}/${item.name}`}
+        registryItemName={item.name}
       />
 
       <Tabs key={`${sectionPath}:${item.name}:preview`} defaultValue="preview" className="gap-4">

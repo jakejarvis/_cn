@@ -11,7 +11,15 @@ import {
   getRegistryCatalogMarkdownResponse,
   getRegistryItemMarkdown,
   getRegistryItemMarkdownResponse,
+  getRegistrySectionItemMarkdownResponse,
+  getRegistrySectionMarkdownResponse,
 } from "./markdown.server";
+import {
+  getRegistryItemRoutePath,
+  getRegistrySectionIdForType,
+  getRegistrySectionsWithItems,
+  registrySectionList,
+} from "./sections";
 
 const fixtureCatalog = {
   title: "Registry",
@@ -51,12 +59,14 @@ import { AlphaCard } from "@/components/ui/alpha-card";
 
 describe("registry markdown", () => {
   test("builds catalog markdown with supplied linked registry items", () => {
-    const markdown = createRegistryCatalogMarkdown(fixtureCatalog, [fixtureItem]);
+    const markdown = createRegistryCatalogMarkdown(fixtureCatalog, [
+      { ...fixtureItem, routePath: "/components/alpha-card" },
+    ]);
 
     expect(markdown).toContain("# Registry");
     expect(markdown).toContain("Installable items.");
     expect(markdown).toContain(
-      `- [Alpha Card](${getCanonicalDocsUrl("/registry/alpha-card")}): A compact card component.`,
+      `- [Alpha Card](${getCanonicalDocsUrl("/components/alpha-card")}): A compact card component.`,
     );
   });
 
@@ -105,7 +115,7 @@ describe("registry markdown", () => {
     expect(markdown).toContain(registryCatalog.description);
 
     for (const item of catalog.items) {
-      expect(markdown).toContain(getCanonicalDocsUrl(`${registryCatalog.basePath}/${item.name}`));
+      expect(markdown).toContain(getCanonicalDocsUrl(getRegistryItemRoutePath(item)));
     }
   });
 
@@ -127,19 +137,67 @@ describe("registry markdown", () => {
       expect(found.status).toBe(200);
       expect(found.headers.get("Content-Type")).toBe("text/markdown; charset=utf-8");
       expect(found.headers.get("Link")).toBe(
-        getMarkdownHttpLinkHeader(`${registryCatalog.basePath}/${item.name}`),
+        getMarkdownHttpLinkHeader(getRegistryItemRoutePath(item)),
       );
       expect(text).toContain(`# ${item.title}`);
     }
 
     const catalogResponse = getRegistryCatalogMarkdownResponse();
+    const sectionResponses = await Promise.all(
+      getRegistrySectionsWithItems(registryItems).map(async (section) => {
+        const found = getRegistrySectionMarkdownResponse(section.id);
+        const text = await found.text();
+
+        return { found, section, text };
+      }),
+    );
+    const sectionItemResponses = await Promise.all(
+      registryItems.map(async (item) => {
+        const found = getRegistrySectionItemMarkdownResponse(
+          getRegistrySectionIdForType(item.type),
+          item.name,
+        );
+        const text = await found.text();
+
+        return { found, item, text };
+      }),
+    );
     const missing = getRegistryItemMarkdownResponse("missing-item");
 
     expect(catalogResponse.status).toBe(200);
     expect(catalogResponse.headers.get("Link")).toBe(
       getMarkdownHttpLinkHeader(registryCatalog.basePath),
     );
+
+    for (const { found, section, text } of sectionResponses) {
+      expect(found.status).toBe(200);
+      expect(found.headers.get("Link")).toBe(getMarkdownHttpLinkHeader(section.basePath));
+      expect(text).toContain(`# ${section.title}`);
+    }
+
+    for (const { found, item, text } of sectionItemResponses) {
+      expect(found.status).toBe(200);
+      expect(found.headers.get("Link")).toBe(
+        getMarkdownHttpLinkHeader(getRegistryItemRoutePath(item)),
+      );
+      expect(text).toContain(`# ${item.title}`);
+    }
+
     expect(missing.status).toBe(404);
     expect(missing.headers.get("Content-Type")).toBe("text/markdown; charset=utf-8");
+    expect(getRegistrySectionMarkdownResponse("missing").status).toBe(404);
+
+    const firstItem = registryItems[0];
+    const wrongSection = firstItem
+      ? registrySectionList.find(
+          (section) => section.id !== getRegistrySectionIdForType(firstItem.type),
+        )
+      : undefined;
+
+    if (firstItem && wrongSection) {
+      expect(getRegistrySectionItemMarkdownResponse(wrongSection.id, firstItem.name).status).toBe(
+        404,
+      );
+    }
   });
 });

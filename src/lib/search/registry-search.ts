@@ -2,9 +2,14 @@ import { create, insertMultiple, search as searchOrama } from "@orama/orama";
 import type { Orama } from "@orama/orama";
 
 import { docsPages, type DocsPage } from "../docs/catalog";
-import { getRegistryCatalogWithItems } from "../registry/catalog";
+import { registryItems } from "../registry/catalog";
 import type { RegistryCatalogItem } from "../registry/catalog-builder";
-import { getRegistryTypeLabel, registryCatalog } from "../registry/item-types";
+import { getRegistryTypeLabel } from "../registry/item-types";
+import {
+  getRegistryItemRoutePath,
+  getRegistrySectionsWithItems,
+  type RegistrySectionId,
+} from "../registry/sections";
 
 const DEFAULT_SEARCH_LIMIT = 20;
 const MAX_SEARCH_LIMIT = 50;
@@ -51,7 +56,7 @@ const registrySearchBoost = {
 } satisfies Partial<Record<(typeof registrySearchProperties)[number], number>>;
 
 type RegistrySearchDatabase = Orama<typeof registrySearchSchema>;
-type SearchSection = "docs" | "registry";
+type SearchSection = "docs" | RegistrySectionId;
 
 export type RegistrySearchItem = Pick<
   RegistryCatalogItem,
@@ -59,10 +64,10 @@ export type RegistrySearchItem = Pick<
 > &
   Partial<Pick<RegistryCatalogItem, "categories" | "registryDependencies">>;
 
-export type RegistrySearchSectionInput = Pick<
-  typeof registryCatalog,
-  "basePath" | "id" | "title"
-> & {
+export type RegistrySearchSectionInput = {
+  id: RegistrySectionId;
+  title: string;
+  basePath: string;
   items: readonly RegistrySearchItem[];
 };
 
@@ -77,7 +82,7 @@ export type RegistrySearchRecord = {
   title: string;
   description: string;
   section: SearchSection;
-  sectionTitle: "Docs" | "Registry";
+  sectionTitle: string;
   routePath: string;
   type: RegistryCatalogItem["type"] | "docs";
   categories: string[];
@@ -243,7 +248,7 @@ function toRegistrySearchRecord(
     description: item.description,
     section: section.id,
     sectionTitle: section.title,
-    routePath: `${section.basePath}/${item.name}`,
+    routePath: getRegistryItemRoutePath(item),
     type: item.type,
     categories,
     registryDependencies,
@@ -315,18 +320,9 @@ function getRegistrySearchKeywords({
 }
 
 function getDefaultRegistrySearchRecordsInput(): RegistrySearchRecordsInput {
-  const catalog = getRegistryCatalogWithItems();
-
   return {
     docsPages,
-    sections: [
-      {
-        id: registryCatalog.id,
-        title: registryCatalog.title,
-        basePath: registryCatalog.basePath,
-        items: catalog.items,
-      },
-    ],
+    sections: getRegistrySectionsWithItems(registryItems),
   };
 }
 

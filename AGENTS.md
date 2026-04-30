@@ -46,7 +46,7 @@ Use **Vite+**: `vp install`, `vp dev`, `vp build`, `vp test`
 - Authored docs: direct `registry/docs/*.mdx` or `registry/docs/*.md` files with optional `title`, `description`, `order`, and `group` frontmatter. Nested docs pages are not supported yet.
 - Registry catalog: `src/lib/registry/catalog.ts`; JSON output: `src/lib/registry/json.server.ts`.
 - Registry JSON routes: `/registry.json` and `/r/registry.json` serve the index; item JSON routes live under `/r/<name>.json`.
-- Public registry catalog routes: `/registry` and `/registry/<name>`.
+- Public registry catalog routes: `/registry`, `/components`, `/blocks`, `/utilities`, and section item pages like `/components/<name>`.
 - Docs chrome: `src/components/docs/`; theme/CSS: `src/styles.css`.
 - See the [SKILL.md](skills/shadcn-registry/SKILL.md) file for the registry authoring workflow.
 

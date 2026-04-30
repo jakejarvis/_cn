@@ -3,8 +3,16 @@ import {
   type DocsNavigationItem,
   type DocsNavigationSection,
 } from "./docs/catalog";
-import { getRegistryCatalogWithItems } from "./registry/catalog";
+import { getRegistryCatalogWithItems, registryItems } from "./registry/catalog";
+import type { RegistryCatalogItem } from "./registry/catalog-builder";
 import { getRegistryTypeLabel } from "./registry/item-types";
+import {
+  getRegistryItemRoutePath,
+  getRegistrySection,
+  getRegistrySectionIdForType,
+  getRegistrySectionsWithItems,
+  type RegistrySectionId,
+} from "./registry/sections";
 
 type RegistryNavigationItem = {
   kind: "registry";
@@ -12,6 +20,7 @@ type RegistryNavigationItem = {
   name: string;
   description: string;
   group: string;
+  sectionId: RegistrySectionId;
   routePath: string;
 };
 
@@ -19,19 +28,40 @@ type DocsNavigationEntry = DocsNavigationItem & {
   kind: "docs";
 };
 
+type RegistryNavigationSourceItem = Pick<
+  RegistryCatalogItem,
+  "description" | "name" | "title" | "type"
+>;
+
 export type SiteNavigationItem = RegistryNavigationItem | DocsNavigationEntry;
 
 export type SiteNavigationSection = {
-  id: "registry" | DocsNavigationSection["id"];
-  title: "Registry" | DocsNavigationSection["title"];
-  basePath: "/registry" | DocsNavigationSection["basePath"];
+  id: "registry" | RegistrySectionId | DocsNavigationSection["id"];
+  title: string;
+  basePath: string;
   items: SiteNavigationItem[];
 };
 
 export type SiteNavigationSectionId = SiteNavigationSection["id"];
 
 export function getSiteNavigationSections(): SiteNavigationSection[] {
-  return [getDocsSiteNavigationSection(), getRegistryNavigationSection()]
+  return createSiteNavigationSections({
+    docsSection: getDocsNavigationSection(),
+    registryItems,
+  });
+}
+
+export function createSiteNavigationSections({
+  docsSection,
+  registryItems: registryNavigationItems,
+}: {
+  docsSection: DocsNavigationSection | null;
+  registryItems: readonly RegistryNavigationSourceItem[];
+}): SiteNavigationSection[] {
+  return [
+    createDocsSiteNavigationSection(docsSection),
+    ...getRegistryNavigationSections(registryNavigationItems),
+  ]
     .filter((section): section is SiteNavigationSection => section !== null)
     .filter((section) => section.items.length > 0);
 }
@@ -48,12 +78,35 @@ export function getSiteNavigationSection(id: SiteNavigationSectionId): SiteNavig
     );
   }
 
+  if (id === "registry") {
+    return getRegistryNavigationSection();
+  }
+
+  const section = getRegistryNavigationSectionById(id);
+
+  if (section) {
+    return section;
+  }
+
+  const config = getRegistrySection(id);
+
+  if (config) {
+    return {
+      ...config,
+      items: [],
+    };
+  }
+
   return getRegistryNavigationSection();
 }
 
 function getDocsSiteNavigationSection(): SiteNavigationSection | null {
-  const section = getDocsNavigationSection();
+  return createDocsSiteNavigationSection(getDocsNavigationSection());
+}
 
+function createDocsSiteNavigationSection(
+  section: DocsNavigationSection | null,
+): SiteNavigationSection | null {
   if (!section) {
     return null;
   }
@@ -82,13 +135,53 @@ function getRegistryNavigationSection(): SiteNavigationSection {
     id: catalog.id,
     title: catalog.title,
     basePath: catalog.basePath,
-    items: catalog.items.map((item) => ({
-      kind: "registry" as const,
-      title: item.title,
-      name: item.name,
-      description: item.description,
-      group: getRegistryTypeLabel(item.type),
-      routePath: `${catalog.basePath}/${item.name}`,
-    })),
+    items: catalog.items.map(toRegistryNavigationItem),
+  };
+}
+
+function getRegistryNavigationSections(
+  items: readonly RegistryNavigationSourceItem[],
+): SiteNavigationSection[] {
+  return getRegistrySectionsWithItems(items).map((section) => ({
+    id: section.id,
+    title: section.title,
+    basePath: section.basePath,
+    items: section.items.map(toRegistryNavigationItem),
+  }));
+}
+
+function getRegistryNavigationSectionById(
+  sectionId: RegistrySectionId,
+): SiteNavigationSection | null {
+  const section = getRegistrySectionsWithItems(registryItems).find(({ id }) => id === sectionId);
+
+  if (!section) {
+    const config = getRegistrySection(sectionId);
+
+    return config
+      ? {
+          ...config,
+          items: [],
+        }
+      : null;
+  }
+
+  return {
+    id: section.id,
+    title: section.title,
+    basePath: section.basePath,
+    items: section.items.map(toRegistryNavigationItem),
+  };
+}
+
+function toRegistryNavigationItem(item: RegistryNavigationSourceItem): RegistryNavigationItem {
+  return {
+    kind: "registry",
+    title: item.title,
+    name: item.name,
+    description: item.description,
+    group: getRegistryTypeLabel(item.type),
+    sectionId: getRegistrySectionIdForType(item.type),
+    routePath: getRegistryItemRoutePath(item),
   };
 }

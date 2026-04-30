@@ -5,7 +5,10 @@ import { getAuthoredDocsPageMarkdownResponse } from "./docs/markdown.server";
 import {
   getRegistryCatalogMarkdownResponse,
   getRegistryItemMarkdownResponse,
+  getRegistrySectionItemMarkdownResponse,
+  getRegistrySectionMarkdownResponse,
 } from "./registry/markdown.server";
+import { getRegistrySection } from "./registry/sections";
 
 const markdownMediaTypes = new Set(["text/plain", "text/markdown", "text/x-markdown"]);
 const fileExtensionPattern = /\/[^/]+\.[^/]+$/u;
@@ -14,6 +17,10 @@ const fileExtensionPattern = /\/[^/]+\.[^/]+$/u;
 const pathMatcherOptions = { decode: decodePathSegment, sensitive: true } as const;
 const docsPathMatcher = match<{ slug?: string }>("/docs{/:slug}", pathMatcherOptions);
 const registryPathMatcher = match<{ name?: string }>("/registry{/:name}", pathMatcherOptions);
+const registrySectionPathMatcher = match<{ section: string; name?: string }>(
+  "/:section{/:name}",
+  pathMatcherOptions,
+);
 
 export function getMarkdownNegotiationResponseForRequest(
   request: Request,
@@ -55,6 +62,19 @@ export function getMarkdownNegotiationResponse(pathname: string): Response | und
     return itemName
       ? getRegistryItemMarkdownResponse(itemName)
       : getRegistryCatalogMarkdownResponse();
+  }
+
+  const registrySectionMatch = registrySectionPathMatcher(path);
+  if (registrySectionMatch) {
+    const { section, name } = registrySectionMatch.params;
+
+    if (!getRegistrySection(section)) {
+      return undefined;
+    }
+
+    return name
+      ? getRegistrySectionItemMarkdownResponse(section, name)
+      : getRegistrySectionMarkdownResponse(section);
   }
 
   return undefined;

@@ -4,15 +4,11 @@ import {
   createRegistryMetadataItems,
   type RegistryCatalogItem,
 } from "./catalog-builder";
-import {
-  getRegistryTypeLabel,
-  publicRegistryItemTypes,
-  registryCatalog,
-  type RegistryItemType,
-} from "./item-types";
+import { registryCatalog } from "./item-types";
+import { getRegistrySectionsWithItems } from "./sections";
 
 type RegistryCatalogGroup = {
-  type: RegistryItemType;
+  id: string;
   title: string;
   items: RegistryCatalogItem[];
 };
@@ -49,10 +45,10 @@ export function getRegistryCatalogWithItems(): RegistryCatalogWithItems {
   return {
     ...registryCatalog,
     items: registryItems,
-    groups: publicRegistryItemTypes.flatMap((type) => {
-      const items = getRegistryItemsByTypes([type]);
-
-      return items.length > 0 ? [{ type, title: getRegistryTypeLabel(type), items }] : [];
-    }),
+    groups: getRegistrySectionsWithItems(registryItems).map(({ id, title, items }) => ({
+      id,
+      title,
+      items,
+    })),
   };
 }

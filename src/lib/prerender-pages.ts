@@ -4,8 +4,13 @@ import { fileURLToPath } from "node:url";
 
 import { parse as parseYaml } from "yaml";
 
-import { registryCatalog } from "./registry/item-types.ts";
+import {
+  isPublicRegistryItemType,
+  registryCatalog,
+  type RegistryItemType,
+} from "./registry/item-types.ts";
 import { parseRegistryMdxAst } from "./registry/mdx-ast.ts";
+import { getRegistryItemRoutePath, getRegistrySectionsWithItems } from "./registry/sections.ts";
 import { shouldExcludeFromSitemap } from "./seo.ts";
 import {
   getAliasRegistryIndexPaths,
@@ -24,7 +29,7 @@ type PrerenderPage = {
 
 type RegistryPrerenderItem = {
   name: string;
-  type: string;
+  type: RegistryItemType;
 };
 
 type PrerenderPagesInput = {
@@ -61,6 +66,11 @@ export function createPrerenderPages({
   addPath(registryCatalog.basePath);
   addPath(getDocsMarkdownPath(registryCatalog.basePath));
 
+  for (const section of getRegistrySectionsWithItems(registryItems)) {
+    addPath(section.basePath);
+    addPath(getDocsMarkdownPath(section.basePath));
+  }
+
   for (const docsPath of docsPagePaths) {
     addPath(docsPath);
     addPath(getDocsMarkdownPath(docsPath));
@@ -70,7 +80,7 @@ export function createPrerenderPages({
     addPath(getCanonicalRegistryItemPath(item.name));
     getAliasRegistryItemPaths(item.name).forEach(addPath);
 
-    const itemPath = `${registryCatalog.basePath}/${item.name}`;
+    const itemPath = getRegistryItemRoutePath(item);
 
     addPath(itemPath);
     addPath(getDocsMarkdownPath(itemPath));
@@ -150,7 +160,7 @@ function isRegistryPrerenderItem(value: unknown): value is RegistryPrerenderItem
     "name" in value &&
     "type" in value &&
     typeof value.name === "string" &&
-    typeof value.type === "string"
+    isPublicRegistryItemType(value.type)
   );
 }
 

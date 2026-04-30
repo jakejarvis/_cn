@@ -68,6 +68,19 @@ function SidebarSectionLink({
           {section.title}
         </Link>
       );
+    case "components":
+    case "blocks":
+    case "utilities":
+      return (
+        <Link
+          to="/$section"
+          params={{ section: section.id }}
+          onClick={onNavigate}
+          className={className}
+        >
+          {section.title}
+        </Link>
+      );
     case "registry":
       return (
         <Link to="/registry" onClick={onNavigate} className={className}>
@@ -153,8 +166,8 @@ function SidebarItemLink({
 
   return (
     <Link
-      to="/registry/$name"
-      params={{ name: item.name }}
+      to="/$section/$name"
+      params={{ section: item.sectionId, name: item.name }}
       onClick={onNavigate}
       className={className}
     >

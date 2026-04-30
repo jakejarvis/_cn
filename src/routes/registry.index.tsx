@@ -5,6 +5,7 @@ import { RegistryItemList } from "@/components/docs/registry-item-list";
 
 import { getRegistryCatalogWithItems } from "../lib/registry/catalog";
 import { registryCatalog } from "../lib/registry/item-types";
+import { getRegistryItemRoutePath } from "../lib/registry/sections";
 import { getCollectionPageJsonLd, getMarkdownAlternatePath, getSeoHead } from "../lib/seo";
 
 export const Route = createFileRoute("/registry/")({
@@ -24,7 +25,7 @@ export const Route = createFileRoute("/registry/")({
           items: catalog.items.map((item) => ({
             title: item.title,
             description: item.description,
-            path: `${catalog.basePath}/${item.name}`,
+            path: getRegistryItemRoutePath(item),
           })),
         }),
       ],

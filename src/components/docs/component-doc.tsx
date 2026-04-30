@@ -8,7 +8,8 @@ import {
 import { Link } from "@tanstack/react-router";
 
 import type { RegistryItemDetail } from "../../lib/registry/detail.server";
-import { getRegistryTypeLabel, registryCatalog } from "../../lib/registry/item-types";
+import { getRegistryTypeLabel } from "../../lib/registry/item-types";
+import { getRegistryItemRoutePath, getRegistrySectionForType } from "../../lib/registry/sections";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -29,13 +30,16 @@ type RegistryItemDocProps = {
 };
 
 export function RegistryItemDoc({ item }: RegistryItemDocProps) {
+  const section = getRegistrySectionForType(item.type);
+  const pagePath = getRegistryItemRoutePath(item);
+
   return (
     <article className="flex min-w-0 flex-col gap-8">
       <Breadcrumb>
         <BreadcrumbList>
           <BreadcrumbItem>
-            <BreadcrumbLink render={<Link to="/registry" />}>
-              {registryCatalog.title}
+            <BreadcrumbLink render={<Link to="/$section" params={{ section: section.id }} />}>
+              {section.title}
             </BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
@@ -48,7 +52,7 @@ export function RegistryItemDoc({ item }: RegistryItemDocProps) {
       <DocsPageHeader
         title={item.title}
         description={item.description}
-        pagePath={`${registryCatalog.basePath}/${item.name}`}
+        pagePath={pagePath}
         registryItemName={item.name}
       />
 
@@ -220,7 +224,11 @@ export function RegistryItemNotFound() {
       <div className="flex max-w-xl flex-col gap-2">
         <h1 className="font-heading text-lg font-semibold">Item not found</h1>
       </div>
-      <Button variant="outline" nativeButton={false} render={<Link to="/registry" />}>
+      <Button
+        variant="outline"
+        nativeButton={false}
+        render={<Link to="/$section" params={{ section: "components" }} />}
+      >
         Back to overview
       </Button>
     </div>

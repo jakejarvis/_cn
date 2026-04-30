@@ -4,6 +4,7 @@ import { docsPages } from "./docs/catalog";
 import { createPrerenderPages, getPrerenderPages } from "./prerender-pages";
 import { registryItems } from "./registry/catalog";
 import { registryCatalog } from "./registry/item-types";
+import { getRegistryItemRoutePath, getRegistrySectionsWithItems } from "./registry/sections";
 import { shouldExcludeFromSitemap } from "./seo";
 import {
   getAliasRegistryIndexPaths,
@@ -34,12 +35,18 @@ describe("prerender pages", () => {
         "/docs/getting-started.md",
         "/registry",
         "/registry.md",
-        "/registry/alpha-card",
-        "/registry/alpha-card.md",
-        "/registry/stats-grid",
-        "/registry/stats-grid.md",
-        "/registry/use-clipboard",
-        "/registry/use-clipboard.md",
+        "/components",
+        "/components.md",
+        "/components/alpha-card",
+        "/components/alpha-card.md",
+        "/blocks",
+        "/blocks.md",
+        "/blocks/stats-grid",
+        "/blocks/stats-grid.md",
+        "/utilities",
+        "/utilities.md",
+        "/utilities/use-clipboard",
+        "/utilities/use-clipboard.md",
         "/r/alpha-card.json",
         "/r/stats-grid.json",
         "/r/use-clipboard.json",
@@ -69,6 +76,11 @@ describe("prerender pages", () => {
     expect(paths).toContain(registryCatalog.basePath);
     expect(paths).toContain(getDocsMarkdownPath(registryCatalog.basePath));
 
+    for (const section of getRegistrySectionsWithItems(registryItems)) {
+      expect(paths).toContain(section.basePath);
+      expect(paths).toContain(getDocsMarkdownPath(section.basePath));
+    }
+
     for (const page of docsPages) {
       expect(paths).toContain(page.routePath);
       expect(paths).toContain(getDocsMarkdownPath(page.routePath));
@@ -81,7 +93,7 @@ describe("prerender pages", () => {
         expect(paths).toContain(aliasPath);
       }
 
-      const itemPath = `${registryCatalog.basePath}/${item.name}`;
+      const itemPath = getRegistryItemRoutePath(item);
 
       expect(paths).toContain(itemPath);
       expect(paths).toContain(getDocsMarkdownPath(itemPath));

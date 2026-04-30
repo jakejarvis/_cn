@@ -182,7 +182,7 @@ The template ships three plain examples:
 
 Replace them with your own registry items before publishing.
 
-The docs site renders one `/registry` catalog with every public item type grouped by registry type, plus `/registry/<name>` pages for item details.
+The docs site renders one `/registry` all-items catalog, while user-facing item pages live under `/components/<name>`, `/blocks/<name>`, or `/utilities/<name>` based on item type.
 
 ## Checklist
 

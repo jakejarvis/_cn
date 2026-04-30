@@ -5,9 +5,9 @@ import {
 } from "./content/markdown";
 import { docsPages } from "./docs/catalog";
 import { getAuthoredDocsPageMarkdown } from "./docs/markdown.server";
-import { getRegistryCatalogWithItems } from "./registry/catalog";
-import { registryCatalog } from "./registry/item-types";
-import { getRegistryCatalogMarkdown, getRegistryItemMarkdown } from "./registry/markdown.server";
+import { registryItems } from "./registry/catalog";
+import { getRegistryItemMarkdown, getRegistrySectionMarkdown } from "./registry/markdown.server";
+import { getRegistryItemRoutePath, getRegistrySectionsWithItems } from "./registry/sections";
 import {
   getCanonicalRegistryIndexUrl,
   getCanonicalSiteUrl,
@@ -115,23 +115,23 @@ function getLlmsSections(): LlmsSection[] {
         renderMarkdown: () => getAuthoredDocsPageMarkdown(page.slug) ?? "",
       })),
     },
-    {
-      title: registryCatalog.title,
+    ...getRegistrySectionsWithItems(registryItems).map((section) => ({
+      title: section.title,
       documents: [
         {
-          title: `${registryCatalog.title} index`,
-          url: getCanonicalSiteUrl(getDocsMarkdownPath(registryCatalog.basePath)),
-          description: registryCatalog.description,
-          renderMarkdown: () => getRegistryCatalogMarkdown(),
+          title: `${section.title} index`,
+          url: getCanonicalSiteUrl(getDocsMarkdownPath(section.basePath)),
+          description: section.description,
+          renderMarkdown: () => getRegistrySectionMarkdown(section.id) ?? "",
         },
-        ...getRegistryCatalogWithItems().items.map((item) => ({
+        ...section.items.map((item) => ({
           title: item.title,
-          url: getCanonicalSiteUrl(getDocsMarkdownPath(`${registryCatalog.basePath}/${item.name}`)),
+          url: getCanonicalSiteUrl(getDocsMarkdownPath(getRegistryItemRoutePath(item))),
           description: item.description,
           renderMarkdown: () => getRegistryItemMarkdown(item.name) ?? "",
         })),
       ],
-    },
+    })),
   ];
 }
 

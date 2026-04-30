@@ -4,13 +4,24 @@ import { RegistryItemDoc, RegistryItemNotFound } from "@/components/docs/compone
 import { ContentSkeleton } from "@/components/docs/content-skeleton";
 import { DocsLayout } from "@/components/docs/docs-layout";
 
+import { registryItems } from "../lib/registry/catalog";
 import { getRegistryItemDetail } from "../lib/registry/detail.functions";
-import { registryCatalog } from "../lib/registry/item-types";
-import { getRegistryItemRoutePath, getRegistrySectionForType } from "../lib/registry/sections";
+import {
+  getRegistryItemRoutePath,
+  getRegistrySectionForType,
+  getRegistrySectionItem,
+  isRegistrySectionId,
+} from "../lib/registry/sections";
 import { getMarkdownAlternatePath, getSeoHead, getTechArticleJsonLd } from "../lib/seo";
 
-export const Route = createFileRoute("/registry/$name")({
+export const Route = createFileRoute("/$section/$name")({
   loader: async ({ params }) => {
+    const sectionItem = getRegistrySectionItem(params.section, params.name, registryItems);
+
+    if (!sectionItem) {
+      throw notFound();
+    }
+
     const detail = await getRegistryItemDetail({
       data: {
         name: params.name,
@@ -23,19 +34,18 @@ export const Route = createFileRoute("/registry/$name")({
 
     return detail.item;
   },
-  pendingComponent: RegistryItemPendingRoute,
+  pendingComponent: RegistrySectionItemPendingRoute,
   head: ({ loaderData: item }) => {
     if (!item) {
       return getSeoHead({
-        title: registryCatalog.title,
-        description: registryCatalog.description,
-        path: registryCatalog.basePath,
-        markdownPath: getMarkdownAlternatePath(registryCatalog.basePath),
+        title: "Registry",
+        description: "Installable shadcn-compatible registry items.",
+        path: "/components",
       });
     }
 
-    const path = getRegistryItemRoutePath(item);
     const section = getRegistrySectionForType(item.type);
+    const path = getRegistryItemRoutePath(item);
 
     return getSeoHead({
       title: item.title,
@@ -53,15 +63,22 @@ export const Route = createFileRoute("/registry/$name")({
       ],
     });
   },
-  component: RegistryItemRoute,
-  notFoundComponent: RegistryItemNotFoundRoute,
+  component: RegistrySectionItemRoute,
+  notFoundComponent: RegistrySectionItemNotFoundRoute,
 });
 
-function RegistryItemPendingRoute() {
-  return <ContentSkeleton section={registryCatalog.id} variant="registry-item" />;
+function RegistrySectionItemPendingRoute() {
+  const { section } = Route.useParams();
+
+  return (
+    <ContentSkeleton
+      section={isRegistrySectionId(section) ? section : "components"}
+      variant="registry-item"
+    />
+  );
 }
 
-function RegistryItemRoute() {
+function RegistrySectionItemRoute() {
   const item = Route.useLoaderData();
   const section = getRegistrySectionForType(item.type);
 
@@ -72,9 +89,11 @@ function RegistryItemRoute() {
   );
 }
 
-function RegistryItemNotFoundRoute() {
+function RegistrySectionItemNotFoundRoute() {
+  const { section } = Route.useParams();
+
   return (
-    <DocsLayout section={registryCatalog.id}>
+    <DocsLayout section={isRegistrySectionId(section) ? section : "components"}>
       <RegistryItemNotFound />
     </DocsLayout>
   );

@@ -88,6 +88,14 @@ function HeaderSectionLink({
           {section.title}
         </Link>
       );
+    case "components":
+    case "blocks":
+    case "utilities":
+      return (
+        <Link to="/$section" params={{ section: section.id }} className={className}>
+          {section.title}
+        </Link>
+      );
     case "registry":
       return (
         <Link to="/registry" className={className}>

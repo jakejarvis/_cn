@@ -25,7 +25,11 @@ function HomePage() {
         </h1>
         <p className="max-w-lg text-base text-muted-foreground">{siteConfig.description}</p>
         <div className="flex items-center gap-3">
-          <Button size="lg" nativeButton={false} render={<Link to="/registry" />}>
+          <Button
+            size="lg"
+            nativeButton={false}
+            render={<Link to="/$section" params={{ section: "components" }} />}
+          >
             <IconBlocks data-icon="inline-start" />
             Browse
           </Button>

@@ -7,13 +7,13 @@ import {
   registryItems,
 } from "./catalog";
 import { getRegistryDisplaySource } from "./display-source.server";
-import { publicRegistryItemTypes } from "./item-types";
 import {
   getRegistryIndexJson,
   getRegistryItemJson,
   getRegistryValidationErrors,
 } from "./json.server";
 import { registryItemSchema } from "./metadata";
+import { registrySectionList } from "./sections";
 import {
   getMissingRegistryPreviewPaths,
   getMissingRegistrySourcePaths,
@@ -96,8 +96,10 @@ describe("registry catalog", () => {
 
     expect(catalog.id).toBe("registry");
     expect(catalog.items).toEqual(registryItems);
-    expect(catalog.groups.map((group) => group.type)).toEqual(
-      publicRegistryItemTypes.filter((type) => getRegistryItemsByTypes([type]).length > 0),
+    expect(catalog.groups.map((group) => group.id)).toEqual(
+      registrySectionList
+        .filter((section) => getRegistryItemsByTypes(section.types).length > 0)
+        .map((section) => section.id),
     );
   });
 

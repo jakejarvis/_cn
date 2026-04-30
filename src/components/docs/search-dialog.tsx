@@ -33,7 +33,7 @@ type SearchState = "idle" | "loading" | "ready" | "error";
 const searchDebounceMs = 120;
 const searchResultLimit = 20;
 const searchHotkey = "Mod+K" satisfies Hotkey;
-const sectionOrder = ["docs", "registry"] as const;
+const sectionOrder = ["docs", "components", "blocks", "utilities"] as const;
 
 export function SearchDialog() {
   const navigate = useNavigate();
@@ -121,8 +121,13 @@ export function SearchDialog() {
 
         void navigate({ to: "/docs/$slug", params: { slug: result.name } });
         return;
-      case "registry":
-        void navigate({ to: "/registry/$name", params: { name: result.name } });
+      case "components":
+      case "blocks":
+      case "utilities":
+        void navigate({
+          to: "/$section/$name",
+          params: { section: result.section, name: result.name },
+        });
         return;
     }
   }

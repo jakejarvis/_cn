@@ -59,7 +59,27 @@ describe("registry scaffold", () => {
       const plan = createRegistryScaffoldPlan(getScaffoldInput({ type }));
 
       expect(getRegistryMdx(plan)).toContain("files:");
+      expect(getRegistryMdx(plan)).toContain(
+        type === "registry:page" ? "path: page.tsx" : "path: example-item.",
+      );
       expect(getRegistryMdx(plan)).toContain(`type: ${type}`);
+      expect(getRegistryMdx(plan)).not.toContain("sourcePath:");
+    }
+  });
+
+  test("uses public install import paths in generated usage snippets", () => {
+    const expectations = new Map<RegistryScaffoldItemType, string>([
+      ["registry:ui", `import { ExampleItem } from "@/components/ui/example-item";`],
+      ["registry:component", `import { ExampleItem } from "@/components/example-item";`],
+      ["registry:block", `import { ExampleItem } from "@/components/example-item";`],
+      ["registry:hook", `import { useExampleItem } from "@/hooks/example-item";`],
+      ["registry:lib", `import { exampleItem } from "@/lib/example-item";`],
+    ]);
+
+    for (const [type, importSnippet] of expectations) {
+      const plan = createRegistryScaffoldPlan(getScaffoldInput({ type }));
+
+      expect(getRegistryMdx(plan)).toContain(importSnippet);
     }
   });
 
@@ -85,6 +105,8 @@ describe("registry scaffold", () => {
       "registry/items/items/example-item/example-item.mdc",
     );
     expect(getRegistryMdx(plan)).toContain("type: registry:file");
+    expect(getRegistryMdx(plan)).toContain("path: example-item.mdc");
+    expect(getRegistryMdx(plan)).not.toContain("sourcePath:");
     expect(getRegistryMdx(plan)).toContain("target: ~/.cursor/rules/example-item.mdc");
   });
 

@@ -41,7 +41,7 @@ const fixtureSearchInput = {
           registryDependencies: ["button"],
           files: [
             {
-              path: "registry/items/components/alpha-card/alpha-card.tsx",
+              path: "ui/alpha-card.tsx",
               type: "registry:ui",
             },
           ],
@@ -54,7 +54,7 @@ const fixtureSearchInput = {
           registryDependencies: ["alpha-card"],
           files: [
             {
-              path: "registry/items/components/usage-panel/usage-panel.tsx",
+              path: "ui/usage-panel.tsx",
               type: "registry:ui",
             },
           ],

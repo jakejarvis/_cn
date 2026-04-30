@@ -1,5 +1,5 @@
 import { createRegistryCatalogItems, type RegistryCatalogItem } from "../registry/catalog-builder";
-import { getFileName, getParentPath } from "../registry/paths";
+import { getFileName, getParentPath, isInvalidRegistryRelativePath } from "../registry/paths";
 
 export type RegistryDiagnosticLevel = "error" | "warning";
 
@@ -139,20 +139,27 @@ function getRegistryPublishedFileErrors(
 ): RegistryDiagnostic[] {
   const errors: RegistryDiagnostic[] = [];
 
-  if (!file.path.startsWith("registry/")) {
+  if (isInvalidRegistryRelativePath(file.path)) {
     errors.push(
       createError(
         file.path,
-        `Registry item "${item.name}" contains a file path outside registry/: ${file.path}`,
+        `Registry item "${item.name}" contains an invalid install path: ${file.path}`,
       ),
     );
   }
 
-  if (!file.path.startsWith("registry/items/")) {
+  if (isInvalidRegistryRelativePath(file.sourcePath)) {
     errors.push(
       createError(
-        file.path,
-        `Registry item "${item.name}" must publish files from registry/items/: ${file.path}`,
+        file.sourcePath,
+        `Registry item "${item.name}" contains an invalid source path: ${file.sourcePath}`,
+      ),
+    );
+  } else if (!file.sourcePath.startsWith("registry/items/")) {
+    errors.push(
+      createError(
+        file.sourcePath,
+        `Registry item "${item.name}" must publish files from registry/items/: ${file.sourcePath}`,
       ),
     );
   }

@@ -43,7 +43,7 @@ export function Preview() {
   },
   sourceFiles: [
     {
-      path: "registry/items/components/alpha-card/alpha-card.tsx",
+      path: "ui/alpha-card.tsx",
       sourcePath: "registry/items/components/alpha-card/alpha-card.tsx",
       fileName: "alpha-card.tsx",
       type: "registry:ui" as const,
@@ -81,7 +81,7 @@ describe("registry markdown", () => {
     expect(markdown).toContain(`[Registry JSON](${getCanonicalRegistryItemUrl("alpha-card")})`);
     expect(markdown).toContain("## Preview");
     expect(markdown).toContain("## Source");
-    expect(markdown).toContain("### registry/items/components/alpha-card/alpha-card.tsx");
+    expect(markdown).toContain("### ui/alpha-card.tsx");
     expect(markdown).toContain(`from "@/components/ui/alpha-card"`);
     expect(markdown).toContain("## Usage");
   });
@@ -117,6 +117,18 @@ describe("registry markdown", () => {
     for (const item of catalog.items) {
       expect(markdown).toContain(getCanonicalDocsUrl(getRegistryItemRoutePath(item)));
     }
+  });
+
+  test("uses public install import paths in starter usage examples", () => {
+    expect(getRegistryItemMarkdown("example-card")).toContain(
+      `import { ExampleCard } from "@/components/ui/example-card";`,
+    );
+    expect(getRegistryItemMarkdown("stats-panel")).toContain(
+      `import { StatsPanel } from "@/components/stats-panel";`,
+    );
+    expect(getRegistryItemMarkdown("use-copy-to-clipboard")).toContain(
+      `import { useCopyToClipboard } from "@/hooks/use-copy-to-clipboard";`,
+    );
   });
 
   test("returns null when an item is missing", () => {

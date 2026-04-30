@@ -170,7 +170,8 @@ describe("registry catalog", () => {
     const item = {
       sourceFiles: [
         {
-          path: "registry/items/components/alpha-card/alpha-card.tsx",
+          path: "ui/alpha-card.tsx",
+          sourcePath: "registry/items/components/alpha-card/alpha-card.tsx",
           type: "registry:ui",
           source: "",
         },
@@ -193,12 +194,14 @@ describe("registry catalog", () => {
     const item = {
       sourceFiles: [
         {
-          path: "registry/items/components/example/example.tsx",
+          path: "ui/example.tsx",
+          sourcePath: "registry/items/components/example/example.tsx",
           type: "registry:ui",
           source: "",
         },
         {
-          path: "registry/items/components/example/use-example.ts",
+          path: "hooks/use-example.ts",
+          sourcePath: "registry/items/components/example/use-example.ts",
           type: "registry:hook",
           source: "",
         },

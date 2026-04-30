@@ -95,7 +95,7 @@ export function DocsPageActions({
           <IconChevronDown data-icon aria-hidden="true" />
           <span className="sr-only">Open page actions menu</span>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
+        <DropdownMenuContent align="end" className="min-w-40">
           <DropdownMenuGroup>
             {menuItems.map((item) => {
               const Icon = item.icon;

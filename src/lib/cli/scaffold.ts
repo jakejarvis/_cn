@@ -214,8 +214,10 @@ function isMetadataOnlyRegistryScaffoldType(type: RegistryScaffoldItemType): boo
 }
 
 function renderRegistryMdx(input: RegistryScaffoldInput, sourcePath: string | undefined): string {
+  const itemRoot = getRegistryScaffoldItemRoot(input);
+
   return [
-    renderRegistryFrontmatter(input, sourcePath),
+    renderRegistryFrontmatter(input, sourcePath, itemRoot),
     renderRegistryPreviewImport(input),
     input.description.trim(),
     "",
@@ -231,6 +233,7 @@ function renderRegistryMdx(input: RegistryScaffoldInput, sourcePath: string | un
 function renderRegistryFrontmatter(
   input: RegistryScaffoldInput,
   sourcePath: string | undefined,
+  itemRoot: string,
 ): string {
   const fields = [
     "---",
@@ -239,7 +242,7 @@ function renderRegistryFrontmatter(
     `title: ${toYamlString(input.title)}`,
     `description: ${toYamlString(input.description)}`,
     ...getRegistryFontFrontmatter(input),
-    ...getRegistryFrontmatterFiles(input, sourcePath),
+    ...getRegistryFrontmatterFiles(input, sourcePath, itemRoot),
     "---",
     "",
   ];
@@ -287,14 +290,18 @@ function getRegistryFontFrontmatter(input: RegistryScaffoldInput): string[] {
 function getRegistryFrontmatterFiles(
   input: RegistryScaffoldInput,
   sourcePath: string | undefined,
+  itemRoot: string,
 ): string[] {
   if (!sourcePath || input.type === "registry:ui") {
     return [];
   }
 
+  const authoredPath = sourcePath.startsWith(`${itemRoot}/`)
+    ? sourcePath.slice(itemRoot.length + 1)
+    : sourcePath;
   const fileLines = [
     "files:",
-    `  - path: ${sourcePath}`,
+    `  - path: ${authoredPath}`,
     `    type: ${getRegistryScaffoldFileType(input)}`,
   ];
 
@@ -347,6 +354,11 @@ function renderRegistryUsageSnippet(input: RegistryScaffoldInput): string {
       ].join("\n");
     case "registry:component":
     case "registry:block":
+      return [
+        "```tsx",
+        `import { ${getRegistryScaffoldComponentName(input.name)} } from "@/components/${input.name}";`,
+        "```",
+      ].join("\n");
     case "registry:page":
     case "registry:file":
     case "registry:base":

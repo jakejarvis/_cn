@@ -17,7 +17,7 @@ registryDependencies:
 localRegistryDependencies:
   - alpha-card
 files:
-  - path: registry/items/components/toast/toast.tsx
+  - path: toast.tsx
     type: registry:ui
 ---
 
@@ -49,7 +49,7 @@ export function Preview() {
       registryDependencies: ["button", getCanonicalRegistryItemUrl("alpha-card")],
       files: [
         {
-          path: "registry/items/components/toast/toast.tsx",
+          path: "toast.tsx",
           type: "registry:ui",
         },
       ],
@@ -99,6 +99,23 @@ export function Preview() {
     expect(parsed.previewSource).toContain("    <div");
     expect(parsed.previewSource).toContain("      <Button>Copy</Button>");
     expect(parsed.previewSource).toContain("      <p>Ready</p>");
+  });
+
+  test("rejects sourcePath frontmatter file entries", () => {
+    expect(() =>
+      parseRegistryMdx(
+        "registry/items/components/toast/_registry.mdx",
+        `---
+name: toast
+type: registry:ui
+files:
+  - path: toast.tsx
+    sourcePath: registry/items/components/toast/toast.tsx
+    type: registry:ui
+---
+`,
+      ),
+    ).toThrow(/contains an invalid file entry/u);
   });
 
   test("preserves shadcn docs metadata separately from mdx body usage", () => {

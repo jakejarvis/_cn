@@ -10,7 +10,7 @@ import {
 import { getCanonicalRegistryItemUrl } from "../site-config";
 import { isPublicRegistryItemType } from "./item-types";
 import { getRegistryMdxSections, parseRegistryMdxAst } from "./mdx-ast";
-import type { RegistryItemAuthoringDefinition, RegistrySourceFileDefinition } from "./metadata";
+import type { RegistryFileAuthoringDefinition, RegistryItemAuthoringDefinition } from "./metadata";
 
 type RegistryMdxFrontmatter = RegistryItemAuthoringDefinition & {
   localRegistryDependencies?: string[];
@@ -190,7 +190,7 @@ function assertOptionalRegistryFiles(path: string, value: Record<string, unknown
   }
 }
 
-function isRegistrySourceFileDefinition(value: unknown): value is RegistrySourceFileDefinition {
+function isRegistrySourceFileDefinition(value: unknown): value is RegistryFileAuthoringDefinition {
   if (!isRecord(value)) {
     return false;
   }
@@ -204,7 +204,7 @@ function isRegistrySourceFileDefinition(value: unknown): value is RegistrySource
   }
 
   return (
-    (value.sourcePath === undefined || typeof value.sourcePath === "string") &&
+    value.sourcePath === undefined &&
     (value.target === undefined || typeof value.target === "string")
   );
 }

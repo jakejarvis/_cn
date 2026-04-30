@@ -53,6 +53,16 @@ describe("registry JSON route responses", () => {
     expect(itemFilePaths.some((path) => path.startsWith("registry/docs/"))).toBe(false);
   });
 
+  test("emits install paths instead of registry authoring source paths", async () => {
+    const exampleCard = await readJson(getRegistryItemJsonResponse("example-card"));
+    const copyHook = await readJson(getRegistryItemJsonResponse("use-copy-to-clipboard"));
+    const statsPanel = await readJson(getRegistryItemJsonResponse("stats-panel"));
+
+    expect(getFilePaths(exampleCard)).toEqual(["ui/example-card.tsx"]);
+    expect(getFilePaths(copyHook)).toEqual(["hooks/use-copy-to-clipboard.ts"]);
+    expect(getFilePaths(statsPanel)).toEqual(["components/stats-panel.tsx", "lib/stats-data.ts"]);
+  });
+
   test("returns JSON 404 responses for unknown items", async () => {
     const canonical = getRegistryItemJsonResponse("missing-item");
     const alias = getRegistryItemJsonResponse("missing-item");

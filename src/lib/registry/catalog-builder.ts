@@ -1,11 +1,19 @@
 import { parseRegistryMdx } from "./mdx";
 import type {
+  RegistryFileAuthoringDefinition,
   RegistryFileDefinition,
   RegistryItemAuthoringDefinition,
   RegistryItemDefinition,
   RegistrySourceFileDefinition,
 } from "./metadata";
-import { getFileName, getParentPath, normalizePath } from "./paths";
+import {
+  getDefaultRegistryFilePublicPath,
+  getFileName,
+  getParentPath,
+  getRegistryFilePublicPath,
+  isInvalidRegistryRelativePath,
+  normalizeRegistryRelativePath,
+} from "./paths";
 
 type RegistryDisplayItem = Omit<RegistryItemDefinition, "description" | "files" | "title"> & {
   title: string;
@@ -81,9 +89,15 @@ function toRegistryCatalogItem(entry: RegistryItemModuleEntry): RegistryCatalogI
 
   return {
     ...catalogItem,
-    sourceFiles: catalogItem.files.map((file) =>
-      toRegistrySourceFile(itemRoot, file, sourceFileDefinitionsByPath.get(file.path) ?? file),
-    ),
+    sourceFiles: catalogItem.files.map((file) => {
+      const sourceFile = sourceFileDefinitionsByPath.get(file.path);
+
+      if (!sourceFile) {
+        throw new Error(`Registry item "${catalogItem.name}" could not resolve ${file.path}.`);
+      }
+
+      return toRegistrySourceFile(file, sourceFile);
+    }),
     previewSourceFile: getPreviewSourceFile(entry.path, entry.previewSource),
     hasPreview: entry.hasPreview,
     hasUsage: entry.hasUsage,
@@ -102,11 +116,11 @@ function getRegistrySourceFileDefinitions(
       );
     }
 
-    return item.files;
+    return item.files.map((file) => normalizeRegistrySourceFileDefinition(itemRoot, file));
   }
 
   if (item.files?.length) {
-    return item.files;
+    return item.files.map((file) => normalizeRegistrySourceFileDefinition(itemRoot, file));
   }
 
   if (item.type === "registry:ui") {
@@ -121,8 +135,20 @@ function getDefaultRegistryFile(
   item: Pick<RegistryItemAuthoringDefinition, "name"> & { type: "registry:ui" },
 ): RegistrySourceFileDefinition {
   return {
-    path: `${itemRoot}/${item.name}.tsx`,
+    path: getDefaultRegistryFilePublicPath(`${item.name}.tsx`, item.type),
+    sourcePath: `${itemRoot}/${item.name}.tsx`,
     type: item.type,
+  };
+}
+
+function normalizeRegistrySourceFileDefinition(
+  itemRoot: string,
+  file: RegistryFileAuthoringDefinition,
+): RegistrySourceFileDefinition {
+  return {
+    ...file,
+    path: getRegistryFilePublicPath(file),
+    sourcePath: getRegistrySourcePath(itemRoot, file),
   };
 }
 
@@ -187,23 +213,25 @@ function getPreviewSourceFile(path: string, source: string): RegistryPreviewSour
 }
 
 function toRegistrySourceFile(
-  itemRoot: string,
   file: RegistryFile,
   sourceFile: RegistrySourceFileDefinition,
 ): RegistrySourceFile {
   return {
     ...file,
     fileName: getFileName(file.path),
-    sourcePath: getRegistrySourcePath(itemRoot, sourceFile),
+    sourcePath: sourceFile.sourcePath,
   };
 }
 
-function getRegistrySourcePath(itemRoot: string, file: RegistrySourceFileDefinition): string {
-  const sourcePath = file.sourcePath ?? file.path;
+function getRegistrySourcePath(
+  itemRoot: string,
+  file: Pick<RegistryFileAuthoringDefinition, "path">,
+): string {
+  const normalizedSourcePath = normalizeRegistryRelativePath(file.path);
 
-  if (sourcePath.startsWith("registry/")) {
-    return normalizePath(sourcePath.split("/"));
+  if (isInvalidRegistryRelativePath(normalizedSourcePath)) {
+    return normalizedSourcePath;
   }
 
-  return normalizePath([...itemRoot.split("/"), ...sourcePath.split("/")]);
+  return normalizeRegistryRelativePath(`${itemRoot}/${normalizedSourcePath}`);
 }

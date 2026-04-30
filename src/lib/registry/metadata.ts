@@ -22,8 +22,10 @@ type PublicRegistryFileDefinition<T extends ShadcnRegistryFile> = T extends unkn
 
 export type RegistryFileDefinition = PublicRegistryFileDefinition<ShadcnRegistryFile>;
 
+export type RegistryFileAuthoringDefinition = RegistryFileDefinition;
+
 export type RegistrySourceFileDefinition = RegistryFileDefinition & {
-  sourcePath?: string;
+  sourcePath: string;
 };
 
 export type RegistryFileType = RegistryFileDefinition["type"];
@@ -41,5 +43,5 @@ export type RegistryItemDefinition = Omit<
 };
 
 export type RegistryItemAuthoringDefinition = Omit<RegistryItemDefinition, "files"> & {
-  files?: RegistrySourceFileDefinition[];
+  files?: RegistryFileAuthoringDefinition[];
 };

@@ -57,7 +57,9 @@ Dependency fields:
 
 - `registryDependencies`: shadcn primitive names such as `button`, `card`, `badge`, `dialog`, or `input`.
 - `localRegistryDependencies`: other local registry item names.
-- `files`: required for hooks, libs, blocks, pages, target paths, and multi-file items. One-file `registry:ui` items may omit it only when the published source is `<item-name>.tsx` in the item folder. Metadata-only style, theme, font, base, and universal items may omit it.
+- `files`: required for hooks, libs, blocks, pages, target paths, and multi-file items. Use source paths relative to the item `_registry.mdx` file, for example `path: stats-panel.tsx`; the catalog emits shadcn-facing JSON paths automatically. One-file `registry:ui` items may omit it only when the published source is `<item-name>.tsx` in the item folder. Metadata-only style, theme, font, base, and universal items may omit it.
+
+Do not add `registry/items/**` prefixes or `sourcePath` frontmatter. The catalog derives the source path from the item folder and authored `files[].path`.
 
 Minimal usage and preview:
 

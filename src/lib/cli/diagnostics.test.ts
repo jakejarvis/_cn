@@ -34,7 +34,7 @@ describe("registry diagnostics", () => {
         "registry/items/components/example-card/_registry.mdx": getRegistryMdx({
           files: [
             {
-              path: "registry/items/components/example-card/README.md",
+              path: "README.md",
               type: "registry:ui",
             },
           ],
@@ -118,6 +118,31 @@ describe("registry diagnostics", () => {
       message:
         "Nested docs pages are not supported yet. Move registry/docs/guides/install.mdx directly under registry/docs.",
     });
+  });
+
+  test("reports unsafe registry file paths before they are normalized away", () => {
+    for (const path of ["../example-card.tsx", "/example-card.tsx", "~/example-card.tsx"]) {
+      const diagnostics = getRegistryDiagnostics({
+        files: {
+          "registry/items/components/example-card/_registry.mdx": getRegistryMdx({
+            files: [
+              {
+                path,
+                type: "registry:ui",
+              },
+            ],
+          }),
+          "registry/items/components/example-card/example-card.tsx":
+            "export function ExampleCard() {}",
+        },
+      });
+
+      expect(diagnostics.errors).toContainEqual({
+        level: "error",
+        path,
+        message: `Registry item "example-card" contains an invalid install path: ${path}`,
+      });
+    }
   });
 
   test("does not fail the doctor command for warnings only", () => {

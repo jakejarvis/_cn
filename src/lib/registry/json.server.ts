@@ -12,7 +12,7 @@ import {
   type RegistryFileDefinition,
   type RegistryItemDefinition,
 } from "./metadata";
-import { getFileName } from "./paths";
+import { getFileName, isInvalidRegistryRelativePath } from "./paths";
 import { getRegistryItemWithSources, type RegistryCatalogItemWithSources } from "./source.server";
 
 const registryJsonResponseHeaders = {
@@ -204,15 +204,17 @@ function getRegistryFileValidationErrors(item: RegistryCatalogItem): string[] {
     const fileName = getFileName(file.path);
     const sourceFileName = getFileName(file.sourcePath);
 
-    if (!file.path.startsWith("registry/")) {
-      errors.push(
-        `Registry item "${item.name}" contains a file path outside registry/: ${file.path}`,
-      );
+    if (isInvalidRegistryRelativePath(file.path)) {
+      errors.push(`Registry item "${item.name}" contains an invalid install path: ${file.path}`);
     }
 
-    if (!file.path.startsWith("registry/items/")) {
+    if (isInvalidRegistryRelativePath(file.sourcePath)) {
       errors.push(
-        `Registry item "${item.name}" must publish files from registry/items/: ${file.path}`,
+        `Registry item "${item.name}" contains an invalid source path: ${file.sourcePath}`,
+      );
+    } else if (!file.sourcePath.startsWith("registry/items/")) {
+      errors.push(
+        `Registry item "${item.name}" must publish files from registry/items/: ${file.sourcePath}`,
       );
     }
 

@@ -105,7 +105,7 @@ export function DocsPageActions({
           <IconChevronDown data-icon aria-hidden="true" />
           <span className="sr-only">Open page actions menu</span>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-max">
+        <DropdownMenuContent align="end" className="w-max min-w-44">
           <DropdownMenuGroup>
             {menuItems.map((item) => {
               const Icon = item.icon;
@@ -181,7 +181,7 @@ function getV0RegistryItemUrl({
   registryItemJsonUrl: string;
   title: string;
 }): string {
-  const openUrl = new URL("https://v0.dev/chat/api/open");
+  const openUrl = new URL("https://v0.app/chat/api/open");
 
   openUrl.searchParams.set("url", registryItemJsonUrl);
   openUrl.searchParams.set("title", title.trim());

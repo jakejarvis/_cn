@@ -1,4 +1,4 @@
-import { IconArrowRight, IconBlocks, IconBooks, IconHome } from "@tabler/icons-react";
+import { IconArrowRight, IconHome } from "@tabler/icons-react";
 import { TanStackDevtools } from "@tanstack/react-devtools";
 import { HeadContent, Link, Outlet, Scripts, createRootRoute } from "@tanstack/react-router";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
@@ -82,46 +82,22 @@ function GlobalNotFoundRoute() {
     <main className="flex min-h-[calc(100svh-9rem)] items-center px-4 py-16 sm:px-6 lg:px-8">
       <div className="mx-auto grid w-full max-w-5xl items-center gap-10 lg:grid-cols-[minmax(0,1fr)_22rem]">
         <section className="flex min-w-0 flex-col items-start gap-6">
-          <div className="inline-flex items-center gap-2 rounded-lg border bg-muted/30 px-3 py-1 text-sm font-medium text-muted-foreground">
-            <span>404</span>
-          </div>
           <div className="flex max-w-2xl flex-col gap-4">
-            <h1 className="font-heading text-4xl font-semibold">
-              This route is not in the registry.
-            </h1>
+            <h1 className="font-heading text-4xl font-semibold">Page not found</h1>
             <p className="max-w-xl text-base text-muted-foreground">
-              The page you followed is not published here. Start from a known section, or use the
-              search shortcut in the header.
+              The page you're looking for isn't here. Start from a known section, or use the search
+              box in the header.
             </p>
           </div>
-          <div className="flex flex-wrap gap-3">
-            <Button size="lg" nativeButton={false} render={<Link to="/" />}>
+          <div className="flex flex-wrap gap-2">
+            <Button size="lg" variant="outline" nativeButton={false} render={<Link to="/" />}>
               <IconHome data-icon="inline-start" />
-              Home
-            </Button>
-            <Button size="lg" variant="outline" nativeButton={false} render={<Link to="/docs" />}>
-              <IconBooks data-icon="inline-start" />
-              Docs
-            </Button>
-            <Button
-              size="lg"
-              variant="outline"
-              nativeButton={false}
-              render={<Link to="/$section" params={{ section: "components" }} />}
-            >
-              <IconBlocks data-icon="inline-start" />
-              Components
+              Go home
             </Button>
           </div>
         </section>
 
         <aside className="overflow-hidden rounded-lg border bg-background shadow-sm">
-          <div className="flex items-center justify-between border-b px-4 py-3">
-            <span className="font-mono text-xs font-medium text-muted-foreground">route map</span>
-            <span className="rounded-md bg-muted px-2 py-1 font-mono text-xs text-muted-foreground">
-              missing
-            </span>
-          </div>
           <div className="divide-y">
             <NotFoundPathLink to="/docs" label="Docs" description="Install, theming, CLI" />
             <NotFoundSectionLink

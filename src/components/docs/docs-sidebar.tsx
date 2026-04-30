@@ -59,7 +59,7 @@ function SidebarSectionLink({
   section: SiteNavigationSection;
   onNavigate?: () => void;
 }) {
-  const className = "rounded-md px-3 py-1 text-sm font-semibold";
+  const className = "rounded-md px-3 py-1 text-[13px] font-medium";
 
   switch (section.id) {
     case "docs":

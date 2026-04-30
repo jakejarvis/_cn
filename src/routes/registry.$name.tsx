@@ -1,6 +1,6 @@
 import { createFileRoute, notFound } from "@tanstack/react-router";
 
-import { RegistryItemDoc, RegistryItemNotFound } from "@/components/docs/component-doc";
+import { RegistryItemDoc } from "@/components/docs/component-doc";
 import { ContentSkeleton } from "@/components/docs/content-skeleton";
 import { DocsLayout } from "@/components/docs/docs-layout";
 
@@ -54,7 +54,6 @@ export const Route = createFileRoute("/registry/$name")({
     });
   },
   component: RegistryItemRoute,
-  notFoundComponent: RegistryItemNotFoundRoute,
 });
 
 function RegistryItemPendingRoute() {
@@ -68,14 +67,6 @@ function RegistryItemRoute() {
   return (
     <DocsLayout section={section.id}>
       <RegistryItemDoc item={item} />
-    </DocsLayout>
-  );
-}
-
-function RegistryItemNotFoundRoute() {
-  return (
-    <DocsLayout section={registryCatalog.id}>
-      <RegistryItemNotFound />
     </DocsLayout>
   );
 }

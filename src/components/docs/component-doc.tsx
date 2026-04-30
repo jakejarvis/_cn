@@ -11,12 +11,12 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "../ui/breadcrumb";
-import { Button } from "../ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 import { CodeBlock } from "./code-block";
 import { ComponentPreview } from "./component-preview";
 import { DocsPageHeader } from "./docs-page-header";
 import { InstallCommand } from "./install-command";
+import { ManualInstallation } from "./manual-install";
 
 type RegistryItemDocProps = {
   item: RegistryItemDetail;
@@ -91,24 +91,16 @@ export function RegistryItemDoc({ item }: RegistryItemDocProps) {
             </TabsTrigger>
           </TabsList>
           <TabsContent value="cli">
-            <InstallCommand item={item} />
+            <InstallCommand item={{ name: item.name }} />
           </TabsContent>
           <TabsContent value="manual">
-            {item.sourceFiles.length > 0 ? (
-              <div className="flex flex-col gap-4">
-                {item.sourceFiles.map((file) => (
-                  <CodeBlock
-                    key={file.path}
-                    code={file.source}
-                    highlightedHtml={file.highlightedHtml}
-                  />
-                ))}
-              </div>
-            ) : (
-              <p className="text-sm text-muted-foreground">
-                This item installs metadata only and does not publish files.
-              </p>
-            )}
+            <ManualInstallation
+              item={{
+                dependencies: item.dependencies,
+                devDependencies: item.devDependencies,
+                sourceFiles: item.sourceFiles,
+              }}
+            />
           </TabsContent>
         </Tabs>
       </section>
@@ -120,22 +112,5 @@ export function RegistryItemDoc({ item }: RegistryItemDocProps) {
         </section>
       ) : null}
     </article>
-  );
-}
-
-export function RegistryItemNotFound() {
-  return (
-    <div className="mt-4 flex flex-col items-start justify-center gap-4">
-      <div className="flex max-w-xl flex-col gap-2">
-        <h1 className="font-heading text-lg font-semibold">Item not found</h1>
-      </div>
-      <Button
-        variant="outline"
-        nativeButton={false}
-        render={<Link to="/$section" params={{ section: "components" }} />}
-      >
-        Back to overview
-      </Button>
-    </div>
   );
 }

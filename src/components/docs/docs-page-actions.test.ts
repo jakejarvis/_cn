@@ -69,7 +69,7 @@ describe("docs page actions", () => {
     });
     const v0Url = new URL(assertLink(links, "Open in v0").href);
 
-    expect(v0Url.origin).toBe("https://v0.dev");
+    expect(v0Url.origin).toBe("https://v0.app");
     expect(v0Url.pathname).toBe("/chat/api/open");
     expect(v0Url.searchParams.get("url")).toBe(registryItemJsonUrl);
     expect(v0Url.searchParams.get("title")).toBe("Alpha Card");

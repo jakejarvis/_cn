@@ -20,7 +20,7 @@ describe("registry detail rendering", () => {
 
     const html = renderToStaticMarkup(rendered);
 
-    expect(html).toContain("Copy code");
+    expect(html).toContain("Copy contents");
     expect(html).toContain("shiki");
     expect(html).toContain("SampleItem");
   });

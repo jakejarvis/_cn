@@ -1,3 +1,5 @@
+"use client";
+
 import { IconChevronDown } from "@tabler/icons-react";
 import * as React from "react";
 
@@ -18,7 +20,7 @@ const PACKAGE_MANAGER_STORAGE_KEY = "preferred-pm";
 const PACKAGE_MANAGER_CHANGE_EVENT = "preferred-pm-change";
 const DEFAULT_PACKAGE_MANAGER = "npm";
 
-const packageManagers = [
+export const packageManagers = [
   {
     value: "npm",
     label: "npm",
@@ -101,13 +103,70 @@ const packageManagers = [
       </svg>
     ),
   },
+  {
+    value: "vite-plus",
+    label: "vp",
+    logo: (props: React.SVGProps<SVGSVGElement>) => (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="1em"
+        height="1em"
+        viewBox="0 0 32 32"
+        {...props}
+      >
+        <g fill="none">
+          <path
+            fill="url(#SVGHszO3cqp)"
+            d="m29.884 6.146l-13.142 23.5a.714.714 0 0 1-1.244.005L2.096 6.148a.714.714 0 0 1 .746-1.057l13.156 2.352a.7.7 0 0 0 .253 0l12.881-2.348a.714.714 0 0 1 .752 1.05z"
+          />
+          <path
+            fill="url(#SVGzrK2gcXq)"
+            d="M22.264 2.007L12.54 3.912a.36.36 0 0 0-.288.33l-.598 10.104a.357.357 0 0 0 .437.369l2.707-.625a.357.357 0 0 1 .43.42l-.804 3.939a.357.357 0 0 0 .454.413l1.672-.508a.357.357 0 0 1 .454.414l-1.279 6.187c-.08.387.435.598.65.267l.143-.222l7.925-15.815a.357.357 0 0 0-.387-.51l-2.787.537a.357.357 0 0 1-.41-.45l1.818-6.306a.357.357 0 0 0-.412-.45"
+          />
+          <defs>
+            <linearGradient
+              id="SVGHszO3cqp"
+              x1="6"
+              x2="235"
+              y1="33"
+              y2="344"
+              gradientTransform="translate(1.34 1.894)scale(.07142)"
+              gradientUnits="userSpaceOnUse"
+            >
+              <stop stopColor="#41d1ff" />
+              <stop offset="1" stopColor="#bd34fe" />
+            </linearGradient>
+            <linearGradient
+              id="SVGzrK2gcXq"
+              x1="194.651"
+              x2="236.076"
+              y1="8.818"
+              y2="292.989"
+              gradientTransform="translate(1.34 1.894)scale(.07142)"
+              gradientUnits="userSpaceOnUse"
+            >
+              <stop stopColor="#ffea83" />
+              <stop offset=".083" stopColor="#ffdd35" />
+              <stop offset="1" stopColor="#ffa800" />
+            </linearGradient>
+          </defs>
+        </g>
+      </svg>
+    ),
+  },
 ] as const;
 
-type PackageManager = (typeof packageManagers)[number]["value"];
+export type PackageManager = (typeof packageManagers)[number]["value"];
 type PackageManagerPreference = readonly [
   PackageManager,
   (nextPackageManager: PackageManager) => void,
 ];
+
+type PackageManagerCommandProps = {
+  getCommand: (packageManager: PackageManager) => string;
+  copyLabel: string;
+  className?: string;
+};
 
 type InstallCommandProps = {
   item: {
@@ -128,9 +187,51 @@ export function getInstallCommand(itemName: string, packageManager: PackageManag
       return `yarn dlx shadcn@latest add ${registryItemUrl}`;
     case "npm":
       return `npx shadcn@latest add ${registryItemUrl}`;
+    case "vite-plus":
+      return `vpx shadcn@latest add ${registryItemUrl}`;
   }
 
   return assertNever(packageManager);
+}
+
+export function getPackageInstallCommand(
+  packages: readonly string[],
+  packageManager: PackageManager,
+  options: { dev?: boolean } = {},
+): string {
+  const packageNames = packages.map((packageName) => packageName.trim()).filter(Boolean);
+
+  if (packageNames.length === 0) {
+    return "";
+  }
+
+  switch (packageManager) {
+    case "bun":
+      return joinCommand(["bun", "add", options.dev ? "-d" : "", ...packageNames]);
+    case "pnpm":
+      return joinCommand(["pnpm", "add", options.dev ? "-D" : "", ...packageNames]);
+    case "yarn":
+      return joinCommand(["yarn", "add", options.dev ? "-D" : "", ...packageNames]);
+    case "npm":
+      return joinCommand(["npm", "install", options.dev ? "-D" : "", ...packageNames]);
+    case "vite-plus":
+      return joinCommand(["vp", "install", options.dev ? "-D" : "", ...packageNames]);
+  }
+
+  return assertNever(packageManager);
+}
+
+export function getPackageInstallCommands(
+  item: {
+    dependencies?: readonly string[];
+    devDependencies?: readonly string[];
+  },
+  packageManager: PackageManager,
+): string[] {
+  return [
+    getPackageInstallCommand(item.dependencies ?? [], packageManager),
+    getPackageInstallCommand(item.devDependencies ?? [], packageManager, { dev: true }),
+  ].filter((command) => command.length > 0);
 }
 
 function setPackageManagerPreference(packageManager: PackageManager): void {
@@ -162,10 +263,24 @@ function getPackageManagerPreference(): PackageManager {
 }
 
 export function InstallCommand({ item, className }: InstallCommandProps) {
+  return (
+    <PackageManagerCommand
+      className={className}
+      copyLabel="Copy install command"
+      getCommand={(packageManager) => getInstallCommand(item.name, packageManager)}
+    />
+  );
+}
+
+export function PackageManagerCommand({
+  className,
+  copyLabel,
+  getCommand,
+}: PackageManagerCommandProps) {
   const [packageManager, setPackageManager] = usePackageManagerPreference();
   const selectedPackageManager =
     packageManagers.find((option) => option.value === packageManager) ?? packageManagers[0];
-  const command = getInstallCommand(item.name, packageManager);
+  const command = getCommand(packageManager);
   const SelectedLogo = selectedPackageManager.logo;
 
   return (
@@ -209,7 +324,7 @@ export function InstallCommand({ item, className }: InstallCommandProps) {
 
         <CopyButton
           value={command}
-          copyLabel="Copy install command"
+          copyLabel={copyLabel}
           copiedLabel="Copied"
           resetDelay={1200}
           variant="ghost"
@@ -263,4 +378,8 @@ function isPackageManager(value: string | null): value is PackageManager {
 
 function assertNever(value: never): never {
   throw new Error(`Unhandled package manager: ${String(value)}`);
+}
+
+function joinCommand(parts: readonly string[]): string {
+  return parts.filter(Boolean).join(" ");
 }

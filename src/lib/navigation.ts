@@ -5,7 +5,6 @@ import {
 } from "./docs/catalog";
 import { getRegistryCatalogWithItems, registryItems } from "./registry/catalog";
 import type { RegistryCatalogItem } from "./registry/catalog-builder";
-import { getRegistryTypeLabel } from "./registry/item-types";
 import {
   getRegistryItemRoutePath,
   getRegistrySection,
@@ -19,7 +18,6 @@ type RegistryNavigationItem = {
   title: string;
   name: string;
   description: string;
-  group: string;
   sectionId: RegistrySectionId;
   routePath: string;
 };
@@ -157,7 +155,6 @@ function toRegistryNavigationItem(item: RegistryNavigationSourceItem): RegistryN
     title: item.title,
     name: item.name,
     description: item.description,
-    group: getRegistryTypeLabel(item.type),
     sectionId: getRegistrySectionIdForType(item.type),
     routePath: getRegistryItemRoutePath(item),
   };

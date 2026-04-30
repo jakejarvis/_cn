@@ -87,4 +87,16 @@ describe("site navigation", () => {
       sectionId: "utilities",
     });
   });
+
+  test("does not add registry type groups to navigation items", () => {
+    const sections = createSiteNavigationSections({
+      docsSection: fixtureDocsSection,
+      registryItems: fixtureRegistryItems,
+    });
+    const registryItems = sections
+      .flatMap((section) => section.items)
+      .filter((item) => item.kind === "registry");
+
+    expect(registryItems.every((item) => !("group" in item))).toBe(true);
+  });
 });

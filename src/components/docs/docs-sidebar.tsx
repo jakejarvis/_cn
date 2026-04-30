@@ -106,7 +106,7 @@ function SidebarItems({
   return (
     <ul className="flex flex-col gap-0.5">
       {items.map((item) => {
-        const group = item.group;
+        const group = item.kind === "docs" ? item.group : undefined;
         const showGroup = group && group !== previousGroup;
         previousGroup = group;
 

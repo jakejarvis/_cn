@@ -19,7 +19,7 @@ export function CodeBlock({ code, highlightedHtml, className }: CodeBlockProps) 
         resetDelay={1200}
         variant="ghost"
         size="icon-sm"
-        className="absolute top-2 right-2 z-[9999] bg-muted/90"
+        className="absolute top-2 right-2 z-10 bg-muted/90"
       />
       {highlightedHtml ? (
         <div

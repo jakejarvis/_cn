@@ -13,7 +13,6 @@ import {
   getRegistryValidationErrors,
 } from "./json.server";
 import { registryItemSchema } from "./metadata";
-import { registrySectionList } from "./sections";
 import {
   getMissingRegistryPreviewPaths,
   getMissingRegistrySourcePaths,
@@ -91,16 +90,12 @@ describe("registry catalog", () => {
     expect(getRegistryValidationErrors()).toEqual([]);
   });
 
-  test("builds one grouped registry catalog for docs navigation", () => {
+  test("builds one registry catalog for docs navigation", () => {
     const catalog = getRegistryCatalogWithItems();
 
     expect(catalog.id).toBe("registry");
     expect(catalog.items).toEqual(registryItems);
-    expect(catalog.groups.map((group) => group.id)).toEqual(
-      registrySectionList
-        .filter((section) => getRegistryItemsByTypes(section.types).length > 0)
-        .map((section) => section.id),
-    );
+    expect(catalog).not.toHaveProperty("groups");
   });
 
   test("loads preview snippets when items define previews", () => {

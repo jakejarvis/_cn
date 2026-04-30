@@ -1,9 +1,5 @@
 import type { RegistryCatalogItem } from "./catalog-builder";
-import {
-  getRegistryTypeLabel,
-  publicRegistryItemTypes,
-  type RegistryItemType,
-} from "./item-types.ts";
+import type { RegistryItemType } from "./item-types.ts";
 
 export type RegistrySectionId = "components" | "blocks" | "utilities";
 
@@ -20,16 +16,9 @@ export type RegistrySectionConfig = {
   types: readonly RegistryItemType[];
 };
 
-export type RegistrySectionItemGroup<T extends RegistryRouteItem = RegistryCatalogItem> = {
-  id: string;
-  title: string;
-  items: T[];
-};
-
 export type RegistrySectionWithItems<T extends RegistryRouteItem = RegistryCatalogItem> =
   RegistrySectionConfig & {
     items: T[];
-    groups: RegistrySectionItemGroup<T>[];
   };
 
 export const componentRegistryTypes = [
@@ -162,7 +151,6 @@ function toRegistrySectionWithItems<T extends RegistryRouteItem>(
   return {
     ...section,
     items: sectionItems,
-    groups: getRegistryTypeGroups(sectionItems),
   };
 }
 
@@ -171,29 +159,4 @@ function getRegistryItemsForSection<T extends RegistryRouteItem>(
   sectionId: RegistrySectionId,
 ): T[] {
   return items.filter((item) => getRegistrySectionIdForType(item.type) === sectionId);
-}
-
-function getRegistryTypeGroups<T extends RegistryRouteItem>(
-  items: readonly T[],
-): RegistrySectionItemGroup<T>[] {
-  return publicRegistryItemTypes
-    .map((type) => getRegistryTypeGroup(type, items))
-    .filter((group): group is RegistrySectionItemGroup<T> => group !== null);
-}
-
-function getRegistryTypeGroup<T extends RegistryRouteItem>(
-  type: RegistryItemType,
-  items: readonly T[],
-): RegistrySectionItemGroup<T> | null {
-  const groupItems = items.filter((item) => item.type === type);
-
-  if (groupItems.length === 0) {
-    return null;
-  }
-
-  return {
-    id: type,
-    title: getRegistryTypeLabel(type),
-    items: groupItems,
-  };
 }

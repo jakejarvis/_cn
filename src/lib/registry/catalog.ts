@@ -5,17 +5,9 @@ import {
   type RegistryCatalogItem,
 } from "./catalog-builder";
 import { registryCatalog } from "./item-types";
-import { getRegistrySectionsWithItems } from "./sections";
-
-type RegistryCatalogGroup = {
-  id: string;
-  title: string;
-  items: RegistryCatalogItem[];
-};
 
 export type RegistryCatalogWithItems = typeof registryCatalog & {
   items: RegistryCatalogItem[];
-  groups: RegistryCatalogGroup[];
 };
 
 const registryItemSources = import.meta.glob<string>("../../../registry/items/**/_registry.mdx", {
@@ -45,10 +37,5 @@ export function getRegistryCatalogWithItems(): RegistryCatalogWithItems {
   return {
     ...registryCatalog,
     items: registryItems,
-    groups: getRegistrySectionsWithItems(registryItems).map(({ id, title, items }) => ({
-      id,
-      title,
-      items,
-    })),
   };
 }

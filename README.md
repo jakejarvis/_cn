@@ -6,12 +6,21 @@ An intentionally minimal [TanStack Start](https://tanstack.com/start/latest) + [
 
 The scaffold contains a typed registry authoring layer, authored docs, live preview pages, syntax-highlighted source snippets, schema validation, package-manager install commands, and TanStack Start server routes. [See a demo here.](https://ui.jarv.is)
 
-> [!NOTE]
+> [!TIP]
 > `_cn` is pronounced "underscore-cn".
 
 ## Quick Start
 
-Ensure you have [Vite+](https://viteplus.dev/) installed first; this will ensure all other requirements are taken care of for you.
+You can either [create a new repository](https://github.com/new?template_name=_cn&template_owner=jakejarvis) based on this template directly in your GitHub account/organization, or use a tool like [`degit`](https://github.com/Rich-Harris/degit) to scaffold a fresh repo locally with the latest _cn code.
+
+```bash
+npx degit jakejarvis/_cn
+
+# or use the "Use this template" button and then clone:
+git clone https://github.com/your-username/my-cn.git
+```
+
+Once cloned, ensure you have [Vite+](https://viteplus.dev/guide/) (`vp`) installed on your system; this will ensure all other requirements are taken care of for you.
 
 ```bash
 # Install Vite+
@@ -22,7 +31,7 @@ vp install
 vp dev
 ```
 
-Open the localhost URL from Vite+ and browse the starter docs, component, block, and utility pages.
+Open the localhost URL from the Vite+ output and browse the starter docs, component, block, and utility pages. A good place to start customizing is the [`config.ts`](registry/config.ts) file.
 
 ## Agent Skill
 
@@ -47,14 +56,9 @@ Above is a one-click button to fork the template and deploy it to Vercel as a pl
 
 You can just as easily use any other platform (Cloudflare Workers, Netlify, etc.) by following the [TanStack Start docs](https://tanstack.com/start/latest/docs/framework/react/guide/hosting#deployment) to make a few adjustments to your `vite.config.ts` file (agents are usually pretty good at this too).
 
-## Build
+## Usage
 
-```bash
-vp check
-vp build
-```
-
-## Configure The Registry
+### Configuration
 
 Edit `registry/config.ts`.
 
@@ -71,28 +75,7 @@ export const registryConfig = {
 
 Set `homepage` before deploying. Install commands and local registry dependency URLs are built from this value.
 
-Registry endpoint paths stay in `src/lib/site-config.ts` with the URL helpers so template plumbing can evolve separately from the registry-specific values most projects edit.
-
-## Registry Endpoints
-
-The public registry index is available at both the root and `/r` paths, while installable item JSON lives under `/r`:
-
-- `/registry.json` serves the registry index.
-- `/r/registry.json` serves the same registry index.
-- `/r/<name>.json` serves an item JSON file.
-- `/llms.txt` and `/llms-full.txt` are generated from the same Markdown docs and registry item pages used by the site.
-
-Human-facing registry URLs support shadcn CLI content negotiation. CLI requests with `Accept: application/vnd.shadcn.v1+json` or `User-Agent: shadcn` receive JSON from the same URL a browser uses for HTML:
-
-- `/registry` returns the registry index JSON.
-- `/registry/<name>` and section item pages like `/components/<name>` return item JSON.
-- `/` returns the `index` registry item when your registry publishes one.
-
-Docs pages, registry section pages, and registry item pages also support Markdown content negotiation (inspired by [Fumadocs](https://www.fumadocs.dev/docs/headless/utils/negotiation)). AI clients that request `text/markdown`, `text/x-markdown`, or `text/plain` in the `Accept` header receive the Markdown version of the current page directly, while normal browser requests still receive HTML.
-
-Install command URLs and local registry dependency URLs are generated from the registry path config in `src/lib/site-config.ts`.
-
-## Author Docs
+### Author Docs
 
 Create public documentation pages under `registry/docs/`.
 
@@ -104,8 +87,6 @@ registry/docs/
 ```
 
 Docs render under `/docs`: `registry/docs/index.mdx` becomes `/docs`, and `registry/docs/installation.mdx` becomes `/docs/installation`. Keep docs files directly under `registry/docs` for now; nested docs pages are not supported yet.
-
-Docs files support optional YAML frontmatter:
 
 ```mdx
 ---
@@ -120,17 +101,15 @@ group: Getting Started
 Use Markdown or MDX with the built-in docs components.
 ```
 
-Use `registry/docs/*` for documentation only. Installable registry item source must stay under `registry/items/**`.
+### Add A Registry Item
 
-## Add A Registry Item
-
-### Automatic
+#### Automatic
 
 Run `bun --bun ./scripts/new.ts` to interactively scaffold new registry items under `registry/items/**`.
 
-It's always a good idea to also run `bun --bun ./scripts/doctor.ts` after making changes; this validates registry authoring and reports ignored or suspicious files under `registry/**`.
+It's always a good idea to also run `bun --bun ./scripts/doctor.ts` after making changes in the `registry` directory; this validates registry metadata and reports ignored or suspicious files within the directory.
 
-### Manual
+#### Manual
 
 Create a folder under `registry/items/<section>/<item-name>/`.
 
@@ -139,8 +118,6 @@ registry/items/components/example-card/
   _registry.mdx
   example-card.tsx
 ```
-
-Keep item source under `registry/items`. The Vite `import.meta.glob` paths are intentionally static.
 
 Write metadata, usage docs, and the preview together in `_registry.mdx`.
 
@@ -177,40 +154,42 @@ For a one-file component, the catalog infers the published file path from the it
 
 The MDX body renders as the optional Usage section on the docs page. Fenced code blocks are syntax highlighted and keep the docs site's copy button. The optional `Preview` export is compiled as a client-only virtual module, so hooks and event handlers are fine there, but server-only logic should stay out of previews. Use `localRegistryDependencies` for dependencies on other local registry items; they are converted into canonical registry URLs in the public JSON.
 
-## Starter Content
+## Server
 
-The template ships three plain examples:
+The public registry index is available at both the root and `/r` paths, while installable item JSON lives under `/r`:
 
-- `example-card`: a `registry:ui` item with shadcn dependencies.
-- `use-copy-to-clipboard`: a `registry:hook` item that publishes a non-component file.
-- `stats-panel`: a multi-file `registry:block` item that uses a local registry dependency.
-- `registry/docs`: starter public docs for installation, theming, CLI, registry authoring, and changelog notes.
+- `/registry.json` serves the registry index.
+- `/r/registry.json` serves the same registry index.
+- `/r/<name>.json` serves an item JSON file.
+- `/llms.txt` and `/llms-full.txt` are generated from the same Markdown docs and registry item pages used by the site.
 
-Replace them with your own registry items before publishing.
+> [!TIP]
+> _cn validates authored registry metadata against schemas directly from [`shadcn/schema`](https://github.com/shadcn-ui/ui/blob/main/packages/shadcn/src/registry/schema.ts) to ensure compatibility.
 
-The docs site renders one `/registry` all-items catalog, while user-facing item pages live under `/components/<name>`, `/blocks/<name>`, or `/utilities/<name>` based on item type.
+### Content Negotation
+
+Human-facing registry URLs support the shadcn CLI's request headers. CLI requests with `Accept: application/vnd.shadcn.v1+json` or `User-Agent: shadcn` receive the shadcn-compliant JSON from the same URL as the human-readable docs page:
+
+- `/registry` returns the registry index JSON.
+- `/registry/<name>` and section item pages like `/components/<name>` return item JSON.
+
+All pages also support Markdown content negotiation (inspired by [Fumadocs](https://www.fumadocs.dev/docs/headless/utils/negotiation)). AI clients that request `text/markdown`, `text/x-markdown`, or `text/plain` in the `Accept` header receive the Markdown version of the current page directly, while normal browser requests still receive HTML.
 
 ## Checklist
 
-- [ ] Choose a registry name, namespace, domain, and repository URL.
+- [ ] Choose a registry name, namespace, domain, and repository URL in `registry/config.ts`.
 - [ ] Update or replace the starter docs under `registry/docs`.
-- [ ] Replace the starter registry items.
-- [ ] Verify `/registry.json`, `/r/registry.json`, and at least one `/r/<name>.json` item URL.
-- [ ] Verify `/llms.txt`, `/llms-full.txt`, and Markdown negotiation with `Accept: text/markdown` on a docs or item page.
-- [ ] Update `package.json` metadata, `README.md` details, `LICENSE` owner, etc.
-- [ ] Use `bun --bun ./scripts/new.ts` for new registry item stubs.
+- [ ] Update or replace the starter registry items in `registry/items`; use `bun --bun ./scripts/new.ts` to generate new stubs.
 - [ ] Run `bun --bun ./scripts/doctor.ts` to verify changes.
 - [ ] Run `vp check` and `vp build`.
-- [ ] Deploy and test install commands with npm, pnpm, yarn, and bun.
+- [ ] Deploy!
+- [ ] Test the install commands with npm, pnpm, yarn, and bun.
 - [ ] Optionally submit your registry to shadcn's [official directory](https://ui.shadcn.com/docs/directory).
 
-## Compatibility Notes
+## Gotchas
 
-The registry JSON uses shadcn schemas directly from [`shadcn/schema`](https://github.com/shadcn-ui/ui/blob/main/packages/shadcn/src/registry/schema.ts).
-
-Public item files include file contents in each item JSON response, and local registry dependencies should use `localRegistryDependencies` in `_registry.mdx` frontmatter so generated URLs follow the `homepage` in `registry/config.ts`.
-
-The docs site uses the local shadcn UI configuration in `components.json`; that styling is for this app shell and does **not** define the identity of published registry items.
+> [!WARNING]
+> The docs site uses the local shadcn UI configuration in [`components.json`](components.json); that styling is for this app shell and does **not** affect the published registry items in any way.
 
 ## License
 

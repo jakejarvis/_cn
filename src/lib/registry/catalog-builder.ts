@@ -20,7 +20,7 @@ type RegistryDisplayItem = Omit<RegistryItemDefinition, "description" | "files" 
   description: string;
   files: RegistryFileDefinition[];
 };
-export type RegistryFile = RegistryFileDefinition;
+
 type RegistryItemModuleEntry = {
   path: string;
   registryItem: RegistryItemAuthoringDefinition;
@@ -35,7 +35,7 @@ const registryItemCollator = new Intl.Collator("en", {
   sensitivity: "base",
 });
 
-export type RegistrySourceFile = RegistryFile & {
+export type RegistrySourceFile = RegistryFileDefinition & {
   fileName: string;
   sourcePath: string;
 };
@@ -213,7 +213,7 @@ function getPreviewSourceFile(path: string, source: string): RegistryPreviewSour
 }
 
 function toRegistrySourceFile(
-  file: RegistryFile,
+  file: RegistryFileDefinition,
   sourceFile: RegistrySourceFileDefinition,
 ): RegistrySourceFile {
   return {

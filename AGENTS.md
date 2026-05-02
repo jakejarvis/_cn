@@ -11,8 +11,6 @@ skills:
     load: "node_modules/@tanstack/start-client-core/skills/start-core/server-routes/SKILL.md"
   - task: "change the TanStack Start, Vite, or Devtools setup"
     load: "node_modules/@tanstack/start-client-core/skills/start-core/SKILL.md"
-  - task: "work on Vite+ development workflow or CLI operations"
-    load: "node_modules/vite-plus/skills/vite-plus/SKILL.md"
 <!-- intent-skills:end -->
 
 # Agent Instructions

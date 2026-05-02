@@ -99,14 +99,16 @@ describe("registry catalog", () => {
   });
 
   test("loads preview snippets when items define previews", () => {
-    for (const item of registryItems) {
+    for (const item of registryItems.filter((registryItem) => registryItem.hasPreview)) {
       const source = getRegistryItemWithSources(item).previewSourceFile.source;
 
-      if (item.hasPreview) {
-        expect(source).toContain(`export function Preview`);
-      } else {
-        expect(source).toBe("");
-      }
+      expect(source).toContain(`export function Preview`);
+    }
+
+    for (const item of registryItems.filter((registryItem) => !registryItem.hasPreview)) {
+      const source = getRegistryItemWithSources(item).previewSourceFile.source;
+
+      expect(source).toBe("");
     }
   });
 
@@ -138,9 +140,10 @@ describe("registry catalog", () => {
   test("loads metadata without evaluating client-only preview imports", () => {
     for (const item of registryItems) {
       expect(item.previewSourceFile.path).toMatch(/\/_registry\.mdx$/u);
-      if (item.hasPreview) {
-        expect(item.previewSourceFile.source).toContain("export function Preview");
-      }
+    }
+
+    for (const item of registryItems.filter((registryItem) => registryItem.hasPreview)) {
+      expect(item.previewSourceFile.source).toContain("export function Preview");
     }
   });
 
@@ -151,13 +154,13 @@ describe("registry catalog", () => {
     for (const item of registryItems) {
       const itemWithSources = getRegistryItemWithSources(item);
 
-      if (item.hasPreview) {
-        expect(itemWithSources.previewSourceFile.source).not.toMatch(/\n[ \t]*$/u);
-      }
-
       for (const file of itemWithSources.sourceFiles) {
         expect(file.source).not.toMatch(/\n[ \t]*$/u);
       }
+    }
+
+    for (const item of registryItems.filter((registryItem) => registryItem.hasPreview)) {
+      expect(getRegistryItemWithSources(item).previewSourceFile.source).not.toMatch(/\n[ \t]*$/u);
     }
   });
 

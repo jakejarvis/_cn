@@ -18,7 +18,7 @@ export const publicRegistryItemTypes = [
   "registry:item",
 ] as const satisfies readonly RegistryItemType[];
 
-export const registryTypeFolders = {
+const registryTypeFolders = {
   "registry:base": "bases",
   "registry:block": "blocks",
   "registry:component": "components",
@@ -33,7 +33,7 @@ export const registryTypeFolders = {
   "registry:item": "items",
 } as const satisfies Record<RegistryItemType, string>;
 
-export const registryTypeLabels = {
+const registryTypeLabels = {
   "registry:base": "Bases",
   "registry:block": "Blocks",
   "registry:component": "Components",

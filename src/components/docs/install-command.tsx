@@ -20,7 +20,7 @@ const PACKAGE_MANAGER_STORAGE_KEY = "preferred-pm";
 const PACKAGE_MANAGER_CHANGE_EVENT = "preferred-pm-change";
 const DEFAULT_PACKAGE_MANAGER = "npm";
 
-export const packageManagers = [
+const packageManagers = [
   {
     value: "npm",
     label: "npm",

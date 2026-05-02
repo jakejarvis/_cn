@@ -257,16 +257,19 @@ import { useAlphaState } from "@/hooks/use-alpha-state";
     expect(getRegistrySectionMarkdownResponse("missing").status).toBe(404);
 
     const firstItem = registryItems[0];
-    const wrongSection = firstItem
-      ? registrySectionList.find(
-          (section) => section.id !== getRegistrySectionIdForType(firstItem.type),
-        )
-      : undefined;
-
-    if (firstItem && wrongSection) {
-      expect(getRegistrySectionItemMarkdownResponse(wrongSection.id, firstItem.name).status).toBe(
-        404,
-      );
+    if (!firstItem) {
+      throw new Error("Expected at least one registry item");
     }
+
+    const wrongSection = registrySectionList.find(
+      (section) => section.id !== getRegistrySectionIdForType(firstItem.type),
+    );
+    if (!wrongSection) {
+      throw new Error("Expected at least one registry section outside the first item section");
+    }
+
+    expect(getRegistrySectionItemMarkdownResponse(wrongSection.id, firstItem.name).status).toBe(
+      404,
+    );
   });
 });

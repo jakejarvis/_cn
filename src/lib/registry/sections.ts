@@ -21,14 +21,14 @@ export type RegistrySectionWithItems<T extends RegistryRouteItem = RegistryCatal
     items: T[];
   };
 
-export const componentRegistryTypes = [
+const componentRegistryTypes = [
   "registry:ui",
   "registry:component",
 ] as const satisfies readonly RegistryItemType[];
 
-export const blockRegistryTypes = ["registry:block"] as const satisfies readonly RegistryItemType[];
+const blockRegistryTypes = ["registry:block"] as const satisfies readonly RegistryItemType[];
 
-export const utilityRegistryTypes = [
+const utilityRegistryTypes = [
   "registry:base",
   "registry:font",
   "registry:lib",

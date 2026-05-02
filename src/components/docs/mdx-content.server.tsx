@@ -20,7 +20,7 @@ const baseMdxComponents = {
   pre: MarkdownPre,
 };
 
-export async function renderMdxContent({
+async function renderMdxContent({
   Content,
   components,
 }: {

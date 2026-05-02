@@ -31,13 +31,12 @@ describe("registry scaffold", () => {
     for (const type of registryScaffoldItemTypes) {
       const plan = createRegistryScaffoldPlan(getScaffoldInput({ type }));
       const expectedSourcePath = expectedSourcePaths.get(type);
+      const expectedFilePaths = [
+        ...(expectedSourcePath ? [expectedSourcePath] : []),
+        `${plan.itemRoot}/_registry.mdx`,
+      ].toSorted();
 
-      if (expectedSourcePath) {
-        expect(plan.files.map((file) => file.path)).toContain(expectedSourcePath);
-      } else {
-        expect(plan.files).toHaveLength(1);
-      }
-      expect(plan.files.map((file) => file.path)).toContain(`${plan.itemRoot}/_registry.mdx`);
+      expect(plan.files.map((file) => file.path).toSorted()).toEqual(expectedFilePaths);
     }
   });
 

@@ -87,7 +87,7 @@ export function ManualInstallation({ item }: ManualInstallationProps) {
   );
 }
 
-export function getManualPackageInstallCommand(
+function getManualPackageInstallCommand(
   item: Pick<ManualInstallItem, "dependencies" | "devDependencies">,
   packageManager: PackageManager,
 ): string {

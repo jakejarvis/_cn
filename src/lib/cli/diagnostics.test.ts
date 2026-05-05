@@ -28,6 +28,23 @@ describe("registry diagnostics", () => {
     });
   });
 
+  test("reports preview files without a named Preview export as errors", () => {
+    const diagnostics = getRegistryDiagnostics({
+      files: {
+        ...getValidRegistryFiles(),
+        "registry/items/components/fixture-card/_preview.tsx":
+          "export function FixturePreview() { return null; }",
+      },
+    });
+
+    expect(diagnostics.errors).toContainEqual({
+      level: "error",
+      path: "registry/items/components/fixture-card/_preview.tsx",
+      message:
+        "Registry preview registry/items/components/fixture-card/_preview.tsx must export a named Preview component.",
+    });
+  });
+
   test("accepts arbitrary published text source files", () => {
     const diagnostics = getRegistryDiagnostics({
       files: {
@@ -162,6 +179,8 @@ describe("registry diagnostics", () => {
 function getValidRegistryFiles(): Record<string, string> {
   return {
     "registry/items/components/fixture-card/_registry.mdx": getRegistryMdx(),
+    "registry/items/components/fixture-card/_preview.tsx":
+      "export function Preview() { return null; }",
     "registry/items/components/fixture-card/fixture-card.tsx": "export function FixtureCard() {}",
   };
 }
@@ -186,9 +205,5 @@ description: A test card.${files}
 ---
 
 Use this card in examples.
-
-export function Preview() {
-  return <div>Preview</div>
-}
 `;
 }

@@ -42,6 +42,7 @@ Use **Vite+**: `vp install`, `vp dev`, `vp build`, `vp test`
 - Registry site config: `registry/config.ts` controls public copy, links, registry name, namespace, homepage, and repository URL.
 - Registry URL helpers and route path policy stay in `src/lib/site-config.ts`.
 - Authored docs: direct `registry/docs/*.mdx` or `registry/docs/*.md` files with optional `title`, `description`, `order`, and `group` frontmatter. Nested docs pages are not supported yet.
+- Registry item docs and metadata live in `registry/items/**/_registry.mdx`; interactive previews live in sibling `_preview.tsx` files.
 - Registry catalog: `src/lib/registry/catalog.ts`; JSON output: `src/lib/registry/json.server.ts`.
 - Registry JSON routes: `/registry.json` and `/r/registry.json` serve the index; item JSON routes live under `/r/<name>.json`.
 - Public registry catalog routes: `/registry`, `/components`, `/blocks`, `/utilities`, and section item pages like `/components/<name>`.

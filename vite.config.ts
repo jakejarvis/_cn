@@ -1,3 +1,5 @@
+import contentCollections from "@content-collections/vite";
+import createMdx from "@mdx-js/rollup";
 import babel from "@rolldown/plugin-babel";
 import tailwindcss from "@tailwindcss/vite";
 import { devtools } from "@tanstack/devtools-vite";
@@ -10,7 +12,6 @@ import remarkGfm from "remark-gfm";
 import { defineConfig } from "vite-plus";
 
 import { getPrerenderPages } from "./src/lib/prerender-pages.ts";
-import { mdxWithQueryBypass } from "./src/lib/registry/mdx-vite-plugin.ts";
 import { shouldExcludeFromSitemap } from "./src/lib/seo.ts";
 import { siteConfig } from "./src/lib/site-config.ts";
 
@@ -112,14 +113,16 @@ const config = defineConfig({
   build: {
     rolldownOptions: {
       output: {
-        manualChunks: (id) => {
-          // The RSC browser decoder imports React DOM during module initialization.
-          // Keep it out of the app entry chunk to avoid a production startup cycle.
-          if (id.includes("/node_modules/react-dom/")) {
-            return "react-dom";
-          }
-
-          return undefined;
+        codeSplitting: {
+          groups: [
+            // The RSC browser decoder imports React DOM during module initialization.
+            // Keep it out of the app entry chunk, using Rolldown's native
+            // replacement for Rollup manualChunks.
+            {
+              name: "react-dom",
+              test: /node_modules[\\/]react-dom[\\/]/u,
+            },
+          ],
         },
       },
     },
@@ -150,7 +153,9 @@ const config = defineConfig({
   },
   plugins: [
     devtools(),
-    mdxWithQueryBypass({
+    contentCollections(),
+    createMdx({
+      include: ["**/registry/docs/*.{md,mdx}", "**/registry/items/**/_registry.mdx"],
       remarkPlugins: [remarkFrontmatter, remarkGfm],
     }),
     tailwindcss(),

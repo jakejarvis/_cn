@@ -3,13 +3,13 @@ import { createFileRoute, notFound } from "@tanstack/react-router";
 import { DocsLayout } from "@/components/docs/docs-layout";
 import { RegistryItemList } from "@/components/docs/registry-item-list";
 
-import { registryItems } from "../lib/registry/catalog";
+import { registryNavigationItems } from "../lib/registry/catalog-navigation";
 import { getRegistryItemRoutePath, getRegistrySectionWithItems } from "../lib/registry/sections";
 import { getCollectionPageJsonLd, getMarkdownAlternatePath, getSeoHead } from "../lib/seo";
 
 export const Route = createFileRoute("/$section/")({
   loader: ({ params }) => {
-    const section = getRegistrySectionWithItems(params.section, registryItems);
+    const section = getRegistrySectionWithItems(params.section, registryNavigationItems);
 
     if (!section) {
       throw notFound();

@@ -1,10 +1,10 @@
+import { allDocsNavigationItems } from "content-collections";
+
+import { getSortedDocsPages, type DocsPageMetadata } from "./docs/catalog-metadata";
 import {
-  getDocsNavigationSection,
-  type DocsNavigationItem,
-  type DocsNavigationSection,
-} from "./docs/catalog";
-import { getRegistryCatalogWithItems, registryItems } from "./registry/catalog";
-import type { RegistryCatalogItem } from "./registry/catalog-builder";
+  getRegistryNavigationCatalogWithItems,
+  registryNavigationItems,
+} from "./registry/catalog-navigation";
 import {
   getRegistryItemRoutePath,
   getRegistrySection,
@@ -12,6 +12,18 @@ import {
   getRegistrySectionsWithItems,
   type RegistrySectionId,
 } from "./registry/sections";
+
+type DocsNavigationItem = Pick<
+  DocsPageMetadata,
+  "title" | "description" | "slug" | "routePath" | "group"
+>;
+
+type DocsNavigationSection = {
+  id: "docs";
+  title: "Docs";
+  basePath: "/docs";
+  items: DocsNavigationItem[];
+};
 
 type RegistryNavigationItem = {
   kind: "registry";
@@ -26,10 +38,7 @@ type DocsNavigationEntry = DocsNavigationItem & {
   kind: "docs";
 };
 
-type RegistryNavigationSourceItem = Pick<
-  RegistryCatalogItem,
-  "description" | "name" | "title" | "type"
->;
+type RegistryNavigationSourceItem = (typeof registryNavigationItems)[number];
 
 export type SiteNavigationItem = RegistryNavigationItem | DocsNavigationEntry;
 
@@ -44,21 +53,21 @@ export type SiteNavigationSectionId = SiteNavigationSection["id"];
 
 export function getSiteNavigationSections(): SiteNavigationSection[] {
   return createSiteNavigationSections({
-    docsSection: getDocsNavigationSection(),
-    registryItems,
+    docsSection: getDocsSiteNavigationSourceSection(),
+    registryItems: registryNavigationItems,
   });
 }
 
 export function createSiteNavigationSections({
   docsSection,
-  registryItems: registryNavigationItems,
+  registryItems: registryNavigationSourceItems,
 }: {
   docsSection: DocsNavigationSection | null;
   registryItems: readonly RegistryNavigationSourceItem[];
 }): SiteNavigationSection[] {
   return [
     createDocsSiteNavigationSection(docsSection),
-    ...getRegistryNavigationSections(registryNavigationItems),
+    ...getRegistryNavigationSections(registryNavigationSourceItems),
   ]
     .filter((section): section is SiteNavigationSection => section !== null)
     .filter((section) => section.items.length > 0);
@@ -84,7 +93,22 @@ export function getSiteNavigationSection(id: SiteNavigationSectionId): SiteNavig
 }
 
 function getDocsSiteNavigationSection(): SiteNavigationSection | null {
-  return createDocsSiteNavigationSection(getDocsNavigationSection());
+  return createDocsSiteNavigationSection(getDocsSiteNavigationSourceSection());
+}
+
+function getDocsSiteNavigationSourceSection(): DocsNavigationSection | null {
+  const docsNavigationItems = getSortedDocsPages(allDocsNavigationItems).map(toDocsNavigationItem);
+
+  if (docsNavigationItems.length === 0) {
+    return null;
+  }
+
+  return {
+    id: "docs",
+    title: "Docs",
+    basePath: "/docs",
+    items: docsNavigationItems,
+  };
 }
 
 function createDocsSiteNavigationSection(
@@ -111,8 +135,18 @@ function toDocsNavigationEntry(item: DocsNavigationItem): DocsNavigationEntry {
   };
 }
 
+function toDocsNavigationItem(item: DocsPageMetadata): DocsNavigationItem {
+  return {
+    title: item.title,
+    description: item.description,
+    slug: item.slug,
+    routePath: item.routePath,
+    ...(item.group ? { group: item.group } : {}),
+  };
+}
+
 function getRegistryNavigationSection(): SiteNavigationSection {
-  const catalog = getRegistryCatalogWithItems();
+  const catalog = getRegistryNavigationCatalogWithItems();
 
   return toRegistrySiteNavigationSection(catalog);
 }
@@ -130,7 +164,9 @@ function getRegistryNavigationSectionById(sectionId: string): SiteNavigationSect
     return null;
   }
 
-  const section = getRegistrySectionsWithItems(registryItems).find(({ id }) => id === sectionId);
+  const section = getRegistrySectionsWithItems(registryNavigationItems).find(
+    ({ id }) => id === sectionId,
+  );
 
   return toRegistrySiteNavigationSection(section ?? { ...config, items: [] });
 }

@@ -2,14 +2,9 @@ import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { relative } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { parse as parseYaml } from "yaml";
-
-import {
-  isPublicRegistryItemType,
-  registryCatalog,
-  type RegistryItemType,
-} from "./registry/item-types.ts";
-import { parseRegistryMdxAst } from "./registry/mdx-ast.ts";
+import { getDocsRoutePathFromSourcePath } from "./docs/catalog-core.ts";
+import { registryCatalog, type RegistryItemType } from "./registry/item-types.ts";
+import { parseRegistryMdx } from "./registry/mdx.ts";
 import { getRegistryItemRoutePath, getRegistrySectionsWithItems } from "./registry/sections.ts";
 import { shouldExcludeFromSitemap } from "./seo.ts";
 import {
@@ -104,25 +99,10 @@ function toPrerenderPage(path: string): PrerenderPage {
 
 function getDocsPagePaths(): string[] {
   return findFiles(docsRoot, (path) => /\.(?:md|mdx)$/u.test(path)).flatMap((path) => {
-    const slug = getDocsSlugFromPath(path);
+    const routePath = getDocsRoutePathFromSourcePath(toPosixPath(relative(process.cwd(), path)));
 
-    return slug === null ? [] : [slug ? `/docs/${slug}` : "/docs"];
+    return routePath === null ? [] : [routePath];
   });
-}
-
-function getDocsSlugFromPath(path: string): string | null {
-  const relativePath = toPosixPath(relative(docsRoot, path));
-  const segments = relativePath.replace(/\.(?:md|mdx)$/u, "").split("/");
-
-  if (segments.some((segment) => !segment || segment.startsWith("_"))) {
-    return null;
-  }
-
-  if (segments.length > 1) {
-    throw new Error(`Nested docs pages are not supported yet: ${relativePath}`);
-  }
-
-  return segments[0] === "index" ? "" : segments[0];
 }
 
 function getRegistryPrerenderItems(): RegistryPrerenderItem[] {
@@ -133,35 +113,12 @@ function getRegistryPrerenderItems(): RegistryPrerenderItem[] {
 
 function getRegistryPrerenderItem(path: string): RegistryPrerenderItem {
   const source = readFileSync(path, "utf8");
-  const root = parseRegistryMdxAst(toPosixPath(relative(process.cwd(), path)), source);
-  const frontmatter = root.children?.[0];
-
-  if (frontmatter?.type !== "yaml") {
-    throw new Error(`Registry item ${path} must start with YAML frontmatter.`);
-  }
-
-  const metadata = parseYaml(frontmatter.value ?? "");
-
-  if (!isRegistryPrerenderItem(metadata)) {
-    throw new Error(`Registry item ${path} must define string name and type frontmatter fields.`);
-  }
+  const item = parseRegistryMdx(toPosixPath(relative(process.cwd(), path)), source).registryItem;
 
   return {
-    name: metadata.name,
-    type: metadata.type,
+    name: item.name,
+    type: item.type,
   };
-}
-
-function isRegistryPrerenderItem(value: unknown): value is RegistryPrerenderItem {
-  return (
-    typeof value === "object" &&
-    value !== null &&
-    !Array.isArray(value) &&
-    "name" in value &&
-    "type" in value &&
-    typeof value.name === "string" &&
-    isPublicRegistryItemType(value.type)
-  );
 }
 
 function findFiles(root: string, predicate: (path: string) => boolean): string[] {

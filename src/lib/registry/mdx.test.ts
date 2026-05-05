@@ -1,10 +1,10 @@
 import { describe, expect, test } from "vitest";
 
 import { getCanonicalRegistryItemUrl } from "../site-config";
-import { parseRegistryMdx } from "./mdx";
+import { parseRegistryMdx, parseRegistryMdxDocument } from "./mdx";
 
 describe("registry MDX parser", () => {
-  test("extracts frontmatter metadata, usage presence, and preview source", () => {
+  test("extracts frontmatter metadata and usage source", () => {
     const parsed = parseRegistryMdx(
       "registry/items/components/toast/_registry.mdx",
       `---
@@ -21,10 +21,6 @@ files:
     type: registry:ui
 ---
 
-import {
-  Toast
-} from "./toast";
-
 Use the toast component from any client component.
 
 \`\`\`tsx
@@ -34,10 +30,6 @@ export function Example() {
   return <Toast />;
 }
 \`\`\`
-
-export function Preview() {
-  return <Toast />;
-}
 `,
     );
 
@@ -55,9 +47,6 @@ export function Preview() {
       ],
     });
     expect(parsed.hasUsage).toBe(true);
-    expect(parsed.usageSource).toContain("Use the toast component from any client component.");
-    expect(parsed.usageSource).toContain(`from "@/components/ui/toast"`);
-    expect(parsed.usageSource).not.toContain("export function Preview");
     expect(parsed.usageSource).toBe(`Use the toast component from any client component.
 
 \`\`\`tsx
@@ -67,38 +56,23 @@ export function Example() {
   return <Toast />;
 }
 \`\`\``);
-    expect(parsed.previewSource).toContain(`from "./toast"`);
-    expect(parsed.previewSource).not.toContain(`from "@/components/ui/toast"`);
-    expect(parsed.previewSource).toContain("export function Preview");
   });
 
-  test("preserves preview source indentation", () => {
-    const parsed = parseRegistryMdx(
-      "registry/items/components/copy-button/_registry.mdx",
-      `---
-name: copy-button
-type: registry:ui
-title: Copy Button
-description: A copy button.
----
-
-import { Button } from "./button";
-
-export function Preview() {
-  return (
-    <div className="flex flex-col gap-3">
-      <Button>Copy</Button>
-      <p>Ready</p>
-    </div>
-  );
-}
-`,
+  test("parses content collections frontmatter documents", () => {
+    const parsed = parseRegistryMdxDocument(
+      "registry/items/components/toast/_registry.mdx",
+      {
+        name: "toast",
+        type: "registry:ui",
+        title: "Toast",
+        description: "A toast manager.",
+      },
+      "Use the toast component.",
     );
 
-    expect(parsed.previewSource).toContain("  return (");
-    expect(parsed.previewSource).toContain("    <div");
-    expect(parsed.previewSource).toContain("      <Button>Copy</Button>");
-    expect(parsed.previewSource).toContain("      <p>Ready</p>");
+    expect(parsed.registryItem.name).toBe("toast");
+    expect(parsed.hasUsage).toBe(true);
+    expect(parsed.usageSource).toBe("Use the toast component.");
   });
 
   test("rejects sourcePath frontmatter file entries", () => {
@@ -130,10 +104,6 @@ docs: This appears during shadcn CLI install.
 ---
 
 This renders on the docs site.
-
-export function Preview() {
-  return null;
-}
 `,
     );
 
@@ -150,37 +120,11 @@ type: registry:ui
 title: Toast
 description: A toast manager.
 ---
-
-import { Toast } from "./toast";
-
-export function Preview() {
-  return <Toast />;
-}
 `,
     );
 
     expect(parsed.hasUsage).toBe(false);
     expect(parsed.usageSource).toBe("");
-  });
-
-  test("treats the body as usage when no preview export is present", () => {
-    const parsed = parseRegistryMdx(
-      "registry/items/components/toast/_registry.mdx",
-      `---
-name: toast
-type: registry:ui
-title: Toast
-description: A toast manager.
----
-
-Use the toast component.
-`,
-    );
-
-    expect(parsed.hasPreview).toBe(false);
-    expect(parsed.previewSource).toBe("");
-    expect(parsed.hasUsage).toBe(true);
-    expect(parsed.usageSource).toBe("Use the toast component.");
   });
 
   test("allows optional title, description, and files", () => {
@@ -208,7 +152,7 @@ cssVars:
     expect(parsed.registryItem).not.toHaveProperty("files");
   });
 
-  test("rejects content after the preview export", () => {
+  test("rejects MDX imports or exports", () => {
     expect(() =>
       parseRegistryMdx(
         "registry/items/components/toast/_registry.mdx",
@@ -222,57 +166,9 @@ description: A toast manager.
 import { Toast } from "./toast";
 
 Use the toast component.
-
-export function Preview() {
-  return <Toast />;
-}
-
-This should stay before the preview.
 `,
       ),
-    ).toThrow(/must not contain content after the Preview export/u);
-  });
-
-  test("rejects MDX imports or exports inside usage content", () => {
-    expect(() =>
-      parseRegistryMdx(
-        "registry/items/components/toast/_registry.mdx",
-        `---
-name: toast
-type: registry:ui
-title: Toast
-description: A toast manager.
----
-
-import { Toast } from "./toast";
-
-Use the toast component.
-
-export const usageOnly = true;
-
-export function Preview() {
-  return <Toast />;
-}
-`,
-      ),
-    ).toThrow(/must not contain MDX imports or exports inside the Usage section/u);
-  });
-
-  test("rejects MDX imports or exports when preview is omitted", () => {
-    expect(() =>
-      parseRegistryMdx(
-        "registry/items/components/toast/_registry.mdx",
-        `---
-name: toast
-type: registry:ui
----
-
-import { Toast } from "./toast";
-
-Use the toast component.
-`,
-      ),
-    ).toThrow(/must not contain MDX imports or exports without a Preview export/u);
+    ).toThrow(/must not contain MDX imports or exports/u);
   });
 
   test("accepts every public registry item type", () => {
@@ -353,10 +249,7 @@ font:
 
   test("rejects missing frontmatter", () => {
     expect(() =>
-      parseRegistryMdx(
-        "registry/items/components/toast/_registry.mdx",
-        `import { Toast } from "./toast";`,
-      ),
+      parseRegistryMdx("registry/items/components/toast/_registry.mdx", `Use the toast component.`),
     ).toThrow(/must start with YAML frontmatter/u);
   });
 
@@ -367,10 +260,6 @@ font:
         `---
 name: [toast
 ---
-
-export function Preview() {
-  return null;
-}
 `,
       ),
     ).toThrow(

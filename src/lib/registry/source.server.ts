@@ -2,11 +2,18 @@ import { normalizeGlobFiles } from "../glob";
 import { registryItems } from "./catalog";
 import type { RegistryCatalogItem, RegistryPreviewSourceFile } from "./catalog-builder";
 
-const registrySources = import.meta.glob<string>("../../../registry/items/**/*", {
-  eager: true,
-  import: "default",
-  query: "?raw",
-});
+const registrySources = import.meta.glob<string>(
+  [
+    "../../../registry/items/**/*",
+    "!../../../registry/items/**/_preview.tsx",
+    "!../../../registry/items/**/_registry.mdx",
+  ],
+  {
+    eager: true,
+    import: "default",
+    query: "?raw",
+  },
+);
 
 const registrySourceByPath = normalizeGlobFiles(registrySources);
 

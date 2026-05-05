@@ -8,6 +8,7 @@ import {
 import { normalizeGlobFiles } from "../glob";
 import { getDocsPage, type DocsPage } from "./catalog";
 import type { DocsPageDetailInput } from "./detail.types";
+import type { DocsMdxComponentName } from "./mdx-components";
 
 export type DocsPageDetail = Omit<DocsPage, "contentSource" | "keywords" | "sourcePath"> & {
   content: RenderedMdxContent | null;
@@ -15,6 +16,9 @@ export type DocsPageDetail = Omit<DocsPage, "contentSource" | "keywords" | "sour
 
 const docsContentModules = import.meta.glob<MdxContentModule>("../../../registry/docs/*.{md,mdx}");
 const docsContentModulesByPath = normalizeGlobFiles(docsContentModules);
+const docsMdxComponents = {
+  Callout: DocsCallout,
+} satisfies Record<DocsMdxComponentName, unknown>;
 
 export async function getDocsPageDetailData(data: DocsPageDetailInput) {
   const page = getDocsPage(data.path);
@@ -45,8 +49,6 @@ async function renderDocsContent(path: string): Promise<RenderedMdxContent | nul
   const loadContent = docsContentModulesByPath[path];
 
   return renderMdxContentModule(loadContent, {
-    components: {
-      Callout: DocsCallout,
-    },
+    components: docsMdxComponents,
   });
 }

@@ -1,25 +1,25 @@
 import {
+  assertNoMdxEsm,
   assertOptionalStringArrayField,
   assertOptionalStringField,
-  getFirstYamlFrontmatterNode,
+  getMdxBodySource,
   getOptionalStringField,
+  getRequiredFrontmatterSource,
   getRequiredStringField,
-  parseYamlFrontmatter,
+  parseMdxAst,
+  parseYamlFrontmatterObject,
   type MdxAstNode,
-} from "../content/mdx";
-import { getCanonicalRegistryItemUrl } from "../site-config";
-import { isPublicRegistryItemType } from "./item-types";
-import { getRegistryMdxSections, parseRegistryMdxAst } from "./mdx-ast";
+} from "../content/mdx.ts";
+import { getCanonicalRegistryItemUrl } from "../site-config.ts";
+import { isPublicRegistryItemType } from "./item-types.ts";
 import type { RegistryFileAuthoringDefinition, RegistryItemAuthoringDefinition } from "./metadata";
 
 type RegistryMdxFrontmatter = RegistryItemAuthoringDefinition & {
   localRegistryDependencies?: string[];
 };
 
-type ParsedRegistryMdx = {
+export type ParsedRegistryMdx = {
   registryItem: RegistryItemAuthoringDefinition;
-  hasPreview: boolean;
-  previewSource: string;
   hasUsage: boolean;
   usageSource: string;
 };
@@ -59,43 +59,70 @@ const optionalStringArrayFields = [
 
 export function parseRegistryMdx(path: string, source: string): ParsedRegistryMdx {
   const root = parseRegistryMdxAst(path, source);
-  const frontmatter = getFrontmatterNode(path, root);
-  const metadata = parseRegistryMdxFrontmatter(path, frontmatter.value ?? "");
-  const sections = getRegistryMdxSections(path, root, source);
+  const metadata = parseRegistryMdxFrontmatter(
+    path,
+    getRequiredFrontmatterSource({ label: "Registry item", path, root }),
+  );
+  const usageSource = getRegistryMdxUsageSource(path, root, source);
 
+  return createParsedRegistryMdx(metadata, usageSource);
+}
+
+export function parseRegistryMdxDocument(
+  path: string,
+  metadata: Record<string, unknown>,
+  usageSource: string,
+): ParsedRegistryMdx {
+  assertRegistryMdxFrontmatter(path, metadata);
+  const root = parseRegistryMdxAst(path, usageSource);
+  const parsedUsageSource = getRegistryMdxUsageSource(path, root, usageSource);
+
+  return createParsedRegistryMdx(metadata, parsedUsageSource);
+}
+
+export function parseRegistryMdxMetadataDocument(
+  path: string,
+  metadata: Record<string, unknown>,
+): RegistryItemAuthoringDefinition {
+  assertRegistryMdxFrontmatter(path, metadata);
+
+  return toRegistryItemAuthoringDefinition(metadata);
+}
+
+function createParsedRegistryMdx(
+  metadata: RegistryMdxFrontmatter,
+  usageSource: string,
+): ParsedRegistryMdx {
   return {
     registryItem: toRegistryItemAuthoringDefinition(metadata),
-    hasPreview: sections.hasPreview,
-    previewSource: sections.previewSource,
-    hasUsage: sections.hasUsage,
-    usageSource: sections.usageSource,
+    hasUsage: usageSource.length > 0,
+    usageSource,
   };
 }
 
-function getFrontmatterNode(path: string, root: MdxAstNode): MdxAstNode {
-  const frontmatter = getFirstYamlFrontmatterNode(root);
-
-  if (!frontmatter) {
-    throw new Error(`Registry item ${path} must start with YAML frontmatter.`);
-  }
-
-  return frontmatter;
+function parseRegistryMdxAst(path: string, source: string): MdxAstNode {
+  return parseMdxAst({ label: "Registry item", path, source });
 }
 
 function parseRegistryMdxFrontmatter(path: string, frontmatter: string): RegistryMdxFrontmatter {
-  const value = parseYamlFrontmatter({
+  const value = parseYamlFrontmatterObject({
     label: "Registry item",
     path,
     source: frontmatter,
   });
 
-  if (!isRecord(value)) {
-    throw new Error(`Registry item ${path} frontmatter must be an object.`);
-  }
-
   assertRegistryMdxFrontmatter(path, value);
 
   return value;
+}
+
+function getRegistryMdxUsageSource(path: string, root: MdxAstNode, source: string): string {
+  assertNoMdxEsm(
+    root,
+    `Registry item ${path} must not contain MDX imports or exports. Put interactive previews in _preview.tsx.`,
+  );
+
+  return getMdxBodySource(root, source);
 }
 
 function assertRegistryMdxFrontmatter(

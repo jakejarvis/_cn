@@ -1,15 +1,20 @@
 import { Link } from "@tanstack/react-router";
 
-import type { RegistryCatalogItem } from "../../lib/registry/catalog-builder";
+import type { RegistryRouteItem } from "../../lib/registry/sections";
 import { getRegistrySectionIdForType } from "../../lib/registry/sections";
 import { DocsPageHeader } from "./docs-page-header";
+
+type RegistryListItem = RegistryRouteItem & {
+  title: string;
+  description: string;
+};
 
 type RegistryItemListProps = {
   catalog: {
     title: string;
     description: string;
     basePath: string;
-    items: RegistryCatalogItem[];
+    items: RegistryListItem[];
   };
 };
 

@@ -90,6 +90,13 @@ export function createRegistryScaffoldPlan(input: RegistryScaffoldInput): Regist
     });
   }
 
+  if (shouldRenderRegistryPreview(input)) {
+    files.push({
+      path: `${itemRoot}/_preview.tsx`,
+      content: renderRegistryPreviewFile(input),
+    });
+  }
+
   return {
     itemRoot,
     files,
@@ -229,14 +236,15 @@ function renderRegistryMdx(input: RegistryScaffoldInput, sourcePath: string | un
 
   return [
     renderRegistryFrontmatter(input, sourcePath, itemRoot),
-    renderRegistryPreviewImport(input),
     input.description.trim(),
     "",
     renderRegistryUsageSnippet(input),
     "",
-    shouldRenderRegistryPreview(input) ? renderRegistryPreview(input) : null,
-    "",
-  ]
+  ].join("\n");
+}
+
+function renderRegistryPreviewFile(input: RegistryScaffoldInput): string {
+  return [`"use client";`, "", renderRegistryPreviewImport(input), renderRegistryPreview(input), ""]
     .filter((line) => line !== null)
     .join("\n");
 }
@@ -336,13 +344,13 @@ function renderRegistryPreviewImport(input: RegistryScaffoldInput): string | nul
     case "registry:ui":
     case "registry:component":
     case "registry:block":
-      return `import { ${componentName} } from "./${input.name}";\n`;
+      return `import { ${componentName} } from "./${input.name}";`;
     case "registry:hook":
-      return `import { ${hookName} } from "./${input.name}";\n`;
+      return `import { ${hookName} } from "./${input.name}";`;
     case "registry:lib":
-      return `import { ${helperName} } from "./${input.name}";\n`;
+      return `import { ${helperName} } from "./${input.name}";`;
     case "registry:page":
-      return `import Page from "./page";\n`;
+      return `import Page from "./page";`;
     case "registry:file":
     case "registry:base":
     case "registry:font":

@@ -18,6 +18,7 @@ const { fixtureRegistryItems, fixtureRegistrySourceByPath } = vi.hoisted(() => {
       title: "Alpha Card",
       description: "A compact card component.",
       type: "registry:ui",
+      registryMdxFilePath: "registry/items/components/alpha-card/_registry.mdx",
       files: [{ path: "ui/alpha-card.tsx", target: "@ui/alpha-card.tsx", type: "registry:ui" }],
       sourceFiles: [
         {
@@ -29,8 +30,8 @@ const { fixtureRegistryItems, fixtureRegistrySourceByPath } = vi.hoisted(() => {
         },
       ],
       previewSourceFile: {
-        path: "registry/items/components/alpha-card/_registry.mdx",
-        fileName: "_registry.mdx",
+        path: "registry/items/components/alpha-card/_preview.tsx",
+        fileName: "_preview.tsx",
         source: "",
       },
       hasPreview: false,
@@ -42,6 +43,7 @@ const { fixtureRegistryItems, fixtureRegistrySourceByPath } = vi.hoisted(() => {
       title: "Metrics Panel",
       description: "A dashboard metrics block.",
       type: "registry:block",
+      registryMdxFilePath: "registry/items/blocks/metrics-panel/_registry.mdx",
       files: [
         {
           path: "components/metrics-panel.tsx",
@@ -67,8 +69,8 @@ const { fixtureRegistryItems, fixtureRegistrySourceByPath } = vi.hoisted(() => {
         },
       ],
       previewSourceFile: {
-        path: "registry/items/blocks/metrics-panel/_registry.mdx",
-        fileName: "_registry.mdx",
+        path: "registry/items/blocks/metrics-panel/_preview.tsx",
+        fileName: "_preview.tsx",
         source: "",
       },
       hasPreview: false,
@@ -80,6 +82,7 @@ const { fixtureRegistryItems, fixtureRegistrySourceByPath } = vi.hoisted(() => {
       title: "useAlphaState",
       description: "A small state hook.",
       type: "registry:hook",
+      registryMdxFilePath: "registry/items/hooks/use-alpha-state/_registry.mdx",
       files: [
         {
           path: "hooks/use-alpha-state.ts",
@@ -97,8 +100,8 @@ const { fixtureRegistryItems, fixtureRegistrySourceByPath } = vi.hoisted(() => {
         },
       ],
       previewSourceFile: {
-        path: "registry/items/hooks/use-alpha-state/_registry.mdx",
-        fileName: "_registry.mdx",
+        path: "registry/items/hooks/use-alpha-state/_preview.tsx",
+        fileName: "_preview.tsx",
         source: "",
       },
       hasPreview: false,

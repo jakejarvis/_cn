@@ -33,8 +33,8 @@ const fixtureItem = {
   description: "A compact card component.",
   hasPreview: true,
   previewSourceFile: {
-    path: "registry/items/components/alpha-card/_registry.mdx",
-    fileName: "_registry.mdx",
+    path: "registry/items/components/alpha-card/_preview.tsx",
+    fileName: "_preview.tsx",
     source: `import { AlphaCard } from "./alpha-card";
 
 export function Preview() {
@@ -93,8 +93,8 @@ describe("registry markdown", () => {
       description: "A metadata-only theme.",
       hasPreview: false,
       previewSourceFile: {
-        path: "registry/items/themes/custom-theme/_registry.mdx",
-        fileName: "_registry.mdx",
+        path: "registry/items/themes/custom-theme/_preview.tsx",
+        fileName: "_preview.tsx",
         source: "",
       },
       sourceFiles: [],
@@ -132,8 +132,8 @@ describe("registry markdown", () => {
           description: "A dashboard metrics block.",
           hasPreview: false,
           previewSourceFile: {
-            path: "registry/items/blocks/metrics-panel/_registry.mdx",
-            fileName: "_registry.mdx",
+            path: "registry/items/blocks/metrics-panel/_preview.tsx",
+            fileName: "_preview.tsx",
             source: "",
           },
           sourceFiles: [
@@ -160,8 +160,8 @@ import { MetricsPanel } from "@/components/metrics-panel";
           description: "A small state hook.",
           hasPreview: false,
           previewSourceFile: {
-            path: "registry/items/hooks/use-alpha-state/_registry.mdx",
-            fileName: "_registry.mdx",
+            path: "registry/items/hooks/use-alpha-state/_preview.tsx",
+            fileName: "_preview.tsx",
             source: "",
           },
           sourceFiles: [

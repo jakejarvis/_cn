@@ -1,6 +1,6 @@
 import {
-  formatMarkdownLinkList,
   formatCodeBlock,
+  formatMarkdownLinkListPage,
   getMarkdownLanguage,
   joinMarkdownBlocks,
 } from "../content/markdown";
@@ -112,19 +112,16 @@ export function createRegistryCatalogMarkdown(
   catalog: RegistryCatalogMarkdownConfig,
   items: readonly LinkedRegistryCatalogMarkdownItem[],
 ): string {
-  const itemList = formatMarkdownLinkList(
-    items.map((item) => ({
+  return formatMarkdownLinkListPage({
+    title: catalog.title,
+    description: catalog.description,
+    emptyMessage: "No items are published in the registry yet.",
+    items: items.map((item) => ({
       title: item.title,
       href: getCanonicalDocsUrl(item.routePath ?? `${catalog.basePath}/${item.name}`),
       description: item.description,
     })),
-  );
-
-  return joinMarkdownBlocks([
-    `# ${catalog.title}`,
-    catalog.description,
-    itemList || "No items are published in the registry yet.",
-  ]);
+  });
 }
 
 export function getRegistryItemMarkdown(itemName: string): string | null {

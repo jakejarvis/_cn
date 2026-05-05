@@ -52,5 +52,5 @@ For registry authoring tasks, agents should:
 2. Use the `shadcn-registry` skill when available.
 3. Scaffold new items with `bun --bun ./scripts/new.ts --type <type> --name <kebab-name> --description "<description>"`.
 4. Add `--target` for `registry:page`, `registry:file`, and custom alias installs like `@ui/ai/<file>.tsx`; use `--file-extension` for non-`ts` file or targeted universal items.
-5. Edit the generated source and `_registry.mdx` with previews, usage docs, and dependency metadata.
+5. Edit the generated source, `_registry.mdx`, and `_preview.tsx` with usage docs, previews, and dependency metadata.
 6. Run focused checks and `bun --bun ./scripts/doctor.ts` before handoff.

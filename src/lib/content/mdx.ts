@@ -26,6 +26,10 @@ type ContentDiagnosticInput = {
   path: string;
 };
 
+type MdxDocumentDiagnosticInput = ContentDiagnosticInput & {
+  root: MdxAstNode;
+};
+
 function createMdxProcessor() {
   return unified().use(remarkParse).use(remarkMdx).use(remarkFrontmatter, ["yaml"]).use(remarkGfm);
 }
@@ -77,7 +81,21 @@ export function getFrontmatterSource(root: MdxAstNode): string {
   return getFirstYamlFrontmatterNode(root)?.value ?? "";
 }
 
-export function getMdxNodesSource(nodes: readonly MdxAstNode[], source: string): string {
+export function getRequiredFrontmatterSource({
+  label,
+  path,
+  root,
+}: MdxDocumentDiagnosticInput): string {
+  const frontmatter = getFirstYamlFrontmatterNode(root);
+
+  if (!frontmatter) {
+    throw new Error(`${label} ${path} must start with YAML frontmatter.`);
+  }
+
+  return frontmatter.value ?? "";
+}
+
+function getMdxNodesSource(nodes: readonly MdxAstNode[], source: string): string {
   const startOffset = nodes[0]?.position?.start?.offset;
   const endOffset = nodes.at(-1)?.position?.end?.offset;
 
@@ -86,6 +104,63 @@ export function getMdxNodesSource(nodes: readonly MdxAstNode[], source: string):
   }
 
   return source.slice(startOffset, endOffset).trim();
+}
+
+function getMdxBodyNodes(root: MdxAstNode): MdxAstNode[] {
+  return root.children?.filter((node) => node.type !== "yaml") ?? [];
+}
+
+export function getMdxBodySource(root: MdxAstNode, source: string): string {
+  return getMdxNodesSource(getMdxBodyNodes(root), source);
+}
+
+export function assertNoMdxEsm(root: MdxAstNode, message: string): void {
+  if (getMdxBodyNodes(root).some((node) => node.type === "mdxjsEsm")) {
+    throw new Error(message);
+  }
+}
+
+export function getUnsupportedMdxComponentNames(
+  root: MdxAstNode,
+  allowedComponents: ReadonlySet<string>,
+): string[] {
+  const names = new Set<string>();
+  const visit = (node: MdxAstNode) => {
+    if (node.type === "mdxJsxFlowElement" || node.type === "mdxJsxTextElement") {
+      const name = node.name ?? "<>";
+
+      if (!allowedComponents.has(name)) {
+        names.add(name);
+      }
+    }
+
+    for (const child of node.children ?? []) {
+      visit(child);
+    }
+  };
+
+  visit(root);
+
+  return [...names].toSorted();
+}
+
+export function getFirstHeadingText(root: MdxAstNode): string | undefined {
+  const heading = root.children?.find((node) => node.type === "heading" && node.depth === 1);
+  const text = heading ? getNodeText(heading).trim() : "";
+
+  return text || undefined;
+}
+
+export function parseYamlFrontmatterObject(
+  input: ContentDiagnosticInput & { source: string },
+): Record<string, unknown> {
+  const value = parseYamlFrontmatter(input);
+
+  if (!isRecord(value)) {
+    throw new Error(`${input.label} ${input.path} frontmatter must be an object.`);
+  }
+
+  return value;
 }
 
 export function getOptionalStringField(
@@ -170,6 +245,14 @@ function isMdxAstNode(value: unknown): value is MdxAstNode {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function getNodeText(node: MdxAstNode): string {
+  if (node.value) {
+    return node.value;
+  }
+
+  return node.children?.map(getNodeText).join("") ?? "";
 }
 
 function getErrorMessage(error: unknown): string {

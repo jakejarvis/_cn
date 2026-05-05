@@ -44,6 +44,7 @@ The scaffold creates each item in its own folder:
 ```text
 registry/items/components/example-card/
   _registry.mdx
+  _preview.tsx
   example-card.tsx
 ```
 
@@ -73,7 +74,7 @@ Use `bun --bun ./scripts/new.ts --help` to print the full usage.
 
 ## Authoring
 
-Use `_registry.mdx` for public metadata, usage docs, and the optional named `Preview` export. Keep `_registry.mdx` private to authoring; never list it in `files`.
+Use `_registry.mdx` for public metadata and usage docs. Put the optional named `Preview` export in `_preview.tsx`. Keep both files private to authoring; never list them in `files`.
 
 For one-file `registry:ui` items, the catalog infers `<item-name>.tsx`. Hooks, libs, blocks, pages, target paths, and multi-file items should list `files` explicitly. Metadata-only styles, themes, fonts, bases, and universal items can omit `files`.
 

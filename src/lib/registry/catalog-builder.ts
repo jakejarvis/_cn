@@ -1,3 +1,4 @@
+import { compareRegistryItemNames, getDefaultRegistryTitle } from "./item-title";
 import { parseRegistryMdx } from "./mdx";
 import type {
   RegistryFileAuthoringDefinition,
@@ -16,25 +17,25 @@ import {
   normalizeRegistryRelativePath,
 } from "./paths";
 
+export { compareRegistryItemNames, getDefaultRegistryTitle } from "./item-title";
+
 type RegistryDisplayItem = Omit<RegistryItemDefinition, "description" | "files" | "title"> & {
   title: string;
   description: string;
   files: RegistryFileDefinition[];
 };
 
-type RegistryItemModuleEntry = {
+export type RegistryItemModuleEntry = {
   path: string;
   registryItem: RegistryItemAuthoringDefinition;
-  hasPreview: boolean;
-  previewSource: string;
   hasUsage: boolean;
   usageSource: string;
 };
 
-const registryItemCollator = new Intl.Collator("en", {
-  numeric: true,
-  sensitivity: "base",
-});
+export type RegistryPreviewModuleEntry = {
+  path: string;
+  source: string;
+};
 
 export type RegistrySourceFile = RegistryFileDefinition & {
   fileName: string;
@@ -48,6 +49,7 @@ export type RegistryPreviewSourceFile = {
 };
 
 export type RegistryCatalogItem = RegistryDisplayItem & {
+  registryMdxFilePath: string;
   sourceFiles: RegistrySourceFile[];
   previewSourceFile: RegistryPreviewSourceFile;
   hasPreview: boolean;
@@ -58,7 +60,13 @@ export type RegistryCatalogItem = RegistryDisplayItem & {
 export function createRegistryMetadataItems(
   sourcesByPath: Readonly<Record<string, string>>,
 ): RegistryItemDefinition[] {
-  return createRegistryItemModuleEntries(sourcesByPath).map(({ path, registryItem }) =>
+  return createRegistryMetadataItemsFromEntries(createRegistryItemModuleEntries(sourcesByPath));
+}
+
+export function createRegistryMetadataItemsFromEntries(
+  entries: readonly RegistryItemModuleEntry[],
+): RegistryItemDefinition[] {
+  return getSortedRegistryItemModuleEntries(entries).map(({ path, registryItem }) =>
     toRegistryItemDefinition(
       registryItem,
       getRegistrySourceFileDefinitions(getParentPath(path), registryItem),
@@ -68,8 +76,21 @@ export function createRegistryMetadataItems(
 
 export function createRegistryCatalogItems(
   sourcesByPath: Readonly<Record<string, string>>,
+  previewSourcesByPath: Readonly<Record<string, string>> = {},
 ): RegistryCatalogItem[] {
-  return createRegistryItemModuleEntries(sourcesByPath).map(toRegistryCatalogItem);
+  return createRegistryCatalogItemsFromEntries(
+    createRegistryItemModuleEntries(sourcesByPath),
+    createRegistryPreviewModuleEntries(previewSourcesByPath),
+  );
+}
+
+export function createRegistryCatalogItemsFromEntries(
+  entries: readonly RegistryItemModuleEntry[],
+  previewEntries: readonly RegistryPreviewModuleEntry[] = [],
+): RegistryCatalogItem[] {
+  return getSortedRegistryItemModuleEntries(entries).map((entry) =>
+    toRegistryCatalogItem(entry, previewEntries),
+  );
 }
 
 function createRegistryItemModuleEntries(
@@ -80,8 +101,26 @@ function createRegistryItemModuleEntries(
     .toSorted((a, b) => compareRegistryItemNames(a.registryItem, b.registryItem));
 }
 
-function toRegistryCatalogItem(entry: RegistryItemModuleEntry): RegistryCatalogItem {
+function createRegistryPreviewModuleEntries(
+  previewSourcesByPath: Readonly<Record<string, string>>,
+): RegistryPreviewModuleEntry[] {
+  return Object.entries(previewSourcesByPath).map(([path, source]) => ({ path, source }));
+}
+
+function getSortedRegistryItemModuleEntries(
+  entries: readonly RegistryItemModuleEntry[],
+): RegistryItemModuleEntry[] {
+  return [...entries].toSorted((a, b) => compareRegistryItemNames(a.registryItem, b.registryItem));
+}
+
+function toRegistryCatalogItem(
+  entry: RegistryItemModuleEntry,
+  previewEntries: readonly RegistryPreviewModuleEntry[],
+): RegistryCatalogItem {
   const itemRoot = getParentPath(entry.path);
+  const previewEntry = previewEntries.find((preview) => preview.path === getPreviewPath(itemRoot));
+  const previewSource =
+    previewEntry && hasRegistryPreviewExport(previewEntry.source) ? previewEntry.source : "";
   const sourceFileDefinitions = getRegistrySourceFileDefinitions(itemRoot, entry.registryItem);
   const sourceFileDefinitionsByPath = new Map(
     sourceFileDefinitions.map((file) => [file.path, file]),
@@ -90,6 +129,7 @@ function toRegistryCatalogItem(entry: RegistryItemModuleEntry): RegistryCatalogI
 
   return {
     ...catalogItem,
+    registryMdxFilePath: entry.path,
     sourceFiles: catalogItem.files.map((file) => {
       const sourceFile = sourceFileDefinitionsByPath.get(file.path);
 
@@ -99,11 +139,103 @@ function toRegistryCatalogItem(entry: RegistryItemModuleEntry): RegistryCatalogI
 
       return toRegistrySourceFile(file, sourceFile);
     }),
-    previewSourceFile: getPreviewSourceFile(entry.path, entry.previewSource),
-    hasPreview: entry.hasPreview,
+    previewSourceFile: getPreviewSourceFile(itemRoot, previewSource),
+    hasPreview: previewSource.length > 0,
     hasUsage: entry.hasUsage,
     usageSource: entry.usageSource,
   };
+}
+
+export function hasRegistryPreviewExport(source: string): boolean {
+  const code = stripCommentsAndText(source);
+  const namedDeclarationPattern =
+    /(?:^|[;\n])\s*export\s+(?:(?:async\s+)?function|(?:const|let|var)|(?:abstract\s+)?class)\s+Preview\b/u;
+
+  return namedDeclarationPattern.test(code) || hasNamedPreviewExportSpecifier(code);
+}
+
+function hasNamedPreviewExportSpecifier(source: string): boolean {
+  for (const match of source.matchAll(/(?:^|[;\n])\s*export\s+(?!type\b)\{([^}]*)\}/gu)) {
+    if (match[1]?.split(",").some(isPreviewExportSpecifier)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+function isPreviewExportSpecifier(specifier: string): boolean {
+  const normalized = specifier.trim().replace(/\s+/gu, " ");
+
+  if (!normalized || normalized.startsWith("type ")) {
+    return false;
+  }
+
+  return (normalized.match(/\s+as\s+([A-Za-z_$][\w$]*)$/u)?.[1] ?? normalized) === "Preview";
+}
+
+function stripCommentsAndText(source: string): string {
+  let output = "";
+  let index = 0;
+
+  while (index < source.length) {
+    const char = source[index];
+    const nextChar = source[index + 1];
+
+    if (char === "/" && nextChar === "/") {
+      const nextLineIndex = source.indexOf("\n", index + 2);
+
+      if (nextLineIndex === -1) {
+        break;
+      }
+
+      output += "\n";
+      index = nextLineIndex + 1;
+      continue;
+    }
+
+    if (char === "/" && nextChar === "*") {
+      const endIndex = source.indexOf("*/", index + 2);
+      const comment = source.slice(index, endIndex === -1 ? source.length : endIndex + 2);
+
+      output += comment.replace(/[^\n]/gu, " ");
+      index += comment.length;
+      continue;
+    }
+
+    if (char === '"' || char === "'" || char === "`") {
+      const endIndex = getTextLiteralEndIndex(source, index, char);
+      const literal = source.slice(index, endIndex);
+
+      output += literal.replace(/[^\n]/gu, " ");
+      index = endIndex;
+      continue;
+    }
+
+    output += char;
+    index += 1;
+  }
+
+  return output;
+}
+
+function getTextLiteralEndIndex(source: string, startIndex: number, delimiter: string): number {
+  let index = startIndex + 1;
+
+  while (index < source.length) {
+    if (source[index] === "\\") {
+      index += 2;
+      continue;
+    }
+
+    if (source[index] === delimiter) {
+      return index + 1;
+    }
+
+    index += 1;
+  }
+
+  return source.length;
 }
 
 function getRegistrySourceFileDefinitions(
@@ -193,31 +325,18 @@ function toRegistryFileDefinition(file: RegistrySourceFileDefinition): RegistryF
   return registryFile;
 }
 
-function compareRegistryItemNames(
-  a: Pick<RegistryItemDefinition, "name" | "title">,
-  b: Pick<RegistryItemDefinition, "name" | "title">,
-): number {
-  return (
-    registryItemCollator.compare(
-      a.title ?? getDefaultRegistryTitle(a.name),
-      b.title ?? getDefaultRegistryTitle(b.name),
-    ) || registryItemCollator.compare(a.name, b.name)
-  );
-}
+function getPreviewSourceFile(itemRoot: string, source: string): RegistryPreviewSourceFile {
+  const path = getPreviewPath(itemRoot);
 
-function getDefaultRegistryTitle(name: string): string {
-  return name
-    .split("-")
-    .map((segment) => `${segment.slice(0, 1).toUpperCase()}${segment.slice(1)}`)
-    .join(" ");
-}
-
-function getPreviewSourceFile(path: string, source: string): RegistryPreviewSourceFile {
   return {
     path,
     fileName: getFileName(path),
     source,
   };
+}
+
+function getPreviewPath(itemRoot: string): string {
+  return `${itemRoot}/_preview.tsx`;
 }
 
 function toRegistrySourceFile(

@@ -1,7 +1,8 @@
-import { normalizeGlobFiles } from "../glob";
+import { allRegistryMdxItems, allRegistryPreviews } from "content-collections";
+
 import {
-  createRegistryCatalogItems,
-  createRegistryMetadataItems,
+  createRegistryCatalogItemsFromEntries,
+  createRegistryMetadataItemsFromEntries,
   type RegistryCatalogItem,
 } from "./catalog-builder";
 import { registryCatalog } from "./item-types";
@@ -10,16 +11,11 @@ export type RegistryCatalogWithItems = typeof registryCatalog & {
   items: RegistryCatalogItem[];
 };
 
-const registryItemSources = import.meta.glob<string>("../../../registry/items/**/_registry.mdx", {
-  eager: true,
-  import: "default",
-  query: "?raw",
-});
-
-const registryItemSourcesByPath = normalizeGlobFiles(registryItemSources);
-
-export const registryMetadataItems = createRegistryMetadataItems(registryItemSourcesByPath);
-export const registryItems = createRegistryCatalogItems(registryItemSourcesByPath);
+export const registryMetadataItems = createRegistryMetadataItemsFromEntries(allRegistryMdxItems);
+export const registryItems = createRegistryCatalogItemsFromEntries(
+  allRegistryMdxItems,
+  allRegistryPreviews,
+);
 
 export function getRegistryItem(name: string): RegistryCatalogItem | undefined {
   return registryItems.find((item) => item.name === name);

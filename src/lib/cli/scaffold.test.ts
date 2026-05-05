@@ -31,8 +31,10 @@ describe("registry scaffold", () => {
     for (const type of registryScaffoldItemTypes) {
       const plan = createRegistryScaffoldPlan(getScaffoldInput({ type }));
       const expectedSourcePath = expectedSourcePaths.get(type);
+      const expectedPreviewPath = expectedSourcePath ? `${plan.itemRoot}/_preview.tsx` : null;
       const expectedFilePaths = [
         ...(expectedSourcePath ? [expectedSourcePath] : []),
+        ...(expectedPreviewPath ? [expectedPreviewPath] : []),
         `${plan.itemRoot}/_registry.mdx`,
       ].toSorted();
 
@@ -58,6 +60,7 @@ describe("registry scaffold", () => {
     expect(getRegistryMdx(plan)).toContain(
       `import { ExampleItem } from "@/components/ui/ai/example-item";`,
     );
+    expect(getRegistryPreview(plan)).toContain(`import { ExampleItem } from "./example-item";`);
   });
 
   test("includes explicit files for item types that need them", () => {
@@ -93,7 +96,18 @@ describe("registry scaffold", () => {
       const plan = createRegistryScaffoldPlan(getScaffoldInput({ type }));
 
       expect(getRegistryMdx(plan)).toContain(importSnippet);
+      expect(getRegistryPreview(plan)).not.toContain(importSnippet);
     }
+  });
+
+  test("keeps previews in explicit client files", () => {
+    const plan = createRegistryScaffoldPlan(getScaffoldInput({ type: "registry:hook" }));
+
+    expect(getRegistryMdx(plan)).not.toContain("export function Preview");
+    expect(getRegistryMdx(plan)).not.toContain(`from "./example-item"`);
+    expect(getRegistryPreview(plan)).toContain(`"use client";`);
+    expect(getRegistryPreview(plan)).toContain(`import { useExampleItem } from "./example-item";`);
+    expect(getRegistryPreview(plan)).toContain("export function Preview");
   });
 
   test("requires targets for page and file items", () => {
@@ -211,6 +225,16 @@ function getRegistryMdx(plan: RegistryScaffoldPlan): string {
   }
 
   return registryMdx.content;
+}
+
+function getRegistryPreview(plan: RegistryScaffoldPlan): string {
+  const registryPreview = plan.files.find((file) => file.path.endsWith("/_preview.tsx"));
+
+  if (!registryPreview) {
+    throw new Error("Expected registry preview file.");
+  }
+
+  return registryPreview.content;
 }
 
 function getScaffoldFiles(plan: RegistryScaffoldPlan): Record<string, string> {

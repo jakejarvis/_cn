@@ -116,10 +116,11 @@ Create a folder under `registry/items/<section>/<item-name>/`.
 ```text
 registry/items/components/example-card/
   _registry.mdx
+  _preview.tsx
   example-card.tsx
 ```
 
-Write metadata, usage docs, and the preview together in `_registry.mdx`.
+Write metadata and usage docs in `_registry.mdx`.
 
 ````mdx
 ---
@@ -133,8 +134,6 @@ localRegistryDependencies:
   - other-local-item
 ---
 
-import { ExampleCard } from "./example-card";
-
 Use the component anywhere you need a compact content summary.
 
 ```tsx
@@ -144,15 +143,23 @@ export function Example() {
   return <ExampleCard />;
 }
 ```
+````
+
+Put the interactive preview in `_preview.tsx`.
+
+```tsx
+"use client";
+
+import { ExampleCard } from "./example-card";
 
 export function Preview() {
   return <ExampleCard />;
 }
-````
+```
 
-For a one-file component, the catalog infers the source file from the item root and `name`, then emits a shadcn target placeholder such as `@ui/example-card.tsx`. List `files` explicitly in frontmatter for hooks, libs, blocks, pages, custom target paths, or any item with multiple published files; file paths are relative to the item `_registry.mdx` file. Metadata-only styles, themes, fonts, bases, and universal items can omit `files`. Do not publish `_registry.mdx` or other authoring-only files.
+For a one-file component, the catalog infers the source file from the item root and `name`, then emits a shadcn target placeholder such as `@ui/example-card.tsx`. List `files` explicitly in frontmatter for hooks, libs, blocks, pages, custom target paths, or any item with multiple published files; file paths are relative to the item `_registry.mdx` file. Metadata-only styles, themes, fonts, bases, and universal items can omit `files`. Do not publish `_registry.mdx`, `_preview.tsx`, or other authoring-only files.
 
-The MDX body renders as the optional Usage section on the docs page. Fenced code blocks are syntax highlighted and keep the docs site's copy button. The optional `Preview` export is compiled as a client-only virtual module, so hooks and event handlers are fine there, but server-only logic should stay out of previews. Use `localRegistryDependencies` for dependencies on other local registry items; they are converted into canonical registry URLs in the public JSON.
+The MDX body renders as the optional Usage section on the docs page. Fenced code blocks are syntax highlighted and keep the docs site's copy button. `_preview.tsx` is authoring-only and can use local state or events behind its `"use client"` boundary, but server-only logic should stay out of previews. Use `localRegistryDependencies` for dependencies on other local registry items; they are converted into canonical registry URLs in the public JSON.
 
 ## Server
 

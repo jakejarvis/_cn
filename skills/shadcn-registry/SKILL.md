@@ -40,7 +40,7 @@ Use kebab-case folder and file names.
 
 ## `_registry.mdx`
 
-Each item uses `_registry.mdx` for YAML frontmatter, optional public MDX Usage, and an optional named `Preview` export. Never list `_registry.mdx` in `files`.
+Each item uses `_registry.mdx` for YAML frontmatter and optional public MDX Usage. Put interactive previews in sibling `_preview.tsx` files. Never list `_registry.mdx` or `_preview.tsx` in `files`.
 
 Common frontmatter:
 
@@ -61,19 +61,25 @@ Dependency fields:
 
 Do not add `registry/items/**` prefixes or `sourcePath` frontmatter. The catalog derives the source path from the item folder and authored `files[].path`.
 
-Minimal usage and preview:
+Minimal usage:
 
 ````mdx
-import { ExampleCard } from "./example-card";
-
 ```tsx
 import { ExampleCard } from "@/components/ui/example-card";
 ```
+````
+
+Minimal preview:
+
+```tsx
+"use client";
+
+import { ExampleCard } from "./example-card";
 
 export function Preview() {
   return <ExampleCard />;
 }
-````
+```
 
 Keep previews client-safe: static data, local state, and events are fine; avoid network calls, auth, server functions, env reads, and app-only providers.
 

@@ -1,4 +1,8 @@
-import { createRegistryCatalogItems, type RegistryCatalogItem } from "../registry/catalog-builder";
+import {
+  createRegistryCatalogItems,
+  hasRegistryPreviewExport,
+  type RegistryCatalogItem,
+} from "../registry/catalog-builder";
 import { getFileName, getParentPath, isInvalidRegistryRelativePath } from "../registry/paths";
 
 export type RegistryDiagnosticLevel = "error" | "warning";
@@ -24,18 +28,21 @@ type RegistryItemParseResult = {
 };
 
 const registryItemAuthoringFile = "_registry.mdx";
+const registryItemPreviewFile = "_preview.tsx";
 const ignoredRegistryFileNames = new Set([".DS_Store"]);
 
 export function getRegistryDiagnostics(input: RegistryDiagnosticsInput): RegistryDiagnostics {
   const files = normalizeRegistryFiles(input.files);
   const itemSources = getRegistryItemSources(files);
-  const parseResult = parseRegistryItemSources(itemSources);
+  const previewSources = getRegistryPreviewSources(files);
+  const parseResult = parseRegistryItemSources(itemSources, previewSources);
   const diagnostics: RegistryDiagnostics = {
     errors: parseResult.errors,
     warnings: [],
   };
 
   diagnostics.errors.push(...getRegistryItemValidationErrors(parseResult.items, files));
+  diagnostics.errors.push(...getRegistryPreviewValidationErrors(previewSources));
   diagnostics.errors.push(...getDocsValidationErrors(files));
   diagnostics.warnings.push(...getSuspiciousRegistryFileWarnings(files, parseResult.items));
 
@@ -67,8 +74,20 @@ function getRegistryItemSources(files: Readonly<Record<string, string>>): Record
   );
 }
 
+function getRegistryPreviewSources(
+  files: Readonly<Record<string, string>>,
+): Record<string, string> {
+  return Object.fromEntries(
+    Object.entries(files).filter(
+      ([path]) =>
+        path.startsWith("registry/items/") && getFileName(path) === registryItemPreviewFile,
+    ),
+  );
+}
+
 function parseRegistryItemSources(
   sources: Readonly<Record<string, string>>,
+  previewSources: Readonly<Record<string, string>>,
 ): RegistryItemParseResult {
   const result: RegistryItemParseResult = {
     items: [],
@@ -76,8 +95,16 @@ function parseRegistryItemSources(
   };
 
   for (const [path, source] of Object.entries(sources)) {
+    const previewPath = `${getParentPath(path)}/${registryItemPreviewFile}`;
+    const previewSource = previewSources[previewPath];
+
     try {
-      result.items.push(...createRegistryCatalogItems({ [path]: source }));
+      result.items.push(
+        ...createRegistryCatalogItems(
+          { [path]: source },
+          previewSource === undefined ? {} : { [previewPath]: previewSource },
+        ),
+      );
     } catch (error) {
       result.errors.push(
         createError(
@@ -89,6 +116,16 @@ function parseRegistryItemSources(
   }
 
   return result;
+}
+
+function getRegistryPreviewValidationErrors(
+  previewSources: Readonly<Record<string, string>>,
+): RegistryDiagnostic[] {
+  return Object.entries(previewSources).flatMap(([path, source]) =>
+    hasRegistryPreviewExport(source)
+      ? []
+      : [createError(path, `Registry preview ${path} must export a named Preview component.`)],
+  );
 }
 
 function getRegistryItemValidationErrors(
@@ -105,19 +142,19 @@ function getRegistryItemValidationErrors(
     if (existingPath) {
       errors.push(
         createError(
-          item.previewSourceFile.path,
+          item.registryMdxFilePath,
           `Duplicate registry item name "${item.name}" also used in ${existingPath}.`,
         ),
       );
     } else {
-      seenNames.set(item.name, item.previewSourceFile.path);
+      seenNames.set(item.name, item.registryMdxFilePath);
     }
 
     for (const registryDependency of item.registryDependencies ?? []) {
       if (registryItemNames.has(registryDependency)) {
         errors.push(
           createError(
-            item.previewSourceFile.path,
+            item.registryMdxFilePath,
             `Registry item "${item.name}" must use a URL for local registry dependency "${registryDependency}".`,
           ),
         );
@@ -236,9 +273,7 @@ function getSuspiciousRegistryFileWarnings(
   items: readonly RegistryCatalogItem[],
 ): RegistryDiagnostic[] {
   const itemRoots = getRegistryItemRoots(files);
-  const itemsByRoot = new Map(
-    items.map((item) => [getParentPath(item.previewSourceFile.path), item]),
-  );
+  const itemsByRoot = new Map(items.map((item) => [getParentPath(item.registryMdxFilePath), item]));
   const warnings: RegistryDiagnostic[] = [];
 
   for (const root of itemRoots) {
@@ -309,7 +344,11 @@ function isRegistryMdx(path: string): boolean {
 function isKnownAuthoringOrIgnoredFile(path: string): boolean {
   const fileName = getFileName(path);
 
-  return fileName === registryItemAuthoringFile || ignoredRegistryFileNames.has(fileName);
+  return (
+    fileName === registryItemAuthoringFile ||
+    fileName === registryItemPreviewFile ||
+    ignoredRegistryFileNames.has(fileName)
+  );
 }
 
 function createError(path: string, message: string): RegistryDiagnostic {

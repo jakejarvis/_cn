@@ -4,7 +4,7 @@ import { RegistryItemDoc } from "@/components/docs/component-doc";
 import { ContentSkeleton } from "@/components/docs/content-skeleton";
 import { DocsLayout } from "@/components/docs/docs-layout";
 
-import { registryItems } from "../lib/registry/catalog";
+import { registryNavigationItems } from "../lib/registry/catalog-navigation";
 import { getRegistryItemDetail } from "../lib/registry/detail.functions";
 import {
   getRegistryItemRoutePath,
@@ -16,7 +16,11 @@ import { getMarkdownAlternatePath, getSeoHead, getTechArticleJsonLd } from "../l
 
 export const Route = createFileRoute("/$section/$name")({
   loader: async ({ params }) => {
-    const sectionItem = getRegistrySectionItem(params.section, params.name, registryItems);
+    const sectionItem = getRegistrySectionItem(
+      params.section,
+      params.name,
+      registryNavigationItems,
+    );
 
     if (!sectionItem) {
       throw notFound();

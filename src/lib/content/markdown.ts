@@ -16,6 +16,13 @@ export type MarkdownLinkListItem = {
   description: string;
 };
 
+export type MarkdownLinkListPage = {
+  title: string;
+  description?: string;
+  items: readonly MarkdownLinkListItem[];
+  emptyMessage: string;
+};
+
 export function joinMarkdownBlocks(blocks: readonly string[]): string {
   return `${blocks.filter((block) => block.trim().length > 0).join("\n\n")}\n`;
 }
@@ -28,6 +35,17 @@ export function formatMarkdownLinkList(items: readonly MarkdownLinkListItem[]): 
   return items
     .map((item) => `- [${escapeMarkdownLinkText(item.title)}](${item.href}): ${item.description}`)
     .join("\n");
+}
+
+export function formatMarkdownLinkListPage({
+  title,
+  description = "",
+  items,
+  emptyMessage,
+}: MarkdownLinkListPage): string {
+  const itemList = formatMarkdownLinkList(items);
+
+  return joinMarkdownBlocks([`# ${title}`, description, itemList || emptyMessage]);
 }
 
 export function formatCodeBlock(code: string, language: string): string {

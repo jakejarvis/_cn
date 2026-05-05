@@ -24,15 +24,11 @@ type RegistryPreviewModule = React.ComponentType;
 
 const registryUsageModules = import.meta.glob<MdxContentModule>(
   "../../../registry/items/**/_registry.mdx",
-  {
-    query: "?registry-usage",
-  },
 );
 const registryPreviewModules = import.meta.glob<RegistryPreviewModule>(
-  "../../../registry/items/**/_registry.mdx",
+  "../../../registry/items/**/_preview.tsx",
   {
     import: "Preview",
-    query: "?registry-preview",
   },
 );
 
@@ -49,7 +45,7 @@ export type HighlightedRegistryPreviewSourceFile = RegistryPreviewSourceFileWith
 
 export type RegistryItemDetail = Omit<
   RegistryCatalogItemWithSources,
-  "hasUsage" | "usageSource" | "previewSourceFile" | "sourceFiles"
+  "hasUsage" | "previewSourceFile" | "registryMdxFilePath" | "sourceFiles" | "usageSource"
 > & {
   preview?: RenderedPreview;
   previewSourceFile: HighlightedRegistryPreviewSourceFile;
@@ -81,7 +77,7 @@ async function highlightRegistryItem(
     hasPreview ? renderPreview(item.previewSourceFile.path) : null,
     highlightPreviewSourceFile(item, item.previewSourceFile),
     Promise.all(item.sourceFiles.map((file) => highlightSourceFile(item, file))),
-    renderUsage(item.previewSourceFile.path, hasUsage),
+    renderUsage(item.registryMdxFilePath, hasUsage),
   ]);
 
   return {

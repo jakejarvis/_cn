@@ -1,4 +1,4 @@
-import { formatMarkdownLinkList, joinMarkdownBlocks } from "../content/markdown";
+import { formatMarkdownLinkListPage, joinMarkdownBlocks } from "../content/markdown";
 import {
   createLinkedMarkdownResponse,
   createMarkdownNotFoundResponse,
@@ -23,15 +23,15 @@ export function createAuthoredDocsIndexMarkdown(
     "description" | "routePath" | "title"
   >[],
 ): string {
-  const pageList = formatMarkdownLinkList(
-    pages.map((page) => ({
+  return formatMarkdownLinkListPage({
+    title: "Docs",
+    emptyMessage: "No docs pages are published yet.",
+    items: pages.map((page) => ({
       title: page.title,
       href: getCanonicalDocsUrl(page.routePath),
       description: page.description || "Documentation page.",
     })),
-  );
-
-  return joinMarkdownBlocks(["# Docs", pageList || "No docs pages are published yet."]);
+  });
 }
 
 export function getAuthoredDocsPageMarkdown(path: string): string | null {

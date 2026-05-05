@@ -6,7 +6,7 @@ order: 3
 
 This template is designed to work well with coding agents and LLM-powered tools. It exposes Markdown-first routes for reading context, and it ships an installable Agent Skill for authoring registry items correctly.
 
-## Install The Registry Skill
+## Install the Registry Skill
 
 Install the `_cn` registry authoring skill from the upstream template:
 
@@ -40,9 +40,9 @@ Every docs page, the registry catalog, and each registry item also has a Markdow
 - [`/docs.md`](/docs.md)
 - [`/docs/agents.md`](/docs/agents.md)
 - [`/registry.md`](/registry.md)
-- [`/registry/example-card.md`](/registry/example-card.md)
+- [`/components/example-card.md`](/components/example-card.md)
 
-Inspired by [Fumadocs](https://www.fumadocs.dev/docs/headless/utils/negotiation), "human" permalinks support Markdown content negotiation too. AI clients can request `text/markdown`, `text/x-markdown`, or `text/plain` in the `Accept` header on pages like [`/docs`](/docs) or [`/registry/example-card`](/registry/example-card) and receive Markdown without changing URLs.
+Inspired by [Fumadocs](https://www.fumadocs.dev/docs/headless/utils/negotiation), "human" permalinks support Markdown content negotiation too. AI clients can request `text/markdown`, `text/x-markdown`, or `text/plain` in the `Accept` header on pages like [`/docs`](/docs) or [`/components/example-card`](/components/example-card) and receive Markdown without changing URLs.
 
 ## Recommended Agent Workflow
 
@@ -51,6 +51,6 @@ For registry authoring tasks, agents should:
 1. Read `AGENTS.md`, this docs section, and `/llms.txt` or `/llms-full.txt` for project context.
 2. Use the `shadcn-registry` skill when available.
 3. Scaffold new items with `bun --bun ./scripts/new.ts --type <type> --name <kebab-name> --description "<description>"`.
-4. Add `--target` for `registry:page`, `registry:file`, and custom alias installs like `@ui/ai/<file>.tsx`; use `--file-extension` for non-`ts` file or targeted universal items.
+4. Add `--target` for `registry:page`, `registry:file`, custom alias installs like `@ui/ai/<file>.tsx`, and targeted `registry:item` files; use `--file-extension` for `registry:file` and targeted `registry:item` files.
 5. Edit the generated source, `_registry.mdx`, and `_preview.tsx` with usage docs, previews, and dependency metadata.
-6. Run focused checks and `bun --bun ./scripts/doctor.ts` before handoff.
+6. Run `vp check --fix` on touched files, `bun --bun ./scripts/doctor.ts`, and `vp build` before handoff when docs, routes, registry JSON, catalog loading, or source loading changed.

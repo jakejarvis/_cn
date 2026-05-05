@@ -4,16 +4,37 @@ description: Install and run the registry template locally.
 order: 1
 ---
 
-Install dependencies with [Vite+](https://viteplus.dev/guide/).
+After forking the template, install dependencies with [Vite+](https://viteplus.dev/guide/) and start the local docs app.
 
 ```sh
 vp install
-```
-
-Start the development server.
-
-```sh
 vp dev
 ```
 
-Open the local URL from Vite+ and browse the docs and registry catalog.
+Open the local URL from Vite+ to preview your docs, registry catalog, and install pages.
+
+## Customize the Registry
+
+Update `registry/config.ts` before publishing your fork. This file controls the public registry identity, namespace, description, homepage, repository URL, and generated install URLs.
+
+## Add Registry Items
+
+Scaffold new installable items under `registry/items/**` with the starter script.
+
+```sh
+bun --bun ./scripts/new.ts --type registry:ui --name example-card --description "A compact card component."
+```
+
+You can also run `bun --bun ./scripts/new.ts` for an interactive prompt. Use `--target` for `registry:page`, `registry:file`, custom alias installs such as `@ui/ai/prompt-input.tsx`, or targeted `registry:item` files.
+
+The scaffold creates the item source, `_registry.mdx` metadata and usage docs, and an optional `_preview.tsx` preview. Public documentation pages live directly in `registry/docs/`.
+
+## Verify Changes
+
+Run the registry doctor after item changes, check the files you touched, and build before publishing.
+
+```sh
+bun --bun ./scripts/doctor.ts
+vp check --fix <touched-file>
+vp build
+```

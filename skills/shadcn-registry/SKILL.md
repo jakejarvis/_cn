@@ -17,7 +17,7 @@ Use this skill for installable registry items across all public shadcn registry 
 bun --bun ./scripts/new.ts --type registry:ui --name example-card --description "A compact card component."
 ```
 
-Use `--target` for `registry:page`, `registry:file`, and custom alias installs such as `@ui/ai/prompt-input.tsx`; use `--file-extension` for non-`ts` file items; provide font flags for `registry:font` in noninteractive mode.
+Use `--target` for `registry:page`, `registry:file`, source-backed custom alias installs such as `@ui/ai/prompt-input.tsx`, and targeted `registry:item` files. Use `--file-extension` for `registry:file` and targeted `registry:item` files. Provide font flags for `registry:font` in noninteractive mode.
 
 ## Type Map
 

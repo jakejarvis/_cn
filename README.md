@@ -11,7 +11,7 @@ The scaffold contains a typed registry authoring layer, authored docs, live prev
 
 ## Quick Start
 
-You can either [create a new repository](https://github.com/new?template_name=_cn&template_owner=jakejarvis) based on this template directly in your GitHub account/organization, or use a tool like [`degit`](https://github.com/Rich-Harris/degit) to scaffold a fresh repo locally with the latest _cn code.
+You can either [create a new repository](https://github.com/new?template_name=_cn&template_owner=jakejarvis) based on this template directly in your GitHub account/organization, or use a tool like [`degit`](https://github.com/Rich-Harris/degit) to scaffold a fresh repo locally with the latest \_cn code.
 
 ```bash
 npx degit jakejarvis/_cn
@@ -171,9 +171,9 @@ The public registry index is available at both the root and `/r` paths, while in
 - `/llms.txt` and `/llms-full.txt` are generated from the same Markdown docs and registry item pages used by the site.
 
 > [!TIP]
-> _cn validates authored registry metadata against schemas directly from [`shadcn/schema`](https://github.com/shadcn-ui/ui/blob/main/packages/shadcn/src/registry/schema.ts) to ensure compatibility.
+> \_cn validates authored registry metadata against schemas directly from [`shadcn/schema`](https://github.com/shadcn-ui/ui/blob/main/packages/shadcn/src/registry/schema.ts) to ensure compatibility.
 
-### Content Negotation
+### Content Negotiation
 
 Human-facing registry URLs support the shadcn CLI's request headers. CLI requests with `Accept: application/vnd.shadcn.v1+json` or `User-Agent: shadcn` receive the shadcn-compliant JSON from the same URL as the human-readable docs page:
 
@@ -190,7 +190,7 @@ All pages also support Markdown content negotiation (inspired by [Fumadocs](http
 - [ ] Run `bun --bun ./scripts/doctor.ts` to verify changes.
 - [ ] Run `vp check` and `vp build`.
 - [ ] Deploy!
-- [ ] Test the install commands with npm, pnpm, yarn, and bun.
+- [ ] Test the install commands with npm, pnpm, yarn, bun, vite+, and deno.
 - [ ] Optionally submit your registry to shadcn's [official directory](https://ui.shadcn.com/docs/directory).
 
 ## Gotchas

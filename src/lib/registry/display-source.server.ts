@@ -45,8 +45,10 @@ export function getRegistryDisplaySource(
 ): string {
   const displayImportPaths = getRegistryDisplayImportPaths(item, options);
   const importerPath = file.sourcePath ?? file.path;
+  const isPreviewSourceFile = isRegistryPreviewSourceFile(file);
+  const source = isPreviewSourceFile ? cleanRegistryPreviewDisplaySource(file.source) : file.source;
 
-  return file.source.replace(
+  const displaySource = source.replace(
     importSpecifierPattern,
     (match: string, prefix: string, specifier: string, suffix: string) => {
       const sourcePath = resolveRegistrySourceImportPath(
@@ -66,6 +68,104 @@ export function getRegistryDisplaySource(
       return displayImportPath ? `${prefix}${displayImportPath}${suffix}` : match;
     },
   );
+
+  return isPreviewSourceFile ? displaySource.trim() : displaySource;
+}
+
+function isRegistryPreviewSourceFile(file: RegistryDisplaySourceFile): boolean {
+  return getFileName(file.path) === "_preview.tsx";
+}
+
+function cleanRegistryPreviewDisplaySource(source: string): string {
+  return stripUseClientDirective(stripToolingDirectiveComments(source));
+}
+
+function stripUseClientDirective(source: string): string {
+  return source.replace(/^(?:\uFEFF)?\s*(?:"use client"|'use client');?[ \t]*(?:\r?\n)+/u, "");
+}
+
+function stripToolingDirectiveComments(source: string): string {
+  let output = "";
+  let index = 0;
+
+  while (index < source.length) {
+    const char = source[index];
+    const nextChar = source[index + 1];
+
+    if (char === "/" && nextChar === "/") {
+      const endIndex = getLineCommentEndIndex(source, index);
+      const comment = source.slice(index, endIndex);
+
+      if (!isToolingDirectiveComment(comment)) {
+        output += comment;
+      }
+
+      index = endIndex;
+      continue;
+    }
+
+    if (char === "/" && nextChar === "*") {
+      const endIndex = getBlockCommentEndIndex(source, index);
+      const comment = source.slice(index, endIndex);
+
+      if (!isToolingDirectiveComment(comment)) {
+        output += comment;
+      }
+
+      index = endIndex;
+      continue;
+    }
+
+    if (char === '"' || char === "'" || char === "`") {
+      const endIndex = getTextLiteralEndIndex(source, index, char);
+
+      output += source.slice(index, endIndex);
+      index = endIndex;
+      continue;
+    }
+
+    output += char;
+    index += 1;
+  }
+
+  return output;
+}
+
+function isToolingDirectiveComment(comment: string): boolean {
+  return /\b(?:eslint(?:-[\w-]+)?|biome(?:-[\w-]+)?|oxlint(?:-[\w-]+)?|prettier(?:-[\w-]+)?|rome(?:-[\w-]+)?|deno-lint-ignore(?:-file)?|tslint:(?:disable|enable)|stylelint-(?:disable|enable)|(?:istanbul|c8|v8)\s+ignore)\b|@ts-(?:check|nocheck|ignore|expect-error)\b/iu.test(
+    comment,
+  );
+}
+
+function getLineCommentEndIndex(source: string, startIndex: number): number {
+  const nextLineIndex = source.indexOf("\n", startIndex + 2);
+
+  return nextLineIndex === -1 ? source.length : nextLineIndex;
+}
+
+function getBlockCommentEndIndex(source: string, startIndex: number): number {
+  const endIndex = source.indexOf("*/", startIndex + 2);
+
+  return endIndex === -1 ? source.length : endIndex + 2;
+}
+
+function getTextLiteralEndIndex(source: string, startIndex: number, delimiter: string): number {
+  let index = startIndex + 1;
+
+  while (index < source.length) {
+    if (source[index] === "\\") {
+      index += 2;
+      continue;
+    }
+
+    if (source[index] === delimiter) {
+      return index + 1;
+    }
+
+    index += 1;
+  }
+
+  return source.length;
 }
 
 function resolveRegistryAliasImportPath(importerPath: string, specifier: string): string | null {

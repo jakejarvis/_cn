@@ -1,14 +1,15 @@
 import { createServerFn } from "@tanstack/react-start";
-import { setResponseHeaders } from "@tanstack/react-start/server";
+import { setResponseHeader } from "@tanstack/react-start/server";
 
 import type { RegistrySearchInput } from "./registry-search";
 
 export const searchRegistryItemsFn = createServerFn({ method: "GET" })
-  .inputValidator(validateRegistrySearchInput)
+  .validator(validateRegistrySearchInput)
   .handler(async ({ data }) => {
-    setResponseHeaders({
-      "Cache-Control": "public, max-age=0, s-maxage=300, stale-while-revalidate=3600",
-    });
+    setResponseHeader(
+      "Cache-Control",
+      "public, max-age=0, s-maxage=300, stale-while-revalidate=3600",
+    );
 
     const { searchRegistryItems } = await import("./registry-search");
 

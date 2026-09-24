@@ -94,6 +94,13 @@ const config = defineConfig({
           "typescript/no-unused-vars": "off",
         },
       },
+      {
+        // content-collections exposes document metadata as `_meta`.
+        files: ["content-collections.ts"],
+        rules: {
+          "no-underscore-dangle": ["warn", { allow: ["_meta"] }],
+        },
+      },
     ],
     ignorePatterns: [
       "**/.nitro/**",

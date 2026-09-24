@@ -101,14 +101,11 @@ function SidebarItems({
   pathname: string;
   onNavigate?: () => void;
 }) {
-  let previousGroup: string | undefined;
-
   return (
     <ul className="flex flex-col gap-0.5">
-      {items.map((item) => {
-        const group = item.kind === "docs" ? item.group : undefined;
-        const showGroup = group && group !== previousGroup;
-        previousGroup = group;
+      {items.map((item, index) => {
+        const group = getSidebarItemGroup(item);
+        const showGroup = group && (index === 0 || group !== getSidebarItemGroup(items[index - 1]));
 
         return (
           <li key={`${item.kind}:${item.kind === "docs" ? item.slug : item.name}`}>
@@ -181,4 +178,8 @@ function isRegistryItemActive(
   pathname: string,
 ) {
   return pathname === item.routePath;
+}
+
+function getSidebarItemGroup(item: SiteNavigationItem | undefined): string | undefined {
+  return item?.kind === "docs" ? item.group : undefined;
 }

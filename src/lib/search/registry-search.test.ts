@@ -1,4 +1,4 @@
-import { describe, expect, test } from "vitest";
+import { describe, expect, test } from "vite-plus/test";
 
 import type { DocsPage } from "../docs/catalog";
 import { docsPages } from "../docs/catalog";

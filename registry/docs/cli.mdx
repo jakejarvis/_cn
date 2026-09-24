@@ -19,3 +19,31 @@ npx shadcn@latest add https://underscore-cn.vercel.app/components/example-card
 ```
 
 Use the package manager selector on item pages to switch between npm, pnpm, yarn, bun, vite+, and deno commands.
+
+## Search
+
+Registries hosted with this template support shadcn's [dynamic search](https://ui.shadcn.com/docs/registry/dynamic-search). Add the registry to a project's `components.json`:
+
+```json
+{
+  "registries": {
+    "@_cn": "https://underscore-cn.vercel.app/r/{name}.json"
+  }
+}
+```
+
+Then search, list, and view items from the CLI:
+
+```sh
+npx shadcn@latest search @_cn --query card
+npx shadcn@latest list @_cn
+npx shadcn@latest view @_cn/example-card
+```
+
+The CLI sends `q`, `type`, `limit`, and `offset` query parameters to the registry index. The server filters and ranks items and returns a `pagination` object, so the CLI doesn't need to download and filter the full catalog:
+
+```sh
+curl "https://underscore-cn.vercel.app/r/registry.json?q=card&type=registry:ui&limit=10"
+```
+
+Requests without those parameters receive the full, unpaginated index.

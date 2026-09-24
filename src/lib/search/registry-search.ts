@@ -2,7 +2,7 @@ import { create, insertMultiple, search as searchOrama } from "@orama/orama";
 import type { Orama } from "@orama/orama";
 
 import { docsPages, type DocsPage } from "../docs/catalog";
-import { registryItems } from "../registry/catalog";
+import { getRegistryItem, registryItems } from "../registry/catalog";
 import type { RegistryCatalogItem } from "../registry/catalog-builder";
 import { getRegistryTypeLabel } from "../registry/item-types";
 import {
@@ -106,9 +106,22 @@ export type RegistrySearchInput = {
   limit?: number;
 };
 
+export type RegistryCatalogSearchInput = {
+  query: string;
+  types: readonly string[];
+  limit: number;
+  offset: number;
+};
+
+type RegistryCatalogSearchResponse = {
+  items: RegistryCatalogItem[];
+  total: number;
+};
+
 let registrySearchDatabasePromise: Promise<RegistrySearchDatabase> | undefined;
 let registrySearchRecordsCache: RegistrySearchRecord[] | undefined;
 let registrySearchRecordMapCache: Map<string, RegistrySearchRecord> | undefined;
+let registryCatalogSearchDatabasePromise: Promise<RegistrySearchDatabase> | undefined;
 
 export function getRegistrySearchRecords(): RegistrySearchRecord[] {
   registrySearchRecordsCache ??= createRegistrySearchRecords(
@@ -202,6 +215,50 @@ export async function searchRegistryRecords(
       return record ? [toRegistrySearchResult(record, hit.score)] : [];
     }),
   };
+}
+
+/**
+ * Filters and ranks registry items for the shadcn CLI's dynamic search, which calls the
+ * registry index with `q`, `type`, `limit`, and `offset`. Docs pages are excluded.
+ */
+export async function searchRegistryCatalog({
+  query,
+  types,
+  limit,
+  offset,
+}: RegistryCatalogSearchInput): Promise<RegistryCatalogSearchResponse> {
+  const normalizedQuery = query.trim();
+  const rankedNames = normalizedQuery
+    ? await getRankedRegistryItemNames(normalizedQuery)
+    : registryItems.map((item) => item.name);
+  const matchingItems = rankedNames.flatMap((name) => {
+    const item = getRegistryItem(name);
+
+    return item && (types.length === 0 || types.includes(item.type)) ? [item] : [];
+  });
+
+  return {
+    items: matchingItems.slice(offset, offset + limit),
+    total: matchingItems.length,
+  };
+}
+
+async function getRankedRegistryItemNames(query: string): Promise<string[]> {
+  registryCatalogSearchDatabasePromise ??= createRegistrySearchDatabase(
+    getRegistrySearchRecords().filter((record) => record.section !== "docs"),
+  );
+
+  const database = await registryCatalogSearchDatabasePromise;
+  const response = await searchOrama(database, {
+    term: query,
+    properties: [...registrySearchProperties],
+    boost: registrySearchBoost,
+    tolerance: getSearchTolerance(query),
+    threshold: 0,
+    limit: registryItems.length,
+  });
+
+  return response.hits.map((hit) => hit.document.name);
 }
 
 function getRegistrySearchDatabase(): Promise<RegistrySearchDatabase> {

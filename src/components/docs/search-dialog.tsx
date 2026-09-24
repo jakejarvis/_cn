@@ -18,7 +18,11 @@ const LazySearchDialogPanel = React.lazy(async () => {
 
 export function SearchDialog() {
   const [open, setOpen] = React.useState(false);
-  const [shortcutLabel, setShortcutLabel] = React.useState("Ctrl K");
+  const shortcutLabel = React.useSyncExternalStore(
+    subscribeToShortcutLabel,
+    getShortcutLabel,
+    getServerShortcutLabel,
+  );
 
   useHotkey(
     searchHotkey,
@@ -27,10 +31,6 @@ export function SearchDialog() {
     },
     { requireReset: true },
   );
-
-  React.useEffect(() => {
-    setShortcutLabel(formatForDisplay(searchHotkey));
-  }, []);
 
   return (
     <>
@@ -83,4 +83,16 @@ function loadSearchDialogPanel() {
 
 function preloadSearchDialogPanel() {
   void loadSearchDialogPanel();
+}
+
+function subscribeToShortcutLabel(): () => void {
+  return () => {};
+}
+
+function getShortcutLabel(): string {
+  return formatForDisplay(searchHotkey);
+}
+
+function getServerShortcutLabel(): string {
+  return "Ctrl K";
 }

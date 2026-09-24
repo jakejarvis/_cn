@@ -85,6 +85,7 @@ export function ThemeProvider({
 
   React.useEffect(() => {
     const storedTheme = getStoredTheme(storageKey, defaultTheme);
+    // oxlint-disable-next-line react/set-state-in-effect -- Read localStorage only after hydration to match the server render.
     setThemeState(storedTheme);
     setResolvedTheme(getResolvedTheme(storedTheme));
     setMounted(true);
@@ -95,6 +96,7 @@ export function ThemeProvider({
       return undefined;
     }
 
+    // oxlint-disable-next-line react/set-state-in-effect -- applyTheme mutates the document, so this syncs with an external system.
     setResolvedTheme(applyTheme(theme));
 
     let cleanup: (() => void) | undefined;

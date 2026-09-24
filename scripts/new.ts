@@ -2,7 +2,17 @@
 
 import { join } from "node:path";
 
-import { cancel, intro, isCancel, log, note, outro, select, text } from "@clack/prompts";
+import {
+  cancel,
+  type CANCEL_SYMBOL,
+  intro,
+  isCancel,
+  log,
+  note,
+  outro,
+  select,
+  text,
+} from "@clack/prompts";
 
 import {
   isRegistryNewScriptHelpArg,
@@ -173,7 +183,7 @@ async function promptRegistryScaffoldFontInput(name: string): Promise<RegistrySc
   };
 }
 
-async function promptValue<T>(prompt: Promise<T | symbol>): Promise<T> {
+async function promptValue<T>(prompt: Promise<T | typeof CANCEL_SYMBOL>): Promise<T> {
   const value = await prompt;
 
   if (isCancel(value)) {

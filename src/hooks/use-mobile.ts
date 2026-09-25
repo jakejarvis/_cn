@@ -3,17 +3,21 @@ import * as React from "react";
 const MOBILE_BREAKPOINT_QUERY = "(max-width: 63.999rem)";
 
 export function useIsMobile() {
-  const [isMobile, setIsMobile] = React.useState<boolean | undefined>(undefined);
+  return React.useSyncExternalStore(subscribeToMobileQuery, getIsMobile, getServerIsMobile);
+}
 
-  React.useEffect(() => {
-    const mql = window.matchMedia(MOBILE_BREAKPOINT_QUERY);
-    const onChange = () => {
-      setIsMobile(mql.matches);
-    };
-    mql.addEventListener("change", onChange);
-    setIsMobile(mql.matches);
-    return () => mql.removeEventListener("change", onChange);
-  }, []);
+function subscribeToMobileQuery(onChange: () => void): () => void {
+  const mql = window.matchMedia(MOBILE_BREAKPOINT_QUERY);
 
-  return !!isMobile;
+  mql.addEventListener("change", onChange);
+
+  return () => mql.removeEventListener("change", onChange);
+}
+
+function getIsMobile(): boolean {
+  return window.matchMedia(MOBILE_BREAKPOINT_QUERY).matches;
+}
+
+function getServerIsMobile(): boolean {
+  return false;
 }

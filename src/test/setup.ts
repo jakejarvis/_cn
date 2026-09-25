@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, vi } from "vitest";
+import { afterEach, beforeEach, vi } from "vite-plus/test";
 
 const fixedTestTime = new Date("2025-01-01T00:00:00.000Z");
 

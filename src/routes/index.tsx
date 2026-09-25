@@ -37,6 +37,7 @@ function HomePage() {
             variant="outline"
             size="lg"
             nativeButton={false}
+            // oxlint-disable-next-line jsx-a11y/control-has-associated-label -- Label is provided by the parent's children.
             render={<a href={siteConfig.repositoryUrl} target="_blank" rel="noopener noreferrer" />}
           >
             <IconBrandGithub data-icon="inline-start" />

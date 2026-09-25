@@ -3,6 +3,7 @@ import {
   registrySchema as shadcnRegistrySchema,
 } from "shadcn/schema";
 
+import { searchRegistryCatalog, type RegistryCatalogSearchInput } from "../search/registry-search";
 import { getRegistryItem, registryItems } from "./catalog";
 import type { RegistryCatalogItem } from "./catalog-builder";
 import { getRegistryDisplaySource } from "./display-source.server";
@@ -19,8 +20,20 @@ const registryJsonResponseHeaders = {
   "Cache-Control": "public, max-age=0, s-maxage=3600, stale-while-revalidate=86400",
 } as const;
 
+const registrySearchParamNames = ["q", "type", "limit", "offset"] as const;
+const DEFAULT_REGISTRY_SEARCH_LIMIT = 100;
+const MAX_REGISTRY_SEARCH_LIMIT = 100;
+
 type RegistryIndexJson = typeof registryConfig & {
   items: RegistryItemDefinition[];
+  pagination?: RegistryIndexPagination;
+};
+
+type RegistryIndexPagination = {
+  total: number;
+  offset: number;
+  limit: number;
+  hasMore: boolean;
 };
 
 type RegistryItemFileJson = RegistryFileDefinition & {
@@ -75,8 +88,20 @@ type RegistrySourceValidationItem = {
   }[];
 };
 
-export function getRegistryIndexJsonResponse(): Response {
-  return Response.json(getRegistryIndexJson(), {
+/**
+ * Serves the registry index. When the shadcn CLI sends dynamic search params
+ * (`q`, `type`, `limit`, `offset`), the index is filtered server-side and includes
+ * `pagination` so the CLI skips its own local filtering.
+ */
+export async function getRegistryIndexJsonResponse(
+  searchParams?: URLSearchParams,
+): Promise<Response> {
+  const searchInput = searchParams ? parseRegistrySearchParams(searchParams) : undefined;
+  const registry = searchInput
+    ? await searchRegistryIndexJson(searchInput)
+    : getRegistryIndexJson();
+
+  return Response.json(registry, {
     headers: registryJsonResponseHeaders,
   });
 }
@@ -104,6 +129,63 @@ export function getRegistryIndexJson(): RegistryIndexJson {
     ...registryConfig,
     items: registryItems.map(toRegistryItemDefinition),
   };
+}
+
+async function searchRegistryIndexJson(
+  input: RegistryCatalogSearchInput,
+): Promise<RegistryIndexJson> {
+  const { items, total } = await searchRegistryCatalog(input);
+
+  return {
+    ...registryConfig,
+    items: items.map(toRegistryItemDefinition),
+    pagination: {
+      total,
+      offset: input.offset,
+      limit: input.limit,
+      hasMore: input.offset + input.limit < total,
+    },
+  };
+}
+
+export function parseRegistrySearchParams(
+  searchParams: URLSearchParams,
+): RegistryCatalogSearchInput | undefined {
+  if (!registrySearchParamNames.some((name) => searchParams.has(name))) {
+    return undefined;
+  }
+
+  const types = (searchParams.get("type") ?? "")
+    .split(",")
+    .map((type) => type.trim())
+    .filter(Boolean);
+
+  return {
+    query: searchParams.get("q")?.trim() ?? "",
+    types,
+    limit: parseRegistrySearchLimit(searchParams.get("limit")),
+    offset: parseNonNegativeInteger(searchParams.get("offset")),
+  };
+}
+
+function parseNonNegativeInteger(value: string | null): number {
+  const number = Number(value);
+
+  return Number.isFinite(number) && number > 0 ? Math.trunc(number) : 0;
+}
+
+function parseRegistrySearchLimit(value: string | null): number {
+  if (value === null) {
+    return DEFAULT_REGISTRY_SEARCH_LIMIT;
+  }
+
+  const number = Number(value);
+
+  if (!Number.isFinite(number) || number < 0) {
+    return DEFAULT_REGISTRY_SEARCH_LIMIT;
+  }
+
+  return Math.min(Math.trunc(number), MAX_REGISTRY_SEARCH_LIMIT);
 }
 
 export function getRegistryItemJson(name: string): RegistryItemJson | null {

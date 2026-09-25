@@ -34,16 +34,16 @@ type RegistryJsonNegotiationTarget =
       name: string;
     };
 
-export function getContentNegotiationResponseForRequest(
+export async function getContentNegotiationResponseForRequest(
   request: Request,
   pathname: string,
-): Response | undefined {
+): Promise<Response | undefined> {
   if (request.method !== "GET") {
     return undefined;
   }
 
   return (
-    getRegistryJsonNegotiationResponseForRequest(request, pathname) ??
+    (await getRegistryJsonNegotiationResponseForRequest(request, pathname)) ??
     getMarkdownNegotiationResponseForRequest(request, pathname)
   );
 }
@@ -60,15 +60,18 @@ export function appendContentNegotiationVaryHeader(response: Response): Response
   });
 }
 
-export function getRegistryJsonNegotiationResponseForRequest(
+export async function getRegistryJsonNegotiationResponseForRequest(
   request: Request,
   pathname: string,
-): Response | undefined {
+): Promise<Response | undefined> {
   if (request.method !== "GET" || !isShadcnRegistryJsonPreferred(request)) {
     return undefined;
   }
 
-  const response = getRegistryJsonNegotiationResponse(pathname);
+  const response = await getRegistryJsonNegotiationResponse(
+    pathname,
+    new URL(request.url).searchParams,
+  );
 
   return response ? appendContentNegotiationVaryHeader(response) : undefined;
 }
@@ -83,7 +86,10 @@ export function isShadcnRegistryJsonPreferred(request: Request): boolean {
   );
 }
 
-export function getRegistryJsonNegotiationResponse(pathname: string): Response | undefined {
+export async function getRegistryJsonNegotiationResponse(
+  pathname: string,
+  searchParams?: URLSearchParams,
+): Promise<Response | undefined> {
   const target = getRegistryJsonNegotiationTarget(normalizePathname(pathname));
 
   if (!target) {
@@ -91,7 +97,7 @@ export function getRegistryJsonNegotiationResponse(pathname: string): Response |
   }
 
   return target.type === "index"
-    ? getRegistryIndexJsonResponse()
+    ? getRegistryIndexJsonResponse(searchParams)
     : getRegistryItemJsonResponse(target.name);
 }
 

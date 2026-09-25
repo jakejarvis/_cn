@@ -1,5 +1,8 @@
-import { registryItemSchema as shadcnRegistryItemSchema } from "shadcn/schema";
-import { describe, expect, test, vi } from "vitest";
+import {
+  registryItemSchema as shadcnRegistryItemSchema,
+  registrySchema as shadcnRegistrySchema,
+} from "shadcn/schema";
+import { describe, expect, test, vi } from "vite-plus/test";
 
 import { registryItems } from "./catalog";
 import type { RegistryCatalogItem } from "./catalog-builder";
@@ -8,6 +11,7 @@ import {
   getRegistryIndexJsonResponse,
   getRegistryItemJsonResponse,
   getRegistrySourceValidationErrors,
+  parseRegistrySearchParams,
 } from "./json.server";
 import { registryItemSchema } from "./metadata";
 
@@ -146,8 +150,8 @@ vi.mock("./source.server", () => ({
 
 describe("registry JSON route responses", () => {
   test("serves the same registry index payload for canonical and alias routes", async () => {
-    const canonicalResponse = getRegistryIndexJsonResponse();
-    const aliasResponse = getRegistryIndexJsonResponse();
+    const canonicalResponse = await getRegistryIndexJsonResponse();
+    const aliasResponse = await getRegistryIndexJsonResponse();
     const canonical = await readJson(canonicalResponse);
     const alias = await readJson(aliasResponse);
 
@@ -308,6 +312,89 @@ describe("registry JSON route responses", () => {
     }
   });
 });
+
+describe("registry index dynamic search", () => {
+  test("serves the static index without pagination when no search params are sent", async () => {
+    const registry = await readJson(
+      await getRegistryIndexJsonResponse(new URLSearchParams("foo=bar")),
+    );
+
+    expect(registry).toEqual(getRegistryIndexJson());
+    expect(registry).not.toHaveProperty("pagination");
+  });
+
+  test("ranks matching items and reports pagination", async () => {
+    const registry = await searchIndex("q=metrics");
+
+    expect(getItemNames(registry)[0]).toBe("metrics-panel");
+    expect(registry.pagination).toEqual({
+      total: getItemNames(registry).length,
+      offset: 0,
+      limit: 100,
+      hasMore: false,
+    });
+  });
+
+  test("filters by comma-separated item types", async () => {
+    const registry = await searchIndex("type=registry:hook,registry:block");
+
+    expect(getItemNames(registry)).toEqual(["metrics-panel", "use-alpha-state"]);
+    expect(registry.pagination).toMatchObject({ total: 2 });
+  });
+
+  test("pages results with limit and offset", async () => {
+    const firstPage = await searchIndex("limit=1");
+    const secondPage = await searchIndex("limit=1&offset=1");
+    const lastPage = await searchIndex("limit=1&offset=2");
+
+    expect(getItemNames(firstPage)).toEqual(["alpha-card"]);
+    expect(firstPage.pagination).toEqual({ total: 3, offset: 0, limit: 1, hasMore: true });
+    expect(getItemNames(secondPage)).toEqual(["metrics-panel"]);
+    expect(lastPage.pagination).toEqual({ total: 3, offset: 2, limit: 1, hasMore: false });
+  });
+
+  test("falls back to defaults for invalid limit and offset values", () => {
+    expect(parseRegistrySearchParams(new URLSearchParams("limit=nope&offset=-4"))).toEqual({
+      query: "",
+      types: [],
+      limit: 100,
+      offset: 0,
+    });
+    expect(parseRegistrySearchParams(new URLSearchParams("limit=500"))?.limit).toBe(100);
+  });
+
+  test("preserves an explicit limit=0 as an empty page instead of the default limit", async () => {
+    expect(parseRegistrySearchParams(new URLSearchParams("limit=0"))?.limit).toBe(0);
+
+    const registry = await searchIndex("limit=0");
+
+    expect(registry.items).toEqual([]);
+    expect(registry.pagination).toMatchObject({ limit: 0, hasMore: true });
+  });
+
+  test("returns an empty page when nothing matches", async () => {
+    const registry = await searchIndex("type=registry:theme");
+
+    expect(registry.items).toEqual([]);
+    expect(registry.pagination).toMatchObject({ total: 0, hasMore: false });
+  });
+
+  test("returns search responses that satisfy the shadcn registry schema", async () => {
+    const registry = await searchIndex("q=card&limit=2");
+
+    expect(shadcnRegistrySchema.safeParse(registry).success).toBe(true);
+  });
+});
+
+async function searchIndex(query: string) {
+  const response = await getRegistryIndexJsonResponse(new URLSearchParams(query));
+
+  return shadcnRegistrySchema.parse(await response.json());
+}
+
+function getItemNames(registry: { items?: { name: string }[] }): string[] {
+  return (registry.items ?? []).map((item) => item.name);
+}
 
 async function readJson(response: Response): Promise<unknown> {
   return response.json();

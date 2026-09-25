@@ -3,7 +3,7 @@ import { createServerFn } from "@tanstack/react-start";
 import type { RegistryItemDetailInput } from "./detail.types";
 
 export const getRegistryItemDetail = createServerFn({ method: "GET" })
-  .inputValidator(validateRegistryItemDetailInput)
+  .validator(validateRegistryItemDetailInput)
   .handler(async ({ data }) => {
     const { getRegistryItemDetailData } = await import("./detail.server");
 

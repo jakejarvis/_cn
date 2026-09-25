@@ -66,7 +66,7 @@ Edit `registry/config.ts`.
 export const registryConfig = {
   name: "_cn",
   registryName: "_cn",
-  namespace: "@_cn",
+  namespace: "@underscore-cn",
   description: "Installable components for your project.",
   homepage: "https://underscore-cn.vercel.app",
   repositoryUrl: "https://github.com/jakejarvis/_cn",
@@ -168,6 +168,7 @@ The public registry index is available at both the root and `/r` paths, while in
 - `/registry.json` serves the registry index.
 - `/r/registry.json` serves the same registry index.
 - `/r/<name>.json` serves an item JSON file.
+- Both index routes support shadcn's [dynamic search](https://ui.shadcn.com/docs/registry/dynamic-search): `q`, `type` (comma-separated item types), `limit` (max 100), and `offset` filter and rank items server-side and add a `pagination` object to the response. Requests without these parameters receive the full, unpaginated index.
 - `/llms.txt` and `/llms-full.txt` are generated from the same Markdown docs and registry item pages used by the site.
 
 > [!TIP]

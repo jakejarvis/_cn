@@ -1,4 +1,4 @@
-import { describe, expect, test, vi } from "vitest";
+import { describe, expect, test, vi } from "vite-plus/test";
 
 import {
   appendContentNegotiationVaryHeader,
@@ -81,7 +81,7 @@ vi.mock("./registry/markdown.server", () => {
 
 vi.mock("./registry/json.server", () => {
   return {
-    getRegistryIndexJsonResponse: () =>
+    getRegistryIndexJsonResponse: (searchParams?: URLSearchParams) =>
       jsonResponse({
         name: "test-registry",
         items: [
@@ -90,6 +90,7 @@ vi.mock("./registry/json.server", () => {
             type: "registry:ui",
           },
         ],
+        ...(searchParams?.size ? { searchParams: searchParams.toString() } : {}),
       }),
     getRegistryItemJsonResponse: (name: string) => {
       const itemByName: Record<string, unknown> = {
@@ -227,11 +228,11 @@ describe("shadcn registry JSON negotiation", () => {
     );
   });
 
-  test("ignores non-GET requests", () => {
+  test("ignores non-GET requests", async () => {
     const request = createRequest(shadcnAcceptHeader, "POST");
 
     expect(
-      getRegistryJsonNegotiationResponseForRequest(request, "/registry/sample-component"),
+      await getRegistryJsonNegotiationResponseForRequest(request, "/registry/sample-component"),
     ).toBeUndefined();
   });
 
@@ -259,7 +260,7 @@ describe("shadcn registry JSON negotiation", () => {
 
     await Promise.all(
       cases.map(async ({ path, expected }) => {
-        const response = getRegistryJsonNegotiationResponse(path);
+        const response = await getRegistryJsonNegotiationResponse(path);
 
         expect(response).toBeDefined();
         expect(response?.status).toBe(200);
@@ -271,7 +272,7 @@ describe("shadcn registry JSON negotiation", () => {
 
   test("adds content negotiation Vary headers to negotiated JSON responses", async () => {
     const request = createRequest(shadcnAcceptHeader);
-    const response = getRegistryJsonNegotiationResponseForRequest(
+    const response = await getRegistryJsonNegotiationResponseForRequest(
       request,
       "/components/sample-component",
     );
@@ -284,8 +285,19 @@ describe("shadcn registry JSON negotiation", () => {
     );
   });
 
-  test("does not intercept unsupported or already machine-readable paths", () => {
-    for (const path of [
+  test("forwards dynamic search params to the negotiated registry index", async () => {
+    const request = new Request("https://example.com/registry?q=sample&limit=1", {
+      headers: { "User-Agent": "shadcn" },
+    });
+    const response = await getRegistryJsonNegotiationResponseForRequest(request, "/registry");
+
+    expect(await response?.json()).toEqual(
+      expect.objectContaining({ searchParams: "q=sample&limit=1" }),
+    );
+  });
+
+  test("does not intercept unsupported or already machine-readable paths", async () => {
+    const paths = [
       "/docs",
       "/components",
       "/blocks",
@@ -296,14 +308,17 @@ describe("shadcn registry JSON negotiation", () => {
       "/registry/sample-component.md",
       "/components/sample-component.png",
       "/missing",
-    ]) {
-      expect(getRegistryJsonNegotiationResponse(path)).toBeUndefined();
-    }
+    ];
+    const responses = await Promise.all(
+      paths.map((path) => getRegistryJsonNegotiationResponse(path)),
+    );
+
+    expect(responses).toEqual(paths.map(() => undefined));
   });
 
   test("returns JSON 404 responses for missing registry items on supported paths", async () => {
-    const missingRegistryItem = getRegistryJsonNegotiationResponse("/registry/missing");
-    const missingSectionItem = getRegistryJsonNegotiationResponse("/components/missing");
+    const missingRegistryItem = await getRegistryJsonNegotiationResponse("/registry/missing");
+    const missingSectionItem = await getRegistryJsonNegotiationResponse("/components/missing");
 
     expect(missingRegistryItem?.status).toBe(404);
     expect(missingRegistryItem?.headers.get("Content-Type")).toBe("application/json");
@@ -315,7 +330,10 @@ describe("shadcn registry JSON negotiation", () => {
 
   test("prefers shadcn JSON over markdown when both media types are accepted", async () => {
     const request = createRequest(`${shadcnAcceptHeader}, text/markdown;q=0.8`);
-    const response = getContentNegotiationResponseForRequest(request, "/registry/sample-component");
+    const response = await getContentNegotiationResponseForRequest(
+      request,
+      "/registry/sample-component",
+    );
 
     expect(response?.headers.get("Content-Type")).toBe("application/json");
     expect(await response?.json()).toEqual(

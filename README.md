@@ -66,7 +66,7 @@ Edit `registry/config.ts`.
 export const registryConfig = {
   name: "_cn",
   registryName: "_cn",
-  namespace: "@_cn",
+  namespace: "@underscore-cn",
   description: "Installable components for your project.",
   homepage: "https://underscore-cn.vercel.app",
   repositoryUrl: "https://github.com/jakejarvis/_cn",

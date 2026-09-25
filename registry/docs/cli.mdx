@@ -27,7 +27,7 @@ Registries hosted with this template support shadcn's [dynamic search](https://u
 ```json
 {
   "registries": {
-    "@_cn": "https://underscore-cn.vercel.app/r/{name}.json"
+    "@underscore-cn": "https://underscore-cn.vercel.app/r/{name}.json"
   }
 }
 ```
@@ -35,9 +35,9 @@ Registries hosted with this template support shadcn's [dynamic search](https://u
 Then search, list, and view items from the CLI:
 
 ```sh
-npx shadcn@latest search @_cn --query card
-npx shadcn@latest list @_cn
-npx shadcn@latest view @_cn/example-card
+npx shadcn@latest search @underscore-cn --query card
+npx shadcn@latest list @underscore-cn
+npx shadcn@latest view @underscore-cn/example-card
 ```
 
 The CLI sends `q`, `type`, `limit`, and `offset` query parameters to the registry index. The server filters and ranks items and returns a `pagination` object, so the CLI doesn't need to download and filter the full catalog:

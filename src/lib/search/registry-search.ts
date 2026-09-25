@@ -121,7 +121,6 @@ type RegistryCatalogSearchResponse = {
 let registrySearchDatabasePromise: Promise<RegistrySearchDatabase> | undefined;
 let registrySearchRecordsCache: RegistrySearchRecord[] | undefined;
 let registrySearchRecordMapCache: Map<string, RegistrySearchRecord> | undefined;
-let registryCatalogSearchDatabasePromise: Promise<RegistrySearchDatabase> | undefined;
 
 export function getRegistrySearchRecords(): RegistrySearchRecord[] {
   registrySearchRecordsCache ??= createRegistrySearchRecords(
@@ -244,18 +243,18 @@ export async function searchRegistryCatalog({
 }
 
 async function getRankedRegistryItemNames(query: string): Promise<string[]> {
-  registryCatalogSearchDatabasePromise ??= createRegistrySearchDatabase(
-    getRegistrySearchRecords().filter((record) => record.section !== "docs"),
-  );
-
-  const database = await registryCatalogSearchDatabasePromise;
+  // Reuses the shared search database (which also indexes docs pages) instead of building a
+  // second index. The caller already drops non-registry-item hits via `getRegistryItem()`, so
+  // the limit here just needs to cover every record to keep docs pages from crowding registry
+  // items out of the ranked window.
+  const database = await getRegistrySearchDatabase();
   const response = await searchOrama(database, {
     term: query,
     properties: [...registrySearchProperties],
     boost: registrySearchBoost,
     tolerance: getSearchTolerance(query),
     threshold: 0,
-    limit: registryItems.length,
+    limit: getRegistrySearchRecords().length,
   });
 
   return response.hits.map((hit) => hit.document.name);

@@ -363,6 +363,15 @@ describe("registry index dynamic search", () => {
     expect(parseRegistrySearchParams(new URLSearchParams("limit=500"))?.limit).toBe(100);
   });
 
+  test("preserves an explicit limit=0 as an empty page instead of the default limit", async () => {
+    expect(parseRegistrySearchParams(new URLSearchParams("limit=0"))?.limit).toBe(0);
+
+    const registry = await searchIndex("limit=0");
+
+    expect(registry.items).toEqual([]);
+    expect(registry.pagination).toMatchObject({ limit: 0, hasMore: true });
+  });
+
   test("returns an empty page when nothing matches", async () => {
     const registry = await searchIndex("type=registry:theme");
 

@@ -163,10 +163,7 @@ export function parseRegistrySearchParams(
   return {
     query: searchParams.get("q")?.trim() ?? "",
     types,
-    limit: Math.min(
-      parseNonNegativeInteger(searchParams.get("limit")) || DEFAULT_REGISTRY_SEARCH_LIMIT,
-      MAX_REGISTRY_SEARCH_LIMIT,
-    ),
+    limit: parseRegistrySearchLimit(searchParams.get("limit")),
     offset: parseNonNegativeInteger(searchParams.get("offset")),
   };
 }
@@ -175,6 +172,20 @@ function parseNonNegativeInteger(value: string | null): number {
   const number = Number(value);
 
   return Number.isFinite(number) && number > 0 ? Math.trunc(number) : 0;
+}
+
+function parseRegistrySearchLimit(value: string | null): number {
+  if (value === null) {
+    return DEFAULT_REGISTRY_SEARCH_LIMIT;
+  }
+
+  const number = Number(value);
+
+  if (!Number.isFinite(number) || number < 0) {
+    return DEFAULT_REGISTRY_SEARCH_LIMIT;
+  }
+
+  return Math.min(Math.trunc(number), MAX_REGISTRY_SEARCH_LIMIT);
 }
 
 export function getRegistryItemJson(name: string): RegistryItemJson | null {

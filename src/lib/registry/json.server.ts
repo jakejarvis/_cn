@@ -456,8 +456,8 @@ function toRegistryItemFileJson(
   return registryFile;
 }
 
-function formatSchemaIssue(issue: { path: (string | number)[]; message: string }): string {
-  const path = issue.path.length > 0 ? issue.path.join(".") : "<root>";
+function formatSchemaIssue(issue: { path: readonly PropertyKey[]; message: string }): string {
+  const path = issue.path.length > 0 ? issue.path.map(String).join(".") : "<root>";
 
   return `${path}: ${issue.message}`;
 }
